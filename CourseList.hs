@@ -1,5 +1,6 @@
 import Data.Char
 import Data.Maybe
+import Text.HTML.TagSoup
 import Network.HTTP
 import Network.URI
 
@@ -34,9 +35,23 @@ requestCourseList semester subject = do
             rqHeaders = headers,
             rqBody = postData }
      
+parseCourseList :: String -> IO ()
+parseCourseList html = do
+    putStrLn $ show $ filteredRows !! 5
+    where
+        table = head $ getTagContents "table" $ parseTags html
+        rows = getTagContents "tr" table
+        filteredRows = map (getTagContents "td") rows
+        -- Extension of sections that trims tags coming after
+        -- the first closing tag.
+        getTagContents :: String -> [Tag String] -> [[Tag String]]
+        getTagContents tagName tags =
+            let tagContents = sections (~== ("<"++tagName++">")) tags
+                trimTags = takeWhile (not . isTagCloseName tagName)
+                in map trimTags (map tail tagContents)
 
 main = do
     asdf <- requestCourseList "201320" "ARAB"
     case asdf of
         Left x  -> putStrLn $ "Error:\n" ++ x
-        Right x -> putStrLn x
+        Right x -> parseCourseList x
