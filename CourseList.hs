@@ -37,18 +37,23 @@ requestCourseList semester subject = do
      
 parseCourseList :: String -> IO ()
 parseCourseList html = do
-    putStrLn $ show $ filteredRows !! 5
+    putStrLn $ show $ extractTagText rows
     where
         table = head $ getTagContents "table" $ parseTags html
-        rows = getTagContents "tr" table
-        filteredRows = map (getTagContents "td") rows
+        rows = map (getTagContents "td") $ getTagContents "tr" table
         -- Extension of sections that trims tags coming after
         -- the first closing tag.
         getTagContents :: String -> [Tag String] -> [[Tag String]]
         getTagContents tagName tags =
-            let tagContents = sections (~== ("<"++tagName++">")) tags
+            let sectionList = sections (~== ("<"++tagName++">")) tags
+                -- Take only the tags between the start and end tags.
                 trimTags = takeWhile (not . isTagCloseName tagName)
-                in map trimTags (map tail tagContents)
+                in map (trimTags . tail) sectionList 
+        -- Converts the list of TagTexts to 2d array of strings
+        extractTagText :: [[[Tag String]]] -> [[String]]
+        extractTagText rows = 
+            let extract = map $ map $ head . (map fromTagText)
+            in filter (\x -> x /= []) $ (extract rows)
 
 main = do
     asdf <- requestCourseList "201320" "ARAB"
