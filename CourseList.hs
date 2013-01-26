@@ -1,8 +1,19 @@
+{-
+module CourseList
+    (   SectionStatus
+    ,   Section (Unavailable, SectionData)
+    ,   getCourseList
+    ) where
+-}
+
+
 import Data.Char
 import Data.Maybe
+import Data.Either
 import Network.HTTP
 import Network.URI
 import qualified Text.HTML.TagSoup as TS
+ 
 
 data SectionStatus = Open | Closed deriving (Show)
 data Section = Unavailable |
@@ -17,8 +28,10 @@ data Section = Unavailable |
                            , status :: Maybe SectionStatus
                            } deriving (Show)
 
+
 uri = fromJust $ parseURI url where
 url = "http://courselist.wm.edu/wmcourseschedule/courseinfo/searchresults"
+
 
 -- Requests the raw html from the courselist website.
 requestCourseList :: String -> String -> IO (Either String String)
@@ -49,6 +62,7 @@ requestCourseList semester subject = do
             rqHeaders = headers,
             rqBody = postData }
      
+
 -- Parses the raw html into a table of strings from the td tags.
 parseCourseList :: String -> [[String]]
 parseCourseList html = do
@@ -70,6 +84,7 @@ parseCourseList html = do
             let extract = map $ map $ head . (map TS.fromTagText)
             in filter (\x -> x /= []) $ (extract rows)
 
+
 -- Creates a Section given the semester and a list of arguments.
 makeSection :: String -> [String] -> Either String Section
 makeSection semester
@@ -87,11 +102,28 @@ makeSection semester
         else Right section
 makeSection semester args = Left "Wrong number of arguments"
 
-main = let semester = "201320" in do
-    response <- requestCourseList "201320" "ARAB"
+
+checkSectionErrors :: [Either String Section] -> Either String [Section]
+checkSectionErrors eitherSections =
+    let errors =  lefts eitherSections
+    in case errors of
+        [] -> Right $ rights eitherSections
+        _  -> Left $ head errors
+
+
+getCourseList :: String -> String -> IO (Either String [Section])
+getCourseList semester subject = do
+    response <- requestCourseList semester subject
     case response of
-        Left err  -> putStrLn $ "Error:\n" ++ err
+        Left error -> return $ Left error
         Right html ->
             let rows = parseCourseList html
                 sections = map (makeSection semester) rows
-            in putStrLn $ show sections
+            in return $ checkSectionErrors sections
+
+
+main = let semester = "201320" in do
+    courseList <- getCourseList "201320" "ARAB"
+    case courseList of
+        Left error -> putStrLn $ "Error:\n" ++ error
+        Right courseList -> putStrLn $ show courseList
