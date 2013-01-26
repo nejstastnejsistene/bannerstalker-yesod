@@ -35,9 +35,9 @@ requestCourseList semester subject = do
             rqHeaders = headers,
             rqBody = postData }
      
-parseCourseList :: String -> IO ()
+parseCourseList :: String -> [[String]]
 parseCourseList html = do
-    putStrLn $ show $ extractTagText rows
+    extractTagText rows
     where
         table = head $ getTagContents "table" $ parseTags html
         rows = map (getTagContents "td") $ getTagContents "tr" table
@@ -55,8 +55,41 @@ parseCourseList html = do
             let extract = map $ map $ head . (map fromTagText)
             in filter (\x -> x /= []) $ (extract rows)
 
-main = do
-    asdf <- requestCourseList "201320" "ARAB"
-    case asdf of
-        Left x  -> putStrLn $ "Error:\n" ++ x
-        Right x -> parseCourseList x
+data SectionStatus = Open | Closed deriving (Show)
+data Section = Unavailable |
+               SectionData { semester :: String
+                           , crn :: Int
+                           , subject :: String
+                           , courseId :: String
+                           , title :: String
+                           , instructor :: String
+                           , days :: String
+                           , times :: String
+                           , status :: Maybe SectionStatus
+                           } deriving (Show)
+
+-- Creates a Section given the semester and a list of arguments.
+makeSection :: String -> [String] -> Either String Section
+makeSection semester
+        [strCrn, subject, courseId, title,
+            instructor, days, times, _, _, _, _, strStatus] =
+    let crn = read strCrn
+        status = case strStatus of
+                    "OPEN"   -> Just Open
+                    "CLOSED" -> Just Closed
+                    _        -> Nothing
+        section = SectionData semester crn subject
+                    courseId title instructor days times status
+    in if isNothing status
+        then Left $ "Unkown status: " ++ strStatus
+        else Right section
+makeSection semester args = Left "Wrong number of arguments"
+
+main = let semester = "201320" in do
+    response <- requestCourseList "201320" "ARAB"
+    case response of
+        Left err  -> putStrLn $ "Error:\n" ++ err
+        Right html ->
+            let rows = parseCourseList html
+                x = map (makeSection semester) rows
+            in putStrLn $ show x
