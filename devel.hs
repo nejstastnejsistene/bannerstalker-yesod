@@ -1,5 +1,5 @@
 {-# LANGUAGE PackageImports #-}
-import "Bannerstalker" Application (getApplicationDev)
+import "bannerstalker" Application (getApplicationDev)
 import Network.Wai.Handler.Warp
     (runSettings, defaultSettings, settingsPort)
 import Control.Concurrent (forkIO)

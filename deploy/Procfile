@@ -11,7 +11,7 @@
 #     mv deploy/Procfile ./
 #
 # * Create an empty package.json
-#     echo '{ "name": "Bannerstalker", "version": "0.0.1", "dependencies": {} }' >> package.json
+#     echo '{ "name": "bannerstalker", "version": "0.0.1", "dependencies": {} }' >> package.json
 #
 # Postgresql Yesod setup:
 #
@@ -78,7 +78,7 @@
 # * add your web executable binary (referenced below) to the git repository
 #
 #     git checkout deploy
-#     git add ./dist/build/Bannerstalker/Bannerstalker
+#     git add ./dist/build/bannerstalker/bannerstalker
 #     git commit -m deploy
 #
 # * push to Heroku
@@ -87,4 +87,4 @@
 
 
 # Heroku configuration that runs your app
-web: ./dist/build/Bannerstalker/Bannerstalker production -p $PORT
+web: ./dist/build/bannerstalker/bannerstalker production -p $PORT

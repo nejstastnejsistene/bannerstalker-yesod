@@ -1,4 +1,4 @@
-exec: ../dist/build/Bannerstalker/Bannerstalker
+exec: ../dist/build/bannerstalker/bannerstalker
 args:
     - production
 host: <<HOST-NOT-SET>>
