@@ -4,3 +4,5 @@ config/client_session_key.aes
 *.hi
 *.o
 *.sqlite3
+cabal-dev/
+yesod-devel/
