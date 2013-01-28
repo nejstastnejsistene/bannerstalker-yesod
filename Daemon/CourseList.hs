@@ -1,7 +1,7 @@
 {-
 module CourseList
-    (   SectionStatus
-    ,   Section (Unavailable, SectionData)
+    (   SectionStatus (Open, Closed, Unavailable)
+    ,   Section
     ,   getCourseList
     ) where
 -}
@@ -15,18 +15,17 @@ import Network.URI
 import qualified Text.HTML.TagSoup as TS
  
 
-data SectionStatus = Open | Closed deriving (Show)
-data Section = Unavailable |
-               SectionData { semester :: String
-                           , crn :: Int
-                           , subject :: String
-                           , courseId :: String
-                           , title :: String
-                           , instructor :: String
-                           , days :: String
-                           , times :: String
-                           , status :: Maybe SectionStatus
-                           } deriving (Show)
+data SectionStatus = Open | Closed | Unavailable deriving (Show)
+data Section = Section { semester :: String
+                       , crn :: Int
+                       , subject :: String
+                       , courseId :: String
+                       , title :: String
+                       , instructor :: String
+                       , days :: String
+                       , times :: String
+                       , status :: Maybe SectionStatus
+                       } deriving (Show)
 
 
 uri = fromJust $ parseURI url where
@@ -88,15 +87,18 @@ parseCourseList html = do
 -- Creates a Section given the semester and a list of arguments.
 makeSection :: String -> [String] -> Either String Section
 makeSection semester
-        [strCrn, subject, courseId, title,
-            instructor, days, times, _, _, _, _, strStatus] =
+        [strCrn, rawCourseId, _, title, instructor,
+                days, times, _, _, _, _, strStatus] =
     let crn = read strCrn
+        courseIdWords = words rawCourseId
+        subject = head courseIdWords
+        courseId = courseIdWords !! 1
         status = case strStatus of
                     "OPEN"   -> Just Open
                     "CLOSED" -> Just Closed
                     _        -> Nothing
-        section = SectionData semester crn subject
-                    courseId title instructor days times status
+        section = Section semester crn subject courseId
+                        title instructor days times status
     in if isNothing status
         then Left $ "Unkown status: " ++ strStatus
         else Right section
