@@ -1,5 +1,5 @@
 module CourseList
-    (   SectionStatus (Open, Closed, Unavailable)
+    (   SectionStatus (Open, Closed)
     ,   Section
     ,   getCourseList
     ) where
@@ -13,7 +13,7 @@ import Network.URI
 import qualified Text.HTML.TagSoup as TS
  
 
-data SectionStatus = Open | Closed | Unavailable deriving (Show)
+data SectionStatus = Open | Closed | Unavailable deriving (Read, Show)
 data Section = Section String Int String String String String String
                 String (Maybe SectionStatus) deriving (Show)
 

@@ -8,4 +8,27 @@ Email
     verkey Text Maybe
     UniqueEmail email
 
+Settings
+    userId      UserId
+    emailId     EmailId
+    phoneNum    Text
+    useEmail    Bool
+    useSms      Bool
+Section
+    semester    String
+    crn         Int
+    subject     String
+    courseId    String
+    title       String
+    instructor  String
+    days        String
+    time        String
+SectionRequest
+    sectionId   SectionId
+    userId      UserId
+History
+    sectionId   SectionId
+    timestamp   UTCTime
+    status      SectionStatus
+
  -- By default this file is used in Model.hs (which is imported by Foundation.hs)

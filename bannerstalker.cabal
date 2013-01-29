@@ -74,6 +74,7 @@ library
                  , HTTP
                  , network                 
                  , tagsoup
+                 , time
 
 executable         bannerstalker
     if flag(library-only)
