@@ -1,34 +1,24 @@
-{-
 module CourseList
     (   SectionStatus (Open, Closed, Unavailable)
     ,   Section
     ,   getCourseList
     ) where
--}
 
 
-import Data.Char
-import Data.Maybe
+import Prelude
 import Data.Either
+import Data.Maybe
 import Network.HTTP
 import Network.URI
 import qualified Text.HTML.TagSoup as TS
  
 
 data SectionStatus = Open | Closed | Unavailable deriving (Show)
-data Section = Section { semester :: String
-                       , crn :: Int
-                       , subject :: String
-                       , courseId :: String
-                       , title :: String
-                       , instructor :: String
-                       , days :: String
-                       , times :: String
-                       , status :: Maybe SectionStatus
-                       } deriving (Show)
+data Section = Section String Int String String String String String
+                String (Maybe SectionStatus) deriving (Show)
 
 
-uri = fromJust $ parseURI url where
+url :: String
 url = "http://courselist.wm.edu/wmcourseschedule/courseinfo/searchresults"
 
 
@@ -43,7 +33,8 @@ requestCourseList semester subject = do
                 (2,0,0) -> return $ Right (rspBody r)
                 _       -> return $ Left (show r)
     where
-        query = [("term_code", semester),
+        uri = fromJust $ parseURI url
+        postQuery = [("term_code", semester),
                  ("term_subj", subject),
                  ("attr",      "0"),
                  ("levl",      "0"),
@@ -51,7 +42,7 @@ requestCourseList semester subject = do
                  ("search",    "Search"),
                  ("sort",      "crn_key"),
                  ("order",     "asc")]
-        postData = urlEncodeVars query
+        postData = urlEncodeVars postQuery
         headers = [
             Header HdrContentType "application/x-www-form-urlencoded",
             Header HdrContentLength . show $ length postData ]
@@ -65,7 +56,7 @@ requestCourseList semester subject = do
 -- Parses the raw html into a table of strings from the td tags.
 parseCourseList :: String -> [[String]]
 parseCourseList html = do
-    extractTagText rows
+    extractTagString rows
     where
         table = head $ getTagContents "table" $ TS.parseTags html
         rows = map (getTagContents "td") $ getTagContents "tr" table
@@ -77,32 +68,32 @@ parseCourseList html = do
                 -- Take only the tags between the start and end tags.
                 trimTags = takeWhile (not . TS.isTagCloseName tagName)
                 in map (trimTags . tail) sections 
-        -- Converts the list of TagTexts to 2d array of strings
-        extractTagText :: [[[TS.Tag String]]] -> [[String]]
-        extractTagText rows = 
+        -- Converts the list of TagStrings to 2d array of strings
+        extractTagString :: [[[TS.Tag String]]] -> [[String]]
+        extractTagString rowsList = 
             let extract = map $ map $ head . (map TS.fromTagText)
-            in filter (\x -> x /= []) $ (extract rows)
+            in filter (\x -> x /= []) $ (extract rowsList)
 
 
 -- Creates a Section given the semester and a list of arguments.
 makeSection :: String -> [String] -> Either String Section
 makeSection semester
-        [strCrn, rawCourseId, _, title, instructor,
-                days, times, _, _, _, _, strStatus] =
-    let crn = read strCrn
+        [rawCrn, rawCourseId, _, title, instructor,
+                days, times, _, _, _, _, rawStatus] =
+    let crn = read rawCrn
         courseIdWords = words rawCourseId
         subject = head courseIdWords
         courseId = courseIdWords !! 1
-        status = case strStatus of
+        status = case rawStatus of
                     "OPEN"   -> Just Open
                     "CLOSED" -> Just Closed
                     _        -> Nothing
         section = Section semester crn subject courseId
                         title instructor days times status
     in if isNothing status
-        then Left $ "Unkown status: " ++ strStatus
+        then Left $ "Unkown status: " ++ rawStatus
         else Right section
-makeSection semester args = Left "Wrong number of arguments"
+makeSection _ _ = Left "Wrong number of arguments"
 
 
 checkSectionErrors :: [Either String Section] -> Either String [Section]
@@ -117,15 +108,17 @@ getCourseList :: String -> String -> IO (Either String [Section])
 getCourseList semester subject = do
     response <- requestCourseList semester subject
     case response of
-        Left error -> return $ Left error
+        Left err -> return $ Left err
         Right html ->
             let rows = parseCourseList html
                 sections = map (makeSection semester) rows
             in return $ checkSectionErrors sections
 
-
-main = let semester = "201320" in do
+{-
+main :: IO ()
+main = do
     courseList <- getCourseList "201320" "ARAB"
     case courseList of
-        Left error -> putStrLn $ "Error:\n" ++ error
-        Right courseList -> putStrLn $ show courseList
+        Left err -> putStrLn $ "Error:\n" ++ err
+        Right sections -> putStrLn $ show sections
+-}
