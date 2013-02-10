@@ -23,6 +23,8 @@ Section
     instructor  String
     days        String
     time        String
+    lastStatus  SectionStatus
+    deriving Show
 SectionRequest
     sectionId   SectionId
     userId      UserId

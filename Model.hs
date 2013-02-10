@@ -1,13 +1,14 @@
 module Model where
 
-import CourseList (SectionStatus)
+-- import CourseList (SectionStatus)
 import Prelude
 import Yesod
 import Data.Text (Text)
 import Data.Time (UTCTime)
 import Database.Persist.Quasi
 
-
+data SectionStatus = Open | Closed | Unavailable
+    deriving (Read, Show)
 derivePersistField "SectionStatus"
 
 -- You can define all of your database entities in the entities file.

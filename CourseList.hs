@@ -11,11 +11,11 @@ import Data.Maybe
 import Network.HTTP
 import Network.URI
 import qualified Text.HTML.TagSoup as TS
- 
 
-data SectionStatus = Open | Closed | Unavailable deriving (Read, Show)
-data Section = Section String Int String String String String String
-                String (Maybe SectionStatus) deriving (Show)
+import Model -- (Section, SectionStatus (Open, Closed))
+ 
+--data Section = Section String Int String String String String String
+--                String (Maybe SectionStatus) deriving (Show)
 
 
 url :: String
@@ -88,11 +88,10 @@ makeSection semester
                     "OPEN"   -> Just Open
                     "CLOSED" -> Just Closed
                     _        -> Nothing
-        section = Section semester crn subject courseId
-                        title instructor days times status
     in if isNothing status
         then Left $ "Unkown status: " ++ rawStatus
-        else Right section
+        else Right $ Section semester crn subject courseId
+                        title instructor days times $ fromJust status
 makeSection _ _ = Left "Wrong number of arguments"
 
 
@@ -113,12 +112,3 @@ getCourseList semester subject = do
             let rows = parseCourseList html
                 sections = map (makeSection semester) rows
             in return $ checkSectionErrors sections
-
-{-
-main :: IO ()
-main = do
-    courseList <- getCourseList "201320" "ARAB"
-    case courseList of
-        Left err -> putStrLn $ "Error:\n" ++ err
-        Right sections -> putStrLn $ show sections
--}
