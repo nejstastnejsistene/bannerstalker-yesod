@@ -1,9 +1,4 @@
-module CourseList
-    (   SectionStatus (Open, Closed)
-    ,   Section
-    ,   getCourseList
-    ) where
-
+module CourseList (getCourseList) where
 
 import Prelude
 import Data.Either
@@ -12,15 +7,10 @@ import Network.HTTP
 import Network.URI
 import qualified Text.HTML.TagSoup as TS
 
-import Model -- (Section, SectionStatus (Open, Closed))
- 
---data Section = Section String Int String String String String String
---                String (Maybe SectionStatus) deriving (Show)
-
+import Model
 
 url :: String
 url = "http://courselist.wm.edu/wmcourseschedule/courseinfo/searchresults"
-
 
 -- Requests the raw html from the courselist website.
 requestCourseList :: String -> String -> IO (Either String String)
