@@ -24,7 +24,7 @@ Section
     days        String
     time        String
     lastStatus  SectionStatus
-    deriving Show
+    deriving    Show
 SectionRequest
     sectionId   SectionId
     userId      UserId
