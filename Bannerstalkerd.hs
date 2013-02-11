@@ -1,7 +1,10 @@
 module Bannerstalkerd where
 
+import Import
 import Prelude
 import Database.Persist
+import Database.Persist.Store
+import Database.Persist.GenericSql
 import Database.Persist.Postgresql
 import System.Posix.Daemonize
 import Control.Monad.IO.Class (liftIO)
@@ -11,8 +14,7 @@ import CourseList
 import Model
 import Settings
 
-{-
-daemon :: CreateDaemon ()
+{-daemon :: CreateDaemon ()
 daemon = CreateDaemon {  privilegedAction = return ()
                       ,  program = const bannerstalkerd
                       ,  name = Just "bannerstalkerd"
@@ -23,18 +25,11 @@ daemon = CreateDaemon {  privilegedAction = return ()
                       }
 -}
 
-bannerstalkerd :: IO ()
-bannerstalkerd = do
-    courseList <- fetchCourseList "201320" "MATH"
-    case courseList of
-        Left err -> do
-            putStrLn $  "Error fetching courselist: " ++ err
-        Right sections -> do
-            let firstSection = head sections
-            putStrLn $ show firstSection
-            --persistId <- insert firstSection
-            --putStrLn $ show persistId
-    return ()
+--bannerstalkerd :: (MonadIO m) => [Section] -> SqlPersist m ()
+{-bannerstalkerd sections = do
+    let firstSection = head sections
+    sectionId <- insert firstSection    
+    liftIO $ putStrLn $ show sectionId -}
 
     -- sections from db
     -- statuses from db
@@ -50,23 +45,32 @@ bannerstalkerd = do
             -- if key in statuses and old status != new status
                 -- notify users
 
---main = serviced daemon
---main = bannerstalkerd
-startDaemon :: PersistConfig -> IO ()
+startDaemon :: Settings.PersistConfig -> IO ()
 --startDaemon = serviced daemon
 startDaemon conf = do
-    --putStrLn "Started..."
-    --config <- (fromArgs parseExtra)
-    --app <- makeFoundation config
-    --let pool =  (connPool app)
-    --    dbconf = (persistConfig app)
-    --putStrLn $ show pool
-    --dbConf <- getPersistConfig conf
     putStrLn $ show $ pgConnStr conf
-    {-
-    runResourceT $ withPostgresqlConn "host=localhost port=5432 user=bannerstalker dbname=bannerstalker" $ runSqlConn $ do
-        asdfId <- insert $ Section "a" 0 "b" "c" "d" "e" "f" "g" Closed
-        fdsaId <- insert $ Section "z" 0 "b" "c" "d" "e" "f" "g" Open
-        liftIO $ putStrLn $ show asdfId
-        liftIO $ putStrLn $ show fdsaId
-    -}
+    courseList <- fetchCourseList "201320" "0"
+    case courseList of
+        Left err -> do
+            putStrLn $  "Error fetching courselist: " ++ err
+        Right sections -> do
+            let firstSection = head sections
+                conn = withPostgresqlConn (pgConnStr conf)
+            runResourceT $ conn $ runSqlConn $ do
+                runMigration migrateAll
+                deleteWhere [SectionSemester ==. "201320"]
+                sectionIds <- mapM insert sections    
+                liftIO $ putStrLn $ show sectionIds 
+    {-pool <- createPoolConfig conf 
+    courseList <- fetchCourseList "201320" "MATH"
+    case courseList of
+        Left err -> putStrLn "error"
+        Right sections -> do
+            let section = head section
+            putStrLn $ show section
+            runPool conf asdf-}
+
+asdf section = do
+    runMigration migrateAll
+    insert section
+    return ()
