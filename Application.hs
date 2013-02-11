@@ -3,6 +3,7 @@ module Application
     ( makeApplication
     , getApplicationDev
     , makeFoundation
+    , getPersistConfig
     ) where
 
 import Import
@@ -42,12 +43,18 @@ makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
     manager <- newManager def
     s <- staticSite
-    dbconf <- withYamlEnvironment "config/postgresql.yml" (appEnv conf)
-              Database.Persist.Store.loadConfig >>=
-              Database.Persist.Store.applyEnv
+    dbconf <- getPersistConfig conf
+    --dbconf <- withYamlEnvironment "config/postgresql.yml" (appEnv conf)
+    --          Database.Persist.Store.loadConfig >>=
+    --          Database.Persist.Store.applyEnv
     p <- Database.Persist.Store.createPoolConfig (dbconf :: Settings.PersistConfig)
     Database.Persist.Store.runPool dbconf (runMigration migrateAll) p
     return $ App conf s p manager dbconf
+
+getPersistConfig :: AppConfig DefaultEnv Extra -> IO PersistConfig
+getPersistConfig conf =
+    withYamlEnvironment "config/postgresql.yml" (appEnv conf)
+    Database.Persist.Store.loadConfig >>= Database.Persist.Store.applyEnv
 
 -- for yesod devel
 getApplicationDev :: IO (Int, Application)

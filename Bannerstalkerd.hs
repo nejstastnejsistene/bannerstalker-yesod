@@ -4,16 +4,14 @@ import Prelude
 import Database.Persist
 import Database.Persist.Postgresql
 import System.Posix.Daemonize
-import Yesod.Default.Config
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Resource (runResourceT)
 
-import Application (makeFoundation)
 import CourseList
-import Foundation
 import Model
-import Settings (parseExtra)
+import Settings
 
+{-
 daemon :: CreateDaemon ()
 daemon = CreateDaemon {  privilegedAction = return ()
                       ,  program = const bannerstalkerd
@@ -23,6 +21,7 @@ daemon = CreateDaemon {  privilegedAction = return ()
                       ,  syslogOptions = []
                       ,  pidfileDirectory = Just "/var/run"
                       }
+-}
 
 bannerstalkerd :: IO ()
 bannerstalkerd = do
@@ -53,17 +52,21 @@ bannerstalkerd = do
 
 --main = serviced daemon
 --main = bannerstalkerd
-startDaemon :: IO ()
+startDaemon :: PersistConfig -> IO ()
 --startDaemon = serviced daemon
-startDaemon = -- do
+startDaemon conf = do
+    --putStrLn "Started..."
     --config <- (fromArgs parseExtra)
     --app <- makeFoundation config
     --let pool =  (connPool app)
     --    dbconf = (persistConfig app)
     --putStrLn $ show pool
+    --dbConf <- getPersistConfig conf
+    putStrLn $ show $ pgConnStr conf
+    {-
     runResourceT $ withPostgresqlConn "host=localhost port=5432 user=bannerstalker dbname=bannerstalker" $ runSqlConn $ do
         asdfId <- insert $ Section "a" 0 "b" "c" "d" "e" "f" "g" Closed
         fdsaId <- insert $ Section "z" 0 "b" "c" "d" "e" "f" "g" Open
         liftIO $ putStrLn $ show asdfId
         liftIO $ putStrLn $ show fdsaId
-    
+    -}
