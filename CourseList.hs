@@ -3,6 +3,7 @@ module CourseList (fetchCourseList) where
 import Prelude
 import Data.Either
 import Data.Maybe
+import Data.Text (strip, pack, unpack)
 import Network.HTTP
 import Network.URI
 import qualified Text.HTML.TagSoup as TS
@@ -61,7 +62,9 @@ parseCourseList html = do
         -- Converts the list of TagStrings to 2d array of strings
         extractTagString :: [[[TS.Tag String]]] -> [[String]]
         extractTagString rowsList = 
-            let extract = map $ map $ head . (map TS.fromTagText)
+            -- Also strip all of the td tags.
+            let toString = unpack . strip . pack . TS.fromTagText
+                extract = map $ map $ head . (map toString)
             in filter (\x -> x /= []) $ (extract rowsList)
 
 
@@ -69,7 +72,7 @@ parseCourseList html = do
 makeSection :: String -> [String] -> Either String Section
 makeSection semester
         [rawCrn, rawCourseId, _, title, instructor,
-                days, times, _, _, _, _, rawStatus] =
+                _, days, times, _, _, _, rawStatus] =
     let crn = read rawCrn
         courseIdWords = words rawCourseId
         subject = head courseIdWords
