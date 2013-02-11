@@ -1,4 +1,4 @@
-module CourseList (getCourseList) where
+module CourseList (fetchCourseList) where
 
 import Prelude
 import Data.Either
@@ -85,20 +85,15 @@ makeSection semester
 makeSection _ _ = Left "Wrong number of arguments"
 
 
-checkSectionErrors :: [Either String Section] -> Either String [Section]
-checkSectionErrors eitherSections =
-    let errors =  lefts eitherSections
-    in case errors of
-        [] -> Right $ rights eitherSections
-        _  -> Left $ head errors
-
-
-getCourseList :: String -> String -> IO (Either String [Section])
-getCourseList semester subject = do
+fetchCourseList :: String -> String -> IO (Either String [Section])
+fetchCourseList semester subject = do
     response <- requestCourseList semester subject
     case response of
         Left err -> return $ Left err
         Right html ->
             let rows = parseCourseList html
-                sections = map (makeSection semester) rows
-            in return $ checkSectionErrors sections
+                eitherSections = map (makeSection semester) rows
+                (errors, sections) = partitionEithers eitherSections
+            in case errors of
+                [] -> return $ Right sections
+                _  -> return $ Left $ head errors

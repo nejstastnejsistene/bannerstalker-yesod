@@ -26,7 +26,7 @@ daemon = CreateDaemon {  privilegedAction = return ()
 
 bannerstalkerd :: IO ()
 bannerstalkerd = do
-    courseList <- getCourseList "201320" "MATH"
+    courseList <- fetchCourseList "201320" "MATH"
     case courseList of
         Left err -> do
             putStrLn $  "Error fetching courselist: " ++ err
