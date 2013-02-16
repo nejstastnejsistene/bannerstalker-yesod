@@ -1,7 +1,7 @@
 Default: &defaults
   user: bannerstalker
   password: bannerstalker
-  host: localhost
+  host: bannerstalker.com
   port: 5432
   database: bannerstalker
   poolsize: 10
@@ -19,6 +19,7 @@ Staging:
   <<: *defaults
 
 Production:
+  host: localhost
   database: bannerstalker_production
   poolsize: 100
   <<: *defaults
