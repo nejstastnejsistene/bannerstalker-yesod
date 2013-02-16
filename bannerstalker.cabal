@@ -12,9 +12,8 @@ Flag library-only
     Default:       False
 
 library
+    hs-source-dirs:  src
     exposed-modules: Application
-                     Bannerstalkerd
-                     CourseList
                      Foundation
                      Import
                      Model
@@ -70,22 +69,14 @@ library
                  , warp                          >= 1.3        && < 1.4
                  , data-default
                  , aeson
-
-                 -- my depends
-                 , HTTP
-                 , hdaemonize
-                 , network                 
-                 , resourcet
-                 , tagsoup
                  , time
-                 , transformers
 
 executable         bannerstalker
     if flag(library-only)
         Buildable: False
 
-    main-is:           main.hs
-    hs-source-dirs:    app
+    main-is:           Main.hs
+    hs-source-dirs:    server
     build-depends:     base
                      , bannerstalker
                      , yesod-default
@@ -96,11 +87,21 @@ executable         bannerstalkerd
     if flag(library-only)
         Buildable: False
 
-    main-is:           main.hs
+    main-is:           Main.hs
     hs-source-dirs:    daemon
     build-depends:     base
                      , bannerstalker
                      , yesod-default
+
+                     , HTTP
+                     , hdaemonize
+                     , network                 
+                     , persistent
+                     , persistent-postgresql
+                     , resourcet
+                     , tagsoup
+                     , text
+                     , transformers
 
     ghc-options:       -threaded -O2
 
