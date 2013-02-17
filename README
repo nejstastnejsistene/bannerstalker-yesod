@@ -1,0 +1,7 @@
+Bannerstalker
+
+Instructions for Mike:
+$ cp config/postgresql-sample.yml config/postgresql.yml
+$ vim config/postgresql.yml # fill in your username and password
+$ cabal install # to install dependencies
+$ yesod devel   # run the development server
