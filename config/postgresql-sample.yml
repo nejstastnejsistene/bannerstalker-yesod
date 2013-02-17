@@ -1,6 +1,6 @@
 Default: &defaults
-  user: bannerstalker
-  password: bannerstalker
+  user: <username>
+  password: <password>
   host: bannerstalker.com
   port: 5432
   database: bannerstalker
