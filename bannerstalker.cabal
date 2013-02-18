@@ -94,6 +94,7 @@ executable         bannerstalkerd
                      , yesod-default
 
                      , HTTP
+                     , containers
                      , hdaemonize
                      , network                 
                      , persistent
@@ -101,6 +102,7 @@ executable         bannerstalkerd
                      , resourcet
                      , tagsoup
                      , text
+                     , time
                      , transformers
 
     ghc-options:       -threaded -O2
