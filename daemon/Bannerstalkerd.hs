@@ -3,22 +3,43 @@ import Import
 import Prelude
 import Database.Persist
 import Database.Persist.Postgresql
-import Control.Monad.Trans.Resource (runResourceT)
+import Control.Monad.Trans.Resource
+import Data.Time
+import qualified Data.Map as Map
 
 import CourseList
 import Model
-import Settings
+import Settings (PersistConfig)
 
 bannerstalkerd :: PersistConfig -> IO ()
 bannerstalkerd dbConf = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
     runResourceT $ conn $ runSqlConn $ do 
-        -- sections from db
-        sections <- selectList [] []
-        liftIO $ putStrLn $ show (sections :: [Entity Section])
+        sectionsList <- selectList [SectionSemester ==. semester] []
+        let sectionKeys = map (sectionCrn . entityVal) sectionsList
+            sections = Map.fromList $ zip sectionKeys sectionsList
+        checkCourseList sections
     return ()
-    --sections <- runPool dbConf (do selectList [] []) pool
-    -- statuses from db
+    where
+        semester = "201320"
+        subject = "0"
+        checkCourseList oldSections = do
+            response <- liftIO $ fetchCourseList semester subject
+            case response of
+                Left err -> do
+                    -- Record statuses as Unavailable.
+                    updateWhere [SectionSemester ==. semester]
+                                [SectionLastStatus =. Unavailable]
+                    let recordUnavailable = recordHistory Unavailable
+                        sectionIds = map entityKey $ Map.elems oldSections
+                    mapM_ recordUnavailable sectionIds
+                Right newSections -> do
+                    return ()
+        recordHistory status sectionId = do
+            time <- liftIO $ getCurrentTime
+            insert $ History sectionId time status
+            
+            
     -- loop
         -- keys
         -- for each getCourseList
