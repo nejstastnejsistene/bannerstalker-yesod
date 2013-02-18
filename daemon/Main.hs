@@ -1,9 +1,9 @@
-import Prelude                  (IO)
+import Prelude
 import Yesod.Default.Config     (fromArgs)
 import Application              (getPersistConfig)
 import Settings                 (parseExtra)
 import Bannerstalkerd           (bannerstalkerd)
-import System.Posix.Daemonize   (CreateDaemon, serviced)
+import System.Posix.Daemonize
 
 daemon :: CreateDaemon ()
 daemon = CreateDaemon {  privilegedAction = return ()
