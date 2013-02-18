@@ -1,23 +1,30 @@
---import Data.Text (Text)
-import GHC.IO.Handle
-import System.Exit
-import System.Process
-
 import Data.Text
-import Network.Mail.Mime
+import qualified Data.Text.Lazy as LT
 import qualified Data.ByteString.Lazy.Char8 as B
+import Network.Mail.Mime
+import Text.Hamlet
+import Text.Blaze.Html.Renderer.String
+import Model
 
-me = Address (Just "Peter Johnson") "pajohnson@email.wm.edu"
-admin = Address (Just "Bannerstalker") "admin@bannerstalker.com"
+fromAddr :: Address
+fromAddr  = Address (Just "Bannerstalker") "admin@bannerstalker.com"
 
-_text = "ahoj!"
-_html = "<html><body><p>ahoj!</p></body></html>"
-
-createMessage :: IO ()
-createMessage = do
-    message <- simpleMail me admin "subject" _text _html []
+notifyUser :: String -> String -> Section -> IO ()
+notifyUser nameStr emailStr section = do
+    let name = pack nameStr
+        email = pack emailStr
+        toAddr = Address (Just name) email
+        text = LT.pack $ renderHtml $(shamletFile
+                            "templates/mail-notification-text.hamlet")
+        html = LT.pack $ renderHtml $(shamletFile
+                            "templates/mail-notification-html.hamlet")
+    message <- simpleMail toAddr fromAddr "subject" text html []
     out <- renderMail' message
     B.putStrLn out
 
 main :: IO ()
-main = createMessage
+main = do
+    let section = Section "semester" 123 "MATH" "303" "Title" "" "" "" Open
+        name = "Peter Johnson"
+        email = "pajohnson@email.wm.edu"
+    notifyUser name email section

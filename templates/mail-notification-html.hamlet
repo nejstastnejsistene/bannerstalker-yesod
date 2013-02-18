@@ -1,5 +1,3 @@
 <html>
-    <body>
-        <p>ahoj!</p> 
-    </body>
-</html>
+  <body>
+    <p>#{sectionTitle section} is now #{sectionLastStatus section}
