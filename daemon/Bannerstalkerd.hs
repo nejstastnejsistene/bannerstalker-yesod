@@ -3,8 +3,10 @@ import Import
 import Prelude
 import Database.Persist
 import Database.Persist.Postgresql
+import Control.Monad
 import Control.Monad.Trans.Resource
 import Data.Time
+import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
@@ -29,9 +31,10 @@ bannerstalkerd dbConf = do
             time <- liftIO $ getCurrentTime
             case response of
                 Left err -> do
+                    --updateWhere [SectionSemester ==. semester]
+                    --            [SectionLastStatus =. Unavailable
+
                     -- Record statuses as Unavailable.
-                    updateWhere [SectionSemester ==. semester]
-                                [SectionLastStatus =. Unavailable]
                     let recordUnavailable = recordHistory time Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
                     mapM_ recordUnavailable sectionIds
@@ -46,15 +49,23 @@ bannerstalkerd dbConf = do
                 removedCrns = Set.difference oldCrns newCrns
                 existingCrns = Set.intersection oldCrns newCrns
                 handleAddedCrn crn = do
-                    case Map.lookup crn newSections of
-                        Just section -> do
-                            sectionId <- insert section
-                            let status = sectionLastStatus section
-                            recordHistory time status sectionId
+                    let section = fromJust $ Map.lookup crn newSections
+                        status = sectionLastStatus section
+                    sectionId <- insert section
+                    recordHistory time status sectionId
                 handleRemovedCrn crn = do
                     liftIO $ putStrLn "OMG WHERE DID IT GO"
                 handleExistingCrn crn = do
-                    liftIO $ putStr "c"
+                    let entity = fromJust $ Map.lookup crn oldSections
+                        sectionId = entityKey entity
+                        oldSection = entityVal entity
+                        newSection = fromJust $ Map.lookup crn newSections
+                        oldStatus = sectionLastStatus oldSection
+                        newStatus = sectionLastStatus newSection
+                    when (newStatus /= oldStatus) $ do
+                        update sectionId [SectionLastStatus =. newStatus]
+                        --notify user
+                    recordHistory time newStatus sectionId
             liftIO $ putStrLn $
                 "added: " ++ show (Set.size addedCrns) ++
                 "\nremoved: " ++ show (Set.size removedCrns) ++
