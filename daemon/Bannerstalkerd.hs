@@ -6,6 +6,7 @@ import Database.Persist.Postgresql
 import Control.Monad.Trans.Resource
 import Data.Time
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 import CourseList
 import Model
@@ -16,8 +17,8 @@ bannerstalkerd dbConf = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
     runResourceT $ conn $ runSqlConn $ do 
         sectionsList <- selectList [SectionSemester ==. semester] []
-        let sectionKeys = map (sectionCrn . entityVal) sectionsList
-            sections = Map.fromList $ zip sectionKeys sectionsList
+        let keys = map (sectionCrn . entityVal) sectionsList
+            sections = Map.fromList $ zip keys sectionsList
         checkCourseList sections
     return ()
     where
@@ -33,12 +34,33 @@ bannerstalkerd dbConf = do
                     let recordUnavailable = recordHistory Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
                     mapM_ recordUnavailable sectionIds
-                Right newSections -> do
-                    return ()
+                Right sectionsList -> do
+                    let keys = map sectionCrn sectionsList
+                        sections = Map.fromList $ zip keys sectionsList
+                    processCourseList oldSections sections
+        processCourseList oldSections newSections = do
+            let oldCrns = Set.fromList $ Map.keys oldSections
+                newCrns = Set.fromList $ Map.keys newSections
+                addedCrns = Set.difference newCrns oldCrns 
+                removedCrns = Set.difference oldCrns newCrns
+                existingCrns = Set.intersection oldCrns newCrns
+                -- I need to implement these.
+                handleAddedCrn crn = do
+                    liftIO $ putStr "a"
+                handleRemovedCrn crn = do
+                    liftIO $ putStr "b"
+                handleExistingCrn crn = do
+                    liftIO $ putStr "c"
+            liftIO $ putStrLn $
+                "added: " ++ show (Set.size addedCrns) ++
+                "\nremoved: " ++ show (Set.size removedCrns) ++
+                "\nexisting: " ++ show (Set.size existingCrns)
+            mapM_ handleAddedCrn $ Set.toList addedCrns
+            mapM_ handleRemovedCrn $ Set.toList removedCrns
+            mapM_ handleExistingCrn $ Set.toList existingCrns
         recordHistory status sectionId = do
             time <- liftIO $ getCurrentTime
             insert $ History sectionId time status
-            
             
     -- loop
         -- keys
