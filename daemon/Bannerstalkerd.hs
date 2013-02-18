@@ -26,29 +26,33 @@ bannerstalkerd dbConf = do
         subject = "0"
         checkCourseList oldSections = do
             response <- liftIO $ fetchCourseList semester subject
+            time <- liftIO $ getCurrentTime
             case response of
                 Left err -> do
                     -- Record statuses as Unavailable.
                     updateWhere [SectionSemester ==. semester]
                                 [SectionLastStatus =. Unavailable]
-                    let recordUnavailable = recordHistory Unavailable
+                    let recordUnavailable = recordHistory time Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
                     mapM_ recordUnavailable sectionIds
                 Right sectionsList -> do
                     let keys = map sectionCrn sectionsList
                         sections = Map.fromList $ zip keys sectionsList
-                    processCourseList oldSections sections
-        processCourseList oldSections newSections = do
+                    processCourseList time oldSections sections
+        processCourseList time oldSections newSections = do
             let oldCrns = Set.fromList $ Map.keys oldSections
                 newCrns = Set.fromList $ Map.keys newSections
                 addedCrns = Set.difference newCrns oldCrns 
                 removedCrns = Set.difference oldCrns newCrns
                 existingCrns = Set.intersection oldCrns newCrns
-                -- I need to implement these.
                 handleAddedCrn crn = do
-                    liftIO $ putStr "a"
+                    case Map.lookup crn newSections of
+                        Just section -> do
+                            sectionId <- insert section
+                            let status = sectionLastStatus section
+                            recordHistory time status sectionId
                 handleRemovedCrn crn = do
-                    liftIO $ putStr "b"
+                    liftIO $ putStrLn "OMG WHERE DID IT GO"
                 handleExistingCrn crn = do
                     liftIO $ putStr "c"
             liftIO $ putStrLn $
@@ -58,8 +62,7 @@ bannerstalkerd dbConf = do
             mapM_ handleAddedCrn $ Set.toList addedCrns
             mapM_ handleRemovedCrn $ Set.toList removedCrns
             mapM_ handleExistingCrn $ Set.toList existingCrns
-        recordHistory status sectionId = do
-            time <- liftIO $ getCurrentTime
+        recordHistory time status sectionId = do
             insert $ History sectionId time status
             
     -- loop
