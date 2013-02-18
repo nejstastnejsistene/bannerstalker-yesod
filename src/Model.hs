@@ -8,7 +8,7 @@ import Data.Time (UTCTime)
 import Database.Persist.Quasi
 
 data SectionStatus = Open | Closed | Unavailable
-    deriving (Read, Show)
+    deriving (Read, Show, Eq)
 derivePersistField "SectionStatus"
 
 -- You can define all of your database entities in the entities file.
