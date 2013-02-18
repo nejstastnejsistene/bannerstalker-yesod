@@ -3,13 +3,21 @@ import GHC.IO.Handle
 import System.Exit
 import System.Process
 
-sendmail :: String -> IO ()
-sendmail message = do
-    (Just hIn, _, _, pHandle) <- createProcess $ (proc
-        "/usr/sbin/sendmail" ["-t"]) { std_in = CreatePipe }
-    hPutStr hIn message
-    hClose hIn
-    exitCode <- waitForProcess pHandle
-    case exitCode of
-        ExitSuccess -> return ()
-        _ -> error $ "sendmail exited with error code " ++ show exitCode
+import Data.Text
+import Network.Mail.Mime
+import qualified Data.ByteString.Lazy.Char8 as B
+
+me = Address (Just "Peter Johnson") "pajohnson@email.wm.edu"
+admin = Address (Just "Bannerstalker") "admin@bannerstalker.com"
+
+_text = "ahoj!"
+_html = "<html><body><p>ahoj!</p></body></html>"
+
+createMessage :: IO ()
+createMessage = do
+    message <- simpleMail me admin "subject" _text _html []
+    out <- renderMail' message
+    B.putStrLn out
+
+main :: IO ()
+main = createMessage
