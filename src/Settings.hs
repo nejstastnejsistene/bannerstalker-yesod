@@ -69,6 +69,7 @@ widgetFile = (if development then widgetFileReload
 data Extra = Extra
     { extraCopyright :: Text
     , extraAnalytics :: Maybe Text -- ^ Google Analytics
+    , extraSemesters :: [Text]
     , extraLevel1NotifyInterval :: Int
     , extraLevel2NotifyInterval :: Int
     , extraLevel3NotifyInterval :: Int
@@ -78,6 +79,14 @@ parseExtra :: DefaultEnv -> Object -> Parser Extra
 parseExtra _ o = Extra
     <$> o .:  "copyright"
     <*> o .:? "analytics"
+    <*> o .:  "semesters"
     <*> o .:  "level1NotifyInterval"
     <*> o .:  "level2NotifyInterval"
     <*> o .:  "level3NotifyInterval"
+
+getNotifyInterval :: Extra -> PrivilegeLevel -> Int
+getNotifyInterval extra priv = case priv of
+    Level1 -> extraLevel1NotifyInterval extra
+    Level2 -> extraLevel2NotifyInterval extra
+    Level3 -> extraLevel3NotifyInterval extra
+    Admin  -> 1

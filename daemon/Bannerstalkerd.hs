@@ -6,6 +6,7 @@ import Database.Persist.GenericSql.Raw
 import Database.Persist.Postgresql
 import Control.Monad
 import Control.Monad.Trans.Resource
+import Data.Text (unpack)
 import Data.Time
 import Data.Maybe
 import qualified Data.Map as Map
@@ -19,17 +20,16 @@ import Email (notifyByEmail)
 bannerstalkerd :: Extra -> PersistConfig -> IO ()
 bannerstalkerd extra dbConf = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
+    let semesters = map unpack $ extraSemesters extra
     runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
-        sectionsList <- selectList [SectionSemester ==. semester] []
-        let keys = map (sectionCrn . entityVal) sectionsList
-            sections = Map.fromList $ zip keys sectionsList
-        checkCourseList sections
-    return ()
+        mapM_ handleSemester semesters
     where
-        semester = "201320"
         subject = "0"
-        checkCourseList oldSections = do
+        handleSemester semester = do
+            sectionsList <- selectList [SectionSemester ==. semester] []
+            let keys = map (sectionCrn . entityVal) sectionsList
+                oldSections = Map.fromList $ zip keys sectionsList
             response <- liftIO $ fetchCourseList semester subject
             time <- liftIO $ getCurrentTime
             case response of
