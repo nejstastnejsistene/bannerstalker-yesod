@@ -1,5 +1,5 @@
 import Prelude
-import Yesod.Default.Config     (fromArgs)
+import Yesod.Default.Config     (fromArgs, appExtra)
 import Application              (getPersistConfig)
 import Settings                 (parseExtra)
 import Bannerstalkerd           (bannerstalkerd)
@@ -19,7 +19,7 @@ startDaemon :: IO ()
 startDaemon = do
     conf <- fromArgs parseExtra
     dbConf <- getPersistConfig conf
-    bannerstalkerd dbConf
+    bannerstalkerd (appExtra conf) dbConf
 
 
 main :: IO ()

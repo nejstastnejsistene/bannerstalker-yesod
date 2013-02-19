@@ -13,11 +13,11 @@ import qualified Data.Set as Set
 
 import CourseList
 import Model
-import Settings (PersistConfig)
+import Settings
 import Email (notifyByEmail)
 
-bannerstalkerd :: PersistConfig -> IO ()
-bannerstalkerd dbConf = do
+bannerstalkerd :: Extra -> PersistConfig -> IO ()
+bannerstalkerd extra dbConf = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
     runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
