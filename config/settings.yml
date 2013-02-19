@@ -4,7 +4,9 @@ Default: &defaults
   approot: "http://localhost:3000"
   copyright: "\xa9 2013 Peter Johnson. All rights reserved."
   analytics: "UA-38565662-1"
-  #analytics: UA-YOURCODE
+  level1NotifyInterval: 7200 # 2 hours  
+  level2NotifyInterval: 1800 # 30 minutes  
+  level3NotifyInterval: 300  # 5 minutes  
 
 Development:
   <<: *defaults

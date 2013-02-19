@@ -17,6 +17,7 @@ import Control.Applicative
 import Settings.Development
 import Data.Default (def)
 import Text.Hamlet
+import Model
 
 -- | Which Persistent backend this site is using.
 type PersistConfig = PostgresConf
@@ -68,9 +69,15 @@ widgetFile = (if development then widgetFileReload
 data Extra = Extra
     { extraCopyright :: Text
     , extraAnalytics :: Maybe Text -- ^ Google Analytics
+    , extraLevel1NotifyInterval :: Int
+    , extraLevel2NotifyInterval :: Int
+    , extraLevel3NotifyInterval :: Int
     } deriving Show
 
 parseExtra :: DefaultEnv -> Object -> Parser Extra
 parseExtra _ o = Extra
     <$> o .:  "copyright"
     <*> o .:? "analytics"
+    <*> o .:  "level1NotifyInterval"
+    <*> o .:  "level2NotifyInterval"
+    <*> o .:  "level3NotifyInterval"
