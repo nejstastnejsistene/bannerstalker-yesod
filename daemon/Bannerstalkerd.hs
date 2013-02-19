@@ -2,6 +2,7 @@ module Bannerstalkerd where
 import Import
 import Prelude
 import Database.Persist
+import Database.Persist.GenericSql.Raw
 import Database.Persist.Postgresql
 import Control.Monad
 import Control.Monad.Trans.Resource
@@ -13,11 +14,13 @@ import qualified Data.Set as Set
 import CourseList
 import Model
 import Settings (PersistConfig)
+import Email (notifyByEmail)
 
 bannerstalkerd :: PersistConfig -> IO ()
 bannerstalkerd dbConf = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
     runResourceT $ conn $ runSqlConn $ do 
+        runMigration migrateAll
         sectionsList <- selectList [SectionSemester ==. semester] []
         let keys = map (sectionCrn . entityVal) sectionsList
             sections = Map.fromList $ zip keys sectionsList
@@ -62,9 +65,10 @@ bannerstalkerd dbConf = do
                         newSection = fromJust $ Map.lookup crn newSections
                         oldStatus = sectionLastStatus oldSection
                         newStatus = sectionLastStatus newSection
-                    when (newStatus /= oldStatus) $ do
+                    -- XXX don't forget to change this back to /=
+                    when (newStatus == oldStatus) $ do
                         update sectionId [SectionLastStatus =. newStatus]
-                        --notify user
+                        notifyStatusChange sectionId newSection
                     recordHistory time newStatus sectionId
             liftIO $ putStrLn $
                 "added: " ++ show (Set.size addedCrns) ++
@@ -73,6 +77,29 @@ bannerstalkerd dbConf = do
             mapM_ handleAddedCrn $ Set.toList addedCrns
             mapM_ handleRemovedCrn $ Set.toList removedCrns
             mapM_ handleExistingCrn $ Set.toList existingCrns
+        notifyStatusChange sectionId newSection = do
+            -- Joins in Persist are next to unsupported, so this
+            -- horseshit will have to do.
+            requestsList <- selectList
+                [SectionRequestSectionId ==. sectionId] []
+            when (not $ null requestsList) $ do
+                let selectSettings userId =
+                        selectList [SettingsUserId ==. userId] []
+                    unwrapUserId = sectionRequestUserId . entityVal
+                    userIds = map unwrapUserId requestsList 
+                    unwrapSettingsList = map (entityVal . head)
+                settingsList <- mapM selectSettings userIds
+                let unwrappedSettings = unwrapSettingsList settingsList
+                mapM_ (notifyIndividual newSection) unwrappedSettings
+        notifyIndividual section settings = do
+            when (settingsUseEmail settings) $ do
+                let userId = settingsUserId settings
+                emails <- selectList [EmailUserId ==. userId] []
+                let email = emailEmail $ entityVal $ head emails
+                liftIO $ putStrLn $ "notifying " ++ show email
+                liftIO $ notifyByEmail email section
+            when (settingsUseSms settings) $ do
+                liftIO $ putStrLn "sending sms"
         recordHistory time status sectionId = do
             insert $ History sectionId time status
             
