@@ -67,6 +67,7 @@ library
                  , http-conduit                  >= 1.8        && < 1.9
                  , directory                     >= 1.1        && < 1.3
                  , warp                          >= 1.3        && < 1.4
+                 , blaze-markup
                  , data-default
                  , aeson
                  , time
@@ -87,6 +88,19 @@ executable         bannerstalkerd
     if flag(library-only)
         Buildable: False
 
+    extensions: TemplateHaskell
+                QuasiQuotes
+                OverloadedStrings
+                NoImplicitPrelude
+                CPP
+                MultiParamTypeClasses
+                TypeFamilies
+                GADTs
+                GeneralizedNewtypeDeriving
+                FlexibleContexts
+                EmptyDataDecls
+                NoMonomorphismRestriction
+
     main-is:           Main.hs
     hs-source-dirs:    daemon
     build-depends:     base
@@ -94,8 +108,11 @@ executable         bannerstalkerd
                      , yesod-default
 
                      , HTTP
+                     , blaze-html
                      , containers
+                     , hamlet
                      , hdaemonize
+                     , mime-mail
                      , network                 
                      , persistent
                      , persistent-postgresql

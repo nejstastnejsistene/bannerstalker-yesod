@@ -1,5 +1,6 @@
 module Email where
 
+import Prelude
 import Data.Text
 import qualified Data.Text.Lazy as LT
 import Network.Mail.Mime
