@@ -1,6 +1,7 @@
 module Email where
 
 import Prelude
+import Data.ByteString.Lazy.Char8
 import Data.Text
 import qualified Data.Text.Lazy as LT
 import Network.Mail.Mime
@@ -11,19 +12,21 @@ import Model
 fromAddr :: Address
 fromAddr  = Address (Just "Bannerstalker") "admin@bannerstalker.com"
 
-notifyByEmail :: Text -> Section -> IO ()
-notifyByEmail email section = do
+createEmail :: Text -> Section -> IO ByteString 
+createEmail email section = do
     let toAddr = Address Nothing email
         text = LT.pack $ renderHtml $(shamletFile
                             "templates/mail-notification-text.hamlet")
         html = LT.pack $ renderHtml $(shamletFile
                             "templates/mail-notification-html.hamlet")
     message <- simpleMail toAddr fromAddr "subject" text html []
-    renderSendMail message
+    renderMail' message
+    --renderSendMail message
 
 main :: IO ()
 main = do
     let section = Section "semester" 123 "MATH" "303" "Title" "" "" "" Open
         name = "Peter Johnson"
         email = "pajohnson@email.wm.edu"
-    notifyByEmail email section
+    mesg <- createEmail email section
+    Data.ByteString.Lazy.Char8.putStrLn mesg

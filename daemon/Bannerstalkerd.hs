@@ -15,7 +15,7 @@ import qualified Data.Set as Set
 import CourseList
 import Model
 import Settings
-import Email (notifyByEmail)
+import Email
 
 bannerstalkerd :: Extra -> PersistConfig -> IO ()
 bannerstalkerd extra dbConf = do
@@ -80,6 +80,8 @@ bannerstalkerd extra dbConf = do
         notifyStatusChange sectionId newSection = do
             -- Joins in Persist are next to unsupported, so this
             -- horseshit will have to do.
+            -- TODO figure out how to do proper joins or raw sql
+            --      to speed this up
             requestsList <- selectList
                 [SectionRequestSectionId ==. sectionId] []
             when (not $ null requestsList) $ do
@@ -97,7 +99,12 @@ bannerstalkerd extra dbConf = do
                 emails <- selectList [EmailUserId ==. userId] []
                 let email = emailEmail $ entityVal $ head emails
                 liftIO $ putStrLn $ "notifying " ++ show email
-                liftIO $ notifyByEmail email section
+                mesg <- liftIO $ createEmail email section
+                -- TODO calculate actual time to send
+                time <- liftIO $ getCurrentTime
+                let n = Notification EmailNotification mesg time
+                insert n
+                return ()
             when (settingsUseSms settings) $ do
                 liftIO $ putStrLn "sending sms"
         recordHistory time status sectionId = do
