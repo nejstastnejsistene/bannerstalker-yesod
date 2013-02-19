@@ -85,58 +85,21 @@ bannerstalkerd extra dbConf = do
             requestsList <- selectList
                 [SectionRequestSectionId ==. sectionId] []
             when (not $ null requestsList) $ do
-                let selectSettings userId =
-                        selectList [SettingsUserId ==. userId] []
-                    unwrapUserId = sectionRequestUserId . entityVal
-                    userIds = map unwrapUserId requestsList 
-                    unwrapSettingsList = map (entityVal . head)
-                settingsList <- mapM selectSettings userIds
-                let unwrappedSettings = unwrapSettingsList settingsList
-                mapM_ (notifyIndividual newSection) unwrappedSettings
-        notifyIndividual section settings = do
-            when (settingsUseEmail settings) $ do
-                let userId = settingsUserId settings
-                emails <- selectList [EmailUserId ==. userId] []
-                let email = emailEmail $ entityVal $ head emails
+                let unwrapUserId = sectionRequestUserId . entityVal
+                    userIds = map unwrapUserId requestsList
+                mapM_ (notifyIndividual newSection)  userIds
+        notifyIndividual section userId = do
+            user <- fmap (entityVal . head) $
+                        selectList [UserId ==. userId] []
+            when (userUseEmail user) $ do
+                let email = userEmail user
                 liftIO $ putStrLn $ "notifying " ++ show email
                 mesg <- liftIO $ createEmail email section
                 -- TODO calculate actual time to send
                 time <- liftIO $ getCurrentTime
-                let n = Notification EmailNotification mesg time
-                insert n
+                insert $ Notification EmailNotification mesg time
                 return ()
-            when (settingsUseSms settings) $ do
+            when (userUseSms user) $ do
                 liftIO $ putStrLn "sending sms"
         recordHistory time status sectionId = do
             insert $ History sectionId time status
-            
-    -- loop
-        -- keys
-        -- for each getCourseList
-            -- add this key to keys
-            -- if crn not in sections: add class
-            -- else:
-                -- prev = sections[section.crn]
-                -- if section != sections[key]:
-                    -- update database with new values?
-            -- if key in statuses and old status != new status
-                -- notify users
-
-{-
-startDaemon :: Settings.PersistConfig -> IO ()
---startDaemon = serviced daemon
-startDaemon conf = do
-    --putStrLn $ show $ pgConnStr conf
-    courseList <- fetchCourseList "201320" "0"
-    case courseList of
-        Left err -> do
-            putStrLn $  "Error fetching courselist: " ++ err
-        Right sections -> do
-            let firstSection = head sections
-                conn = withPostgresqlConn (pgConnStr conf)
-            runResourceT $ conn $ runSqlConn $ do
-                runMigration migrateAll
-                deleteWhere [SectionSemester ==. "201320"]
-                sectionIds <- mapM insert sections    
-                liftIO $ putStrLn $ show sectionIds 
--}

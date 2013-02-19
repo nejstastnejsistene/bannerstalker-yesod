@@ -1,20 +1,12 @@
 User
-    ident       Text
-    password    Text Maybe
-    UniqueUser  ident
-    deriving     Show
-Email
     email       Text
-    userId      UserId
+    password    Text
     verkey      Text Maybe
-    UniqueEmail email
-    deriving     Show
-Settings
-    userId      UserId
-    emailId     EmailId
+    verified    Bool
     phoneNum    Text
     useEmail    Bool
     useSms      Bool
+    UniqueEmail email
     deriving    Show
 Section
     semester    String
