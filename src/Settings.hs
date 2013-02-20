@@ -69,6 +69,8 @@ widgetFile = (if development then widgetFileReload
 data Extra = Extra
     { extraCopyright :: Text
     , extraAnalytics :: Maybe Text -- ^ Google Analytics
+    , extraTwilioAccount :: Text
+    , extraTwilioToken :: Text
     , extraSemesters :: [Text]
     , extraLevel1NotifyInterval :: Int
     , extraLevel2NotifyInterval :: Int
@@ -79,6 +81,8 @@ parseExtra :: DefaultEnv -> Object -> Parser Extra
 parseExtra _ o = Extra
     <$> o .:  "copyright"
     <*> o .:? "analytics"
+    <*> o .:  "twilioAccount"
+    <*> o .:  "twilioToken"
     <*> o .:  "semesters"
     <*> o .:  "level1NotifyInterval"
     <*> o .:  "level2NotifyInterval"

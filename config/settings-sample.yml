@@ -4,6 +4,8 @@ Default: &defaults
   approot: "http://localhost:3000"
   copyright: "\xa9 2013 Peter Johnson. All rights reserved."
   analytics: "UA-38565662-1"
+  twilioAccount: <account>
+  twilioToken: <token>
   semesters: ["201320"]
   level1NotifyInterval: 7200 # 2 hours  
   level2NotifyInterval: 1800 # 30 minutes  
