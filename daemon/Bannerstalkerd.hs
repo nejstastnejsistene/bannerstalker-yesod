@@ -44,8 +44,10 @@ bannerstalkerd extra dbConf = do
                 -- Server error: record statuses as Unavailable.
                 Left err -> do
                     let recordUnavailable sectionId =
-                            insert $ History sectionId time Unavailable
+                            insert $ HistoryLog time sectionId Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
+                    insert $ CourseListLog time ServerError
+                                    Nothing Nothing Nothing
                     mapM_ recordUnavailable sectionIds
                 -- Process the new data.
                 Right sectionsList -> do
@@ -53,13 +55,13 @@ bannerstalkerd extra dbConf = do
                         sections = Map.fromList $ zip keys sectionsList
                     processCourseListData time oldSections sections
 
-        -- Updates Section and History with the new CourseList data.
+        -- Updates Section and HistoryLog with the new CourseList data.
         processCourseListData time oldSections newSections = do
             let -- Add new sections to database.
                 handleAddedCrn crn = do
                     let section = fromJust $ Map.lookup crn newSections
                     sectionId <- insert section
-                    insert $ History sectionId time $
+                    insert $ HistoryLog time sectionId $
                         sectionCurrStatus section
                     liftIO $ putStrLn $ "new class: " ++ show section
                 -- TODO what to do when a class is removed?
@@ -67,7 +69,7 @@ bannerstalkerd extra dbConf = do
                     liftIO $ putStrLn "Class removed, what do I do?"
                     --let sectionId = entityKey $ fromJust $
                     --                    Map.lookup crn oldSections
-                    --insert $ History sectionId time Unavailable
+                    --insert $ HistoryLog time sectionId Unavailable
                 -- Update changed statuses.
                 handleExistingCrn crn = do
                     let (Entity sectionId
@@ -79,18 +81,22 @@ bannerstalkerd extra dbConf = do
                     when (newStatus == oldStatus) $ do
                         scheduleNotification sectionId newStatus
                         update sectionId [SectionCurrStatus =. newStatus]
-                    insert $ History sectionId time newStatus
+                    insert $ HistoryLog time sectionId newStatus
                 -- Partition sections into added, removed, and existing.
                 oldCrns = Set.fromList $ Map.keys oldSections
                 newCrns = Set.fromList $ Map.keys newSections
                 addedCrns = Set.difference newCrns oldCrns 
                 removedCrns = Set.difference oldCrns newCrns
                 existingCrns = Set.intersection oldCrns newCrns
-            -- Process the partitions.
+            insert $ CourseListLog time Success
+                (Just $ Set.size addedCrns)
+                (Just $ Set.size removedCrns)
+                (Just $ Set.size existingCrns)
             liftIO $ putStrLn $
                 "added:    " ++ show (Set.size addedCrns) ++ "\n" ++
                 "removed:  " ++ show (Set.size removedCrns) ++ "\n" ++
                 "existing: " ++ show (Set.size existingCrns)
+            -- Process the partitions.
             mapM_ handleAddedCrn $ Set.toList addedCrns
             mapM_ handleRemovedCrn $ Set.toList removedCrns
             mapM_ handleExistingCrn $ Set.toList existingCrns
@@ -149,10 +155,18 @@ bannerstalkerd extra dbConf = do
                 liftIO $ putStrLn $
                     "notifying " ++ show (userEmail user) ++
                     " about " ++ show (sectionTitle section)
+                time <- liftIO $ getCurrentTime
+                insert $ NotificationLog time
+                            EmailNotification $ userEmail user
+                return ()
             when (userUseSms user) $ do
                 liftIO $ putStrLn $
                     "notifying " ++ show (userPhoneNum user) ++
                     " about " ++ show (sectionTitle section)
+                time <- liftIO $ getCurrentTime
+                insert $ NotificationLog time 
+                            SmsNotification $ userPhoneNum user
+                return ()
                 
 -- Determines the next time that a notification should be sent.
 -- For example, if interval is two hours, this will return the time

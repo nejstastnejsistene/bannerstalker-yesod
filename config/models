@@ -25,14 +25,25 @@ SectionRequest
     userId      UserId
     lastStatus  SectionStatus
     deriving    Show
-History
-    sectionId   SectionId
-    timestamp   UTCTime
-    status      SectionStatus
-    deriving    Show
 Notification
     requestId   SectionRequestId
     time        UTCTime
     UniqueReqId requestId
     deriving    Show
- -- By default this file is used in Model.hs (which is imported by Foundation.hs)
+CourseListLog
+    timestamp   UTCTime
+    status      CourseListStatus
+    added       Int Maybe
+    removed     Int Maybe
+    existing    Int Maybe
+    deriving    Show
+HistoryLog
+    timestamp   UTCTime
+    sectionId   SectionId
+    status      SectionStatus
+    deriving    Show
+NotificationLog
+    timestamp   UTCTime
+    type        NotificationType
+    recipient   Text
+    deriving    Show

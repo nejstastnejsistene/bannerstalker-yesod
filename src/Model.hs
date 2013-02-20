@@ -8,6 +8,14 @@ import Database.Persist.Quasi
 import Text.Blaze (ToMarkup, toMarkup)
 import Text.Blaze.Internal (string)
 
+data PrivilegeLevel = Level1 | Level2 | Level3 | Admin
+    deriving (Read, Show, Eq, Ord, Bounded, Enum)
+derivePersistField "PrivilegeLevel"
+
+data CourseListStatus = Success | ServerError
+    deriving (Read, Show, Eq)
+derivePersistField "CourseListStatus"
+
 data SectionStatus = Open | Closed | Unavailable
     deriving (Read, Show, Eq)
 derivePersistField "SectionStatus"
@@ -16,10 +24,9 @@ derivePersistField "SectionStatus"
 instance ToMarkup SectionStatus where
     toMarkup = string . show
 
-data PrivilegeLevel = Level1 | Level2 | Level3 | Admin
-    deriving (Read, Show, Eq, Ord, Bounded, Enum)
-derivePersistField "PrivilegeLevel"
-
+data NotificationType = EmailNotification | SmsNotification
+    deriving (Read, Show, Eq)
+derivePersistField "NotificationType"
 -- You can define all of your database entities in the entities file.
 -- You can find more information on persistent and how to declare entities
 -- at:
