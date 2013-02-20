@@ -89,4 +89,4 @@ getNotifyInterval extra priv = case priv of
     Level1 -> extraLevel1NotifyInterval extra
     Level2 -> extraLevel2NotifyInterval extra
     Level3 -> extraLevel3NotifyInterval extra
-    Admin  -> 1
+    Admin  -> -1

@@ -7,7 +7,7 @@ Default: &defaults
   semesters: ["201320"]
   level1NotifyInterval: 7200 # 2 hours  
   level2NotifyInterval: 1800 # 30 minutes  
-  level3NotifyInterval: 300  # 5 minutes  
+  level3NotifyInterval: -1   # ASAP
 
 Development:
   <<: *defaults
