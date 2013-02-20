@@ -2,7 +2,6 @@ module Model where
 
 import Prelude
 import Yesod
-import Data.ByteString.Lazy.Char8
 import Data.Text (Text)
 import Data.Time (UTCTime)
 import Database.Persist.Quasi
@@ -20,13 +19,6 @@ instance ToMarkup SectionStatus where
 data PrivilegeLevel = Level1 | Level2 | Level3 | Admin
     deriving (Read, Show, Eq, Ord, Bounded, Enum)
 derivePersistField "PrivilegeLevel"
-
-data NotificationType = EmailNotification | SmsNotification
-    deriving (Read, Show, Eq)
-derivePersistField "NotificationType"
-
--- So we can use ByteString inside the datatbase.
-derivePersistField "ByteString"
 
 -- You can define all of your database entities in the entities file.
 -- You can find more information on persistent and how to declare entities

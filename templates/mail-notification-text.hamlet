@@ -1,1 +1,1 @@
-#{sectionTitle section} is now #{sectionLastStatus section}
+#{sectionTitle section} is now #{sectionCurrStatus section}

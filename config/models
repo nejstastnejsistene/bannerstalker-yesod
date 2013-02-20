@@ -1,6 +1,7 @@
 User
     email       Text
     password    Text
+    privilege   PrivilegeLevel
     verkey      Text Maybe
     verified    Bool
     phoneNum    Text
@@ -17,11 +18,12 @@ Section
     instructor  String
     days        String
     time        String
-    lastStatus  SectionStatus
+    currStatus  SectionStatus
     deriving    Show
 SectionRequest
     sectionId   SectionId
     userId      UserId
+    lastStatus  SectionStatus
     deriving    Show
 History
     sectionId   SectionId
@@ -29,8 +31,8 @@ History
     status      SectionStatus
     deriving    Show
 Notification
-    type        NotificationType
-    content     ByteString
+    requestId   SectionRequestId
     time        UTCTime
+    UniqueReqId requestId
     deriving    Show
  -- By default this file is used in Model.hs (which is imported by Foundation.hs)

@@ -25,15 +25,18 @@ bannerstalkerd extra dbConf = do
     let semesters = map unpack $ extraSemesters extra
     runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
-        mapM_ handleSemester semesters
+        mapM_ refreshCourseList semesters
+        asdf
     where
         subject = "0"
 
         -- Applies the program to a given semester.
-        handleSemester semester = do
+        refreshCourseList semester = do
+            -- Pull current data from database.
             sectionsList <- selectList [SectionSemester ==. semester] []
             let keys = map (sectionCrn . entityVal) sectionsList
                 oldSections = Map.fromList $ zip keys sectionsList
+            -- Fetch new data from CourseList.
             response <- liftIO $ fetchCourseList semester subject
             time <- liftIO $ getCurrentTime
             case response of
@@ -43,53 +46,110 @@ bannerstalkerd extra dbConf = do
                             insert $ History sectionId time Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
                     mapM_ recordUnavailable sectionIds
-                -- Go to main logic.
+                -- Process the new data.
                 Right sectionsList -> do
                     let keys = map sectionCrn sectionsList
                         sections = Map.fromList $ zip keys sectionsList
-                    processCourseList time oldSections sections
+                    processCourseListData time oldSections sections
 
-        -- Main logic function.
-        processCourseList time oldSections newSections = do
-            let oldCrns = Set.fromList $ Map.keys oldSections
+        -- Updates Section and History with the new CourseList data.
+        processCourseListData time oldSections newSections = do
+            let -- Add new sections to database.
+                handleAddedCrn crn = do
+                    let section = fromJust $ Map.lookup crn newSections
+                    sectionId <- insert section
+                    insert $ History sectionId time $
+                        sectionCurrStatus $ section
+                -- TODO what to do when a class is removed?
+                handleRemovedCrn crn = do
+                    liftIO $ putStrLn "Class removed, what do I do?"
+                    --let sectionId = entityKey $ fromJust $
+                    --                    Map.lookup crn oldSections
+                    --insert $ History sectionId time Unavailable
+                -- Update changed statuses.
+                handleExistingCrn crn = do
+                    let entity = fromJust $ Map.lookup crn oldSections
+                        sectionId = entityKey entity
+                        oldStatus = sectionCurrStatus $ entityVal entity
+                        newStatus = sectionCurrStatus $ fromJust $
+                                        Map.lookup crn newSections
+                    -- XXX Remember to change back to /=
+                    when (newStatus == oldStatus) $ do
+                        scheduleNotification sectionId newStatus
+                        update sectionId [SectionCurrStatus =. newStatus]
+                    insert $ History sectionId time newStatus
+                -- Partition sections into added, removed, and existing.
+                oldCrns = Set.fromList $ Map.keys oldSections
                 newCrns = Set.fromList $ Map.keys newSections
                 addedCrns = Set.difference newCrns oldCrns 
                 removedCrns = Set.difference oldCrns newCrns
                 existingCrns = Set.intersection oldCrns newCrns
-
-                -- Simply add new sections to database.
-                handleAddedCrn crn = do
-                    let section = fromJust $ Map.lookup crn newSections
-                        status = sectionLastStatus section
-                    sectionId <- insert section
-                    insert $ History sectionId time status
-
-                -- TODO what to do when a class is removed?
-                handleRemovedCrn crn = do
-                    liftIO $ putStrLn "OMG WHERE DID IT GO"
-
-                -- Compare new and old statuses, and notify users
-                -- accordingly.
-                handleExistingCrn crn = do
-                    let entity = fromJust $ Map.lookup crn oldSections
-                        sectionId = entityKey entity
-                        oldSection = entityVal entity
-                        newSection = fromJust $ Map.lookup crn newSections
-                        oldStatus = sectionLastStatus oldSection
-                        newStatus = sectionLastStatus newSection
-                    -- XXX don't forget to change this back to /=
-                    when (newStatus == oldStatus) $ do
-                        update sectionId [SectionLastStatus =. newStatus]
-                        notifyStatusChange sectionId newSection
-                    insert $ History sectionId time newStatus
+            -- Process the partitions.
             liftIO $ putStrLn $
-                "added: " ++ show (Set.size addedCrns) ++
-                "\nremoved: " ++ show (Set.size removedCrns) ++
-                "\nexisting: " ++ show (Set.size existingCrns)
+                "added:    " ++ show (Set.size addedCrns) ++ "\n" ++
+                "removed:  " ++ show (Set.size removedCrns) ++ "\n" ++
+                "existing: " ++ show (Set.size existingCrns)
             mapM_ handleAddedCrn $ Set.toList addedCrns
             mapM_ handleRemovedCrn $ Set.toList removedCrns
             mapM_ handleExistingCrn $ Set.toList existingCrns
 
+        -- Schedules notifications for the given section and its status.
+        scheduleNotification sectionId currStatus = do
+            requests <- selectList
+                [SectionRequestSectionId ==. sectionId] []
+            mapM_ (updateNotifications currStatus)
+                (requests :: [Entity SectionRequest])
+            
+        -- Adds or removes notifications to keep them up to date.
+        updateNotifications currStatus (Entity reqId req) = do
+            -- The last status the user was notified of.
+            let lastStatus = sectionRequestLastStatus req
+            -- XXX Don't forget to change back to ==
+            case (lastStatus /= currStatus) of
+                -- Status is unchanged, delete notification.
+                True -> do
+                    deleteBy $ UniqueReqId reqId
+                -- Insert a new notification.
+                False -> do
+                    -- TODO time calculations go here
+                    time <- liftIO getCurrentTime
+                    insert $ Notification reqId time
+                    return ()
+
+        bleblebe = return
+            -- select notifications where time <= current time
+            -- for each
+                -- get the request, user, and section (try adapting the
+                --      massive join in asdf below)
+                -- check settings and send notifications
+                -- remove notification
+                -- update lastStatus in the request
+                -- log that a notification was sent?
+
+        asdf = do
+            requestEntities <- selectList [] []
+            users    <- selectList [] []
+            sections <- selectList [] []
+            let toMap entities = Map.fromList
+                    [(entityKey e, entityVal e) | e <- entities]
+                requests = map entityVal
+                    (requestEntities :: [Entity SectionRequest])
+                sectionMap = toMap (sections :: [Entity Section])
+                userMap = toMap (users :: [Entity User])
+                joinAndNotify req = do
+                    let sectId = sectionRequestSectionId req
+                        section = fromJust $ Map.lookup sectId sectionMap
+                        userId = sectionRequestUserId req
+                        user = fromJust $ Map.lookup userId userMap
+                        lastStatus = sectionRequestLastStatus req
+                        currStatus = sectionCurrStatus section
+                    -- XXX Remeber to change this back to /=
+                    -- Also, I think this should always be true, but I
+                    -- should think about it more when I'm less tired.
+                    when (lastStatus == currStatus) $ do
+                        liftIO $ putStrLn $ show user
+            mapM_ joinAndNotify requests
+{-
         -- Notify all users subscribed to this class that it has changed.
         notifyStatusChange sectionId newSection = do
             requestsList <- selectList
@@ -109,7 +169,8 @@ bannerstalkerd extra dbConf = do
                 mesg <- liftIO $ createEmail email section
                 -- TODO calculate actual time to send
                 time <- liftIO $ getCurrentTime
-                insert $ Notification EmailNotification mesg time
+                --insert $ Notification EmailNotification mesg time
                 return ()
             when (userUseSms user) $ do
                 liftIO $ putStrLn "sending sms"
+-}
