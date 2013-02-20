@@ -59,7 +59,7 @@ bannerstalkerd extra dbConf = do
                     let section = fromJust $ Map.lookup crn newSections
                     sectionId <- insert section
                     insert $ History sectionId time $
-                        sectionCurrStatus $ section
+                        sectionCurrStatus section
                     liftIO $ putStrLn $ "new class: " ++ show section
                 -- TODO what to do when a class is removed?
                 handleRemovedCrn crn = do
@@ -69,16 +69,16 @@ bannerstalkerd extra dbConf = do
                     --insert $ History sectionId time Unavailable
                 -- Update changed statuses.
                 handleExistingCrn crn = do
-                    let entity = fromJust $ Map.lookup crn oldSections
-                        sectionId = entityKey entity
-                        oldStatus = sectionCurrStatus $ entityVal entity
-                        newStatus = sectionCurrStatus $ fromJust $
-                                        Map.lookup crn newSections
-                    -- XXX Remember to change back to /=
+                    let (Entity sectionId
+                                (Section _ _ _ _ _ _ _ _ oldStatus)) =
+                            fromJust $ Map.lookup crn oldSections
+                        (Section _ _ _ _ _ _ _ _ newStatus) =
+                            fromJust $ Map.lookup crn newSections
+                        -- XXX Remember to change back to /=
                     when (newStatus == oldStatus) $ do
                         scheduleNotification sectionId newStatus
                         update sectionId [SectionCurrStatus =. newStatus]
-                    --insert $ History sectionId time newStatus
+                    insert $ History sectionId time newStatus
                 -- Partition sections into added, removed, and existing.
                 oldCrns = Set.fromList $ Map.keys oldSections
                 newCrns = Set.fromList $ Map.keys newSections
@@ -90,13 +90,9 @@ bannerstalkerd extra dbConf = do
                 "added:    " ++ show (Set.size addedCrns) ++ "\n" ++
                 "removed:  " ++ show (Set.size removedCrns) ++ "\n" ++
                 "existing: " ++ show (Set.size existingCrns)
-            liftIO $ putStrLn $ "1"
             mapM_ handleAddedCrn $ Set.toList addedCrns
-            liftIO $ putStrLn $ "2"
             mapM_ handleRemovedCrn $ Set.toList removedCrns
-            liftIO $ putStrLn $ "3"
             mapM_ handleExistingCrn $ Set.toList existingCrns
-            liftIO $ putStrLn $ "done handling new crns"
 
         -- Schedules notifications for the given section and its status.
         scheduleNotification sectionId currStatus = do
@@ -125,17 +121,8 @@ bannerstalkerd extra dbConf = do
 
         blebleble = do
             time <- liftIO $ getCurrentTime
-            notifs <- selectList [NotificationTime <. time] []
-            let reqIds = map (notificationRequestId . entityVal) notifs
-            -- select notifications where time <= current time
-            -- for each
-                -- get the request, user, and section (try adapting the
-                --      massive join in asdf below)
-                -- check settings and send notifications
-                -- remove notification
-                -- update lastStatus in the request
-                -- log that a notification was sent?
-            
+            reqIds <- fmap (map $ notificationRequestId . entityVal) $
+                                selectList [NotificationTime <. time] []
             requests <- selectList [SectionRequestId <-. reqIds] []
             users    <- selectList [] []
             sections <- selectList [] []
@@ -157,9 +144,15 @@ bannerstalkerd extra dbConf = do
             mapM_ joinAndNotify requests
 
         sendNotification user section = do
-            liftIO $ putStrLn $
-                "notifying " ++ show (userEmail user) ++
-                " about " ++ show (sectionTitle section)
+            when (userUseEmail user) $ do
+                liftIO $ putStrLn $
+                    "notifying " ++ show (userEmail user) ++
+                    " about " ++ show (sectionTitle section)
+            when (userUseSms user) $ do
+                liftIO $ putStrLn $
+                    "notifying " ++ show (userPhoneNum user) ++
+                    " about " ++ show (sectionTitle section)
+                
 
 {-
         -- Notify all users subscribed to this class that it has changed.
