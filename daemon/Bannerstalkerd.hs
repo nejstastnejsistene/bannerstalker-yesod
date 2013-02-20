@@ -1,4 +1,5 @@
 module Bannerstalkerd where 
+
 import Import
 import Prelude
 import Database.Persist
@@ -17,6 +18,7 @@ import Model
 import Settings
 import Email
 
+-- Daemon function.
 bannerstalkerd :: Extra -> PersistConfig -> IO ()
 bannerstalkerd extra dbConf = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
@@ -26,6 +28,8 @@ bannerstalkerd extra dbConf = do
         mapM_ handleSemester semesters
     where
         subject = "0"
+
+        -- Applies the program to a given semester.
         handleSemester semester = do
             sectionsList <- selectList [SectionSemester ==. semester] []
             let keys = map (sectionCrn . entityVal) sectionsList
@@ -33,31 +37,39 @@ bannerstalkerd extra dbConf = do
             response <- liftIO $ fetchCourseList semester subject
             time <- liftIO $ getCurrentTime
             case response of
+                -- Server error: record statuses as Unavailable.
                 Left err -> do
-                    --updateWhere [SectionSemester ==. semester]
-                    --            [SectionLastStatus =. Unavailable
-
-                    -- Record statuses as Unavailable.
-                    let recordUnavailable = recordHistory time Unavailable
+                    let recordUnavailable sectionId =
+                            insert $ History sectionId time Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
                     mapM_ recordUnavailable sectionIds
+                -- Go to main logic.
                 Right sectionsList -> do
                     let keys = map sectionCrn sectionsList
                         sections = Map.fromList $ zip keys sectionsList
                     processCourseList time oldSections sections
+
+        -- Main logic function.
         processCourseList time oldSections newSections = do
             let oldCrns = Set.fromList $ Map.keys oldSections
                 newCrns = Set.fromList $ Map.keys newSections
                 addedCrns = Set.difference newCrns oldCrns 
                 removedCrns = Set.difference oldCrns newCrns
                 existingCrns = Set.intersection oldCrns newCrns
+
+                -- Simply add new sections to database.
                 handleAddedCrn crn = do
                     let section = fromJust $ Map.lookup crn newSections
                         status = sectionLastStatus section
                     sectionId <- insert section
-                    recordHistory time status sectionId
+                    insert $ History sectionId time status
+
+                -- TODO what to do when a class is removed?
                 handleRemovedCrn crn = do
                     liftIO $ putStrLn "OMG WHERE DID IT GO"
+
+                -- Compare new and old statuses, and notify users
+                -- accordingly.
                 handleExistingCrn crn = do
                     let entity = fromJust $ Map.lookup crn oldSections
                         sectionId = entityKey entity
@@ -69,7 +81,7 @@ bannerstalkerd extra dbConf = do
                     when (newStatus == oldStatus) $ do
                         update sectionId [SectionLastStatus =. newStatus]
                         notifyStatusChange sectionId newSection
-                    recordHistory time newStatus sectionId
+                    insert $ History sectionId time newStatus
             liftIO $ putStrLn $
                 "added: " ++ show (Set.size addedCrns) ++
                 "\nremoved: " ++ show (Set.size removedCrns) ++
@@ -77,17 +89,17 @@ bannerstalkerd extra dbConf = do
             mapM_ handleAddedCrn $ Set.toList addedCrns
             mapM_ handleRemovedCrn $ Set.toList removedCrns
             mapM_ handleExistingCrn $ Set.toList existingCrns
+
+        -- Notify all users subscribed to this class that it has changed.
         notifyStatusChange sectionId newSection = do
-            -- Joins in Persist are next to unsupported, so this
-            -- horseshit will have to do.
-            -- TODO figure out how to do proper joins or raw sql
-            --      to speed this up
             requestsList <- selectList
                 [SectionRequestSectionId ==. sectionId] []
             when (not $ null requestsList) $ do
                 let unwrapUserId = sectionRequestUserId . entityVal
                     userIds = map unwrapUserId requestsList
                 mapM_ (notifyIndividual newSection)  userIds
+
+        -- Notifies an individual user that their class has changed.
         notifyIndividual section userId = do
             user <- fmap (entityVal . head) $
                         selectList [UserId ==. userId] []
@@ -101,5 +113,3 @@ bannerstalkerd extra dbConf = do
                 return ()
             when (userUseSms user) $ do
                 liftIO $ putStrLn "sending sms"
-        recordHistory time status sectionId = do
-            insert $ History sectionId time status
