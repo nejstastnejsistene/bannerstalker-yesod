@@ -12,6 +12,7 @@ module Twilio (
     emptyXml,
     sendText
 	) where
+import Prelude
 import Network.HTTP.Conduit
 import Data.Aeson
 import qualified Data.Map as Map
