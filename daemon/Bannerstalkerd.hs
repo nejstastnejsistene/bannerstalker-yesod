@@ -9,6 +9,7 @@ import Control.Monad
 import Control.Monad.Trans.Resource
 import Data.Text (unpack)
 import Data.Time
+import Data.Time.Clock.POSIX
 import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -26,7 +27,7 @@ bannerstalkerd extra dbConf = do
     runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
         mapM_ refreshCourseList semesters
-        blebleble
+        flushNotifications
     where
         subject = "0"
 
@@ -114,12 +115,13 @@ bannerstalkerd extra dbConf = do
                 False -> do
                     -- XXX Remove when I change back all the /='s
                     deleteWhere [NotificationRequestId ==. reqId]
-                    -- TODO time calculations go here
-                    time <- liftIO getCurrentTime
-                    insert $ Notification reqId time
+                    user <- fmap fromJust $ get $ sectionRequestUserId req
+                    newTime <- liftIO $ nextNotificationTime $
+                        getNotifyInterval extra $ userPrivilege user
+                    insert $ Notification reqId newTime
                     return ()
 
-        blebleble = do
+        flushNotifications = do
             time <- liftIO $ getCurrentTime
             reqIds <- fmap (map $ notificationRequestId . entityVal) $
                                 selectList [NotificationTime <. time] []
@@ -153,6 +155,22 @@ bannerstalkerd extra dbConf = do
                     "notifying " ++ show (userPhoneNum user) ++
                     " about " ++ show (sectionTitle section)
                 
+-- Determines the next time that a notification should be sent.
+-- For example, if interval is two hours, this will return the time
+-- rounded up to the next time with an hour divisible by 2. A negative
+-- interval will do the same thing except round down instead which
+-- is useful for 'ASAP' notifications.
+nextNotificationTime :: Int -> IO UTCTime
+nextNotificationTime interval = do
+    utcTime  <- liftIO $ getPOSIXTime
+    timeZone <- liftIO $ getCurrentTimeZone
+    let tzSeconds = 60 * timeZoneMinutes timeZone
+        localTime = utcTime + fromIntegral tzSeconds
+        truncated = truncate $ localTime / fromIntegral interval
+        localNextTime = (truncated + 1) * interval
+        posixNextTime = localNextTime - tzSeconds
+    return $ posixSecondsToUTCTime $ fromIntegral posixNextTime
+ 
 
 {-
         -- Notify all users subscribed to this class that it has changed.
