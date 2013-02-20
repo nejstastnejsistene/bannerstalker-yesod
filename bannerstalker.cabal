@@ -21,6 +21,7 @@ library
                      Settings
                      Settings.StaticFiles
                      Settings.Development
+                     Twilio
                      Handler.Home
 
     if flag(dev) || flag(library-only)
