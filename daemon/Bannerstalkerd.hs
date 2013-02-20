@@ -99,8 +99,7 @@ bannerstalkerd extra dbConf = do
         scheduleNotification sectionId currStatus = do
             requests <- selectList
                 [SectionRequestSectionId ==. sectionId] []
-            mapM_ (updateNotifications currStatus)
-                (requests :: [Entity SectionRequest])
+            mapM_ (updateNotifications currStatus) requests
             
         -- Adds or removes notifications to keep them up to date.
         updateNotifications currStatus (Entity reqId req) = do
@@ -130,8 +129,8 @@ bannerstalkerd extra dbConf = do
             sections <- selectList [] []
             let toMap entities = Map.fromList
                     [(entityKey e, entityVal e) | e <- entities]
-                sectionMap = toMap (sections :: [Entity Section])
-                userMap = toMap (users :: [Entity User])
+                sectionMap = toMap sections
+                userMap = toMap users
                 joinAndNotify (Entity reqId
                         (SectionRequest sectId userId lastStatus)) = do
                     let section = fromJust $ Map.lookup sectId sectionMap
