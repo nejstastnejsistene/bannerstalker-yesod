@@ -26,7 +26,7 @@ bannerstalkerd extra dbConf = do
     runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
         mapM_ refreshCourseList semesters
-        asdf
+        blebleble
     where
         subject = "0"
 
@@ -60,6 +60,7 @@ bannerstalkerd extra dbConf = do
                     sectionId <- insert section
                     insert $ History sectionId time $
                         sectionCurrStatus $ section
+                    liftIO $ putStrLn $ "new class: " ++ show section
                 -- TODO what to do when a class is removed?
                 handleRemovedCrn crn = do
                     liftIO $ putStrLn "Class removed, what do I do?"
@@ -77,7 +78,7 @@ bannerstalkerd extra dbConf = do
                     when (newStatus == oldStatus) $ do
                         scheduleNotification sectionId newStatus
                         update sectionId [SectionCurrStatus =. newStatus]
-                    insert $ History sectionId time newStatus
+                    --insert $ History sectionId time newStatus
                 -- Partition sections into added, removed, and existing.
                 oldCrns = Set.fromList $ Map.keys oldSections
                 newCrns = Set.fromList $ Map.keys newSections
@@ -89,9 +90,13 @@ bannerstalkerd extra dbConf = do
                 "added:    " ++ show (Set.size addedCrns) ++ "\n" ++
                 "removed:  " ++ show (Set.size removedCrns) ++ "\n" ++
                 "existing: " ++ show (Set.size existingCrns)
+            liftIO $ putStrLn $ "1"
             mapM_ handleAddedCrn $ Set.toList addedCrns
+            liftIO $ putStrLn $ "2"
             mapM_ handleRemovedCrn $ Set.toList removedCrns
+            liftIO $ putStrLn $ "3"
             mapM_ handleExistingCrn $ Set.toList existingCrns
+            liftIO $ putStrLn $ "done handling new crns"
 
         -- Schedules notifications for the given section and its status.
         scheduleNotification sectionId currStatus = do
@@ -111,12 +116,17 @@ bannerstalkerd extra dbConf = do
                     deleteBy $ UniqueReqId reqId
                 -- Insert a new notification.
                 False -> do
+                    -- XXX Remove when I change back all the /='s
+                    deleteWhere [NotificationRequestId ==. reqId]
                     -- TODO time calculations go here
                     time <- liftIO getCurrentTime
                     insert $ Notification reqId time
                     return ()
 
-        bleblebe = return
+        blebleble = do
+            time <- liftIO $ getCurrentTime
+            notifs <- selectList [NotificationTime <. time] []
+            let reqIds = map (notificationRequestId . entityVal) notifs
             -- select notifications where time <= current time
             -- for each
                 -- get the request, user, and section (try adapting the
@@ -125,30 +135,32 @@ bannerstalkerd extra dbConf = do
                 -- remove notification
                 -- update lastStatus in the request
                 -- log that a notification was sent?
-
-        asdf = do
-            requestEntities <- selectList [] []
+            
+            requests <- selectList [SectionRequestId <-. reqIds] []
             users    <- selectList [] []
             sections <- selectList [] []
             let toMap entities = Map.fromList
                     [(entityKey e, entityVal e) | e <- entities]
-                requests = map entityVal
-                    (requestEntities :: [Entity SectionRequest])
                 sectionMap = toMap (sections :: [Entity Section])
                 userMap = toMap (users :: [Entity User])
-                joinAndNotify req = do
-                    let sectId = sectionRequestSectionId req
-                        section = fromJust $ Map.lookup sectId sectionMap
-                        userId = sectionRequestUserId req
+                joinAndNotify (Entity reqId
+                        (SectionRequest sectId userId lastStatus)) = do
+                    let section = fromJust $ Map.lookup sectId sectionMap
                         user = fromJust $ Map.lookup userId userMap
-                        lastStatus = sectionRequestLastStatus req
                         currStatus = sectionCurrStatus section
-                    -- XXX Remeber to change this back to /=
-                    -- Also, I think this should always be true, but I
-                    -- should think about it more when I'm less tired.
-                    when (lastStatus == currStatus) $ do
-                        liftIO $ putStrLn $ show user
+                    -- Send the notification.
+                    sendNotification user section
+                    -- Update lastStatus
+                    update reqId [SectionRequestLastStatus =. currStatus]
+                    -- Delete the notification.
+                    deleteBy $ UniqueReqId reqId
             mapM_ joinAndNotify requests
+
+        sendNotification user section = do
+            liftIO $ putStrLn $
+                "notifying " ++ show (userEmail user) ++
+                " about " ++ show (sectionTitle section)
+
 {-
         -- Notify all users subscribed to this class that it has changed.
         notifyStatusChange sectionId newSection = do
