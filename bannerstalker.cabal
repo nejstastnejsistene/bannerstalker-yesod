@@ -14,7 +14,6 @@ Flag library-only
 library
     hs-source-dirs:  src
     exposed-modules: Application
-                     Email
                      Foundation
                      Import
                      Model
@@ -119,6 +118,7 @@ executable         bannerstalkerd
                      , containers
                      , hamlet
                      , hdaemonize
+                     , http-conduit
                      , network                 
                      , persistent
                      , persistent-postgresql

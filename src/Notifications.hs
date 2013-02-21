@@ -4,27 +4,50 @@ import Yesod.Default.Config
 import Settings
 import Data.Text.Encoding
 
-import Network.HTTP.Conduit
-
-import Database.Persist
+import Control.Exception
 import Data.Text
+import qualified Data.Text.Lazy as LT
+import Database.Persist
+import Text.Hamlet
+import Text.Blaze.Html.Renderer.String
+import Network.HTTP.Conduit
+import Network.Mail.Mime
 
-import Twilio
 import Model
+import Twilio
 
-notifySms :: Manager -> Extra -> Text -> Section -> IO (Maybe Text)
+fromAddr :: Address
+fromAddr  = Address (Just "Bannerstalker") "admin@bannerstalker.com"
+
+notifyEmail :: Text -> Section -> IO (RequestStatus, Maybe Text)
+notifyEmail email section= do
+    message <- simpleMail toAddr fromAddr "subject" text html []
+    result <- (try $ renderSendMail message)
+    case result of
+        Left ex ->
+            return (Failure, Just $ pack $ show (ex :: SomeException))
+        Right _ -> return (Success, Nothing)
+    where
+        toAddr = Address Nothing email
+        text = LT.pack $ renderHtml
+                $(shamletFile "templates/mail-notification-text.hamlet")
+        html = LT.pack $ renderHtml
+                $(shamletFile "templates/mail-notification-html.hamlet")
+
+notifySms :: Manager
+             -> Extra
+             -> Text
+             -> Section
+             -> IO (RequestStatus, Maybe Text)
 notifySms manager extra recipient section = do
     twilio <- mkTwilio manager credentials
-    sendSms twilio number (encodeUtf8 recipient) "Notification!"
+    err <- sendSms twilio number (encodeUtf8 recipient) "Notification!"
+    return (case err of Nothing -> Success; _ -> Failure, err)
     where
         account = (encodeUtf8 $ extraTwilioAccount extra) 
         token = (encodeUtf8 $ extraTwilioToken extra) 
         number = (encodeUtf8 $ extraTwilioNumber extra)
         credentials = TwilioCredentials account token
-        
-
-notifyEmail :: IO ()
-notifyEmail = return ()
 
 main :: IO ()
 main = do

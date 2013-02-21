@@ -16,7 +16,6 @@ import qualified Data.Set as Set
 import Network.HTTP.Conduit
 
 import CourseList
-import Email
 import Model
 import Notifications
 import Settings
@@ -154,22 +153,16 @@ bannerstalkerd extra dbConf manager = do
 
         sendNotification user section = do
             when (userUseEmail user) $ do
-                liftIO $ putStrLn $
-                    "notifying " ++ show (userEmail user) ++
-                    " about " ++ show (sectionTitle section)
+                let email = userEmail user
+                (status, err) <- liftIO $ notifyEmail email section
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time
-                    EmailNotification (userEmail user) Success Nothing
+                    EmailNotification email status err
                 return ()
             when (userUseSms user) $ do
                 let phoneNum = userPhoneNum user
-                liftIO $ putStrLn $
-                    "notifying " ++ show phoneNum ++
-                    " about " ++ show (sectionTitle section)
-                err <- liftIO $ notifySms manager extra phoneNum section
-                let status = case err of
-                                Nothing -> Success
-                                _       -> Failure 
+                (status, err) <- liftIO $
+                    notifySms manager extra phoneNum section
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time 
                     SmsNotification phoneNum status err
