@@ -46,7 +46,7 @@ bannerstalkerd extra dbConf = do
                     let recordUnavailable sectionId =
                             insert $ HistoryLog time sectionId Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
-                    insert $ CourseListLog time ServerError
+                    insert $ CourseListLog time Failure
                                     Nothing Nothing Nothing
                     mapM_ recordUnavailable sectionIds
                 -- Process the new data.
@@ -157,7 +157,7 @@ bannerstalkerd extra dbConf = do
                     " about " ++ show (sectionTitle section)
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time
-                            EmailNotification $ userEmail user
+                    EmailNotification (userEmail user) Success Nothing
                 return ()
             when (userUseSms user) $ do
                 liftIO $ putStrLn $
@@ -165,7 +165,7 @@ bannerstalkerd extra dbConf = do
                     " about " ++ show (sectionTitle section)
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time 
-                            SmsNotification $ userPhoneNum user
+                    SmsNotification (userPhoneNum user) Success Nothing
                 return ()
                 
 -- Determines the next time that a notification should be sent.

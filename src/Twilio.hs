@@ -5,6 +5,8 @@ import Network.HTTP.Conduit
 import Data.Conduit
 import Data.Monoid
 import Data.ByteString (ByteString)
+import Data.Text.Lazy (Text)
+import Data.Text.Lazy.Encoding (decodeUtf8)
 import Network.HTTP.Types
 import qualified Data.ByteString.UTF8 as U8
 
@@ -28,15 +30,16 @@ twilioReq :: ByteString
              -> [(ByteString, ByteString)]
              -> Bool
              -> TwilioData
-             -> IO ()
+             -> IO (Maybe Text)
 twilioReq p params post (TwilioData manager request) =
     runResourceT $ do
         response <- httpLbs req'' manager
         case (responseStatus response) of
-            Status 201 "Created" -> return ()
-            _                    -> error $ show $ responseBody response
+            Status 201 "Created" -> return Nothing 
+            _ -> return $ Just $ decodeUtf8 $ responseBody response
         where
-            req' = request { path = path request `mappend` p }
+            req' = request { path = path request `mappend` p
+                           ,  checkStatus = \_ _ -> Nothing }
             ascii = renderSimpleQuery True params
             req'' = if post then urlEncodedBody params req'
                     else req' { queryString = ascii }
@@ -45,7 +48,7 @@ sendSms :: TwilioData
            -> ByteString -- ^ From
            -> ByteString -- ^ To
            -> ByteString -- ^ Body
-           -> IO ()
+           -> IO (Maybe Text)
 sendSms twilioData from to body = do
     twilioReq "/SMS/Messages" params True twilioData
     where

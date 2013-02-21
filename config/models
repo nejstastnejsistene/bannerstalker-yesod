@@ -32,7 +32,7 @@ Notification
     deriving    Show
 CourseListLog
     timestamp   UTCTime
-    status      CourseListStatus
+    status      RequestStatus
     added       Int Maybe
     removed     Int Maybe
     existing    Int Maybe
@@ -46,4 +46,6 @@ NotificationLog
     timestamp   UTCTime
     type        NotificationType
     recipient   Text
+    status      RequestStatus
+    error       Text Maybe
     deriving    Show

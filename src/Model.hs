@@ -12,9 +12,9 @@ data PrivilegeLevel = Level1 | Level2 | Level3 | Admin
     deriving (Read, Show, Eq, Ord, Bounded, Enum)
 derivePersistField "PrivilegeLevel"
 
-data CourseListStatus = Success | ServerError
+data RequestStatus = Success | Failure
     deriving (Read, Show, Eq)
-derivePersistField "CourseListStatus"
+derivePersistField "RequestStatus"
 
 data SectionStatus = Open | Closed | Unavailable
     deriving (Read, Show, Eq)
