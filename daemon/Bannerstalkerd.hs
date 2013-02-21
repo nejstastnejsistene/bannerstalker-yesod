@@ -17,7 +17,7 @@ import Network.HTTP.Conduit
 
 import CourseList
 import Model
-import Notifications
+import Notification
 import Settings
 
 -- Daemon function.
@@ -127,6 +127,7 @@ bannerstalkerd extra dbConf manager = do
                     insert $ Notification reqId newTime
                     return ()
 
+        -- Sends all notifications whose time has passed.
         flushNotifications = do
             time <- liftIO $ getCurrentTime
             reqIds <- fmap (map $ notificationRequestId . entityVal) $
@@ -151,6 +152,8 @@ bannerstalkerd extra dbConf manager = do
                     deleteBy $ UniqueReqId reqId
             mapM_ joinAndNotify requests
 
+        -- Check user settings and send mail and sms notifications
+        -- for the given section.
         sendNotification user section = do
             when (userUseEmail user) $ do
                 let email = userEmail user

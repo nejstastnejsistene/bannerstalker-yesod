@@ -17,7 +17,6 @@ library
                      Foundation
                      Import
                      Model
-                     Notifications
                      Settings
                      Settings.StaticFiles
                      Settings.Development
@@ -115,10 +114,12 @@ executable         bannerstalkerd
                      , yesod-default
 
                      , HTTP
+                     , blaze-html
                      , containers
                      , hamlet
                      , hdaemonize
                      , http-conduit
+                     , mime-mail
                      , network                 
                      , persistent
                      , persistent-postgresql

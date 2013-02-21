@@ -1,8 +1,5 @@
-module Notifications where
+module Notification where
 import Prelude
-import Yesod.Default.Config
-import Settings
-
 import Control.Exception
 import Data.Text
 import Data.Text.Encoding
@@ -14,6 +11,7 @@ import Network.Mail.Mime
 
 import Model
 import Twilio
+import Settings
 
 fromAddr :: Address
 fromAddr  = Address (Just "Bannerstalker") "admin@bannerstalker.com"
@@ -49,17 +47,3 @@ notifySms manager extra recipient section = do
         credentials = TwilioCredentials account token
         message = encodeUtf8 $ pack $ renderHtml 
             $(shamletFile "templates/notification-sms.hamlet")
-
-main :: IO ()
-main = do
-    extra <- fmap appExtra $ fromArgs parseExtra
-    manager <- newManager def
-    let creds = TwilioCredentials
-                    (encodeUtf8 $ extraTwilioAccount extra) 
-                    (encodeUtf8 $ extraTwilioToken extra) 
-    twilio <- mkTwilio manager creds
-    err <- sendSms twilio "+15714510230" "+19034754114" "It works now!"
-    case err of
-        Nothing -> return ()
-        Just body -> putStrLn $ show body
-
