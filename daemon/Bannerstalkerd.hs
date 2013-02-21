@@ -190,30 +190,3 @@ nextNotificationTime interval = do
         localNextTime = (truncated + 1) * interval
         posixNextTime = localNextTime - tzSeconds
     return $ posixSecondsToUTCTime $ fromIntegral posixNextTime
- 
-
-{-
-        -- Notify all users subscribed to this class that it has changed.
-        notifyStatusChange sectionId newSection = do
-            requestsList <- selectList
-                [SectionRequestSectionId ==. sectionId] []
-            when (not $ null requestsList) $ do
-                let unwrapUserId = sectionRequestUserId . entityVal
-                    userIds = map unwrapUserId requestsList
-                mapM_ (notifyIndividual newSection)  userIds
-
-        -- Notifies an individual user that their class has changed.
-        notifyIndividual section userId = do
-            user <- fmap (entityVal . head) $
-                        selectList [UserId ==. userId] []
-            when (userUseEmail user) $ do
-                let email = userEmail user
-                liftIO $ putStrLn $ "notifying " ++ show email
-                mesg <- liftIO $ createEmail email section
-                -- TODO calculate actual time to send
-                time <- liftIO $ getCurrentTime
-                --insert $ Notification EmailNotification mesg time
-                return ()
-            when (userUseSms user) $ do
-                liftIO $ putStrLn "sending sms"
--}
