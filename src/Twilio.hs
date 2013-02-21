@@ -1,6 +1,5 @@
 -- Adapted from https://github.com/lassoinc/hs-twilio
-{-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
-module Twil where
+module Twilio where
 import Prelude
 import Network.HTTP.Conduit
 import Data.Conduit
