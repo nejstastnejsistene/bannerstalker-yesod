@@ -29,9 +29,9 @@ notifyEmail email section= do
     where
         toAddr = Address Nothing email
         text = LT.pack $ renderHtml
-                $(shamletFile "templates/mail-notification-text.hamlet")
+                $(shamletFile "templates/notification-mail-text.hamlet")
         html = LT.pack $ renderHtml
-                $(shamletFile "templates/mail-notification-html.hamlet")
+                $(shamletFile "templates/notification-mail-html.hamlet")
 
 notifySms :: Manager
              -> Extra
