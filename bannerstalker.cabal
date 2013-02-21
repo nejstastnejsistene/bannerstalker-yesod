@@ -18,6 +18,7 @@ library
                      Foundation
                      Import
                      Model
+                     Notifications
                      Settings
                      Settings.StaticFiles
                      Settings.Development

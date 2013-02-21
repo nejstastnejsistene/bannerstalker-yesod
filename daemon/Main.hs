@@ -4,6 +4,7 @@ import Application              (getPersistConfig)
 import Settings                 (parseExtra)
 import Bannerstalkerd           (bannerstalkerd)
 import System.Posix.Daemonize
+import Network.HTTP.Conduit
 
 daemon :: CreateDaemon ()
 daemon = CreateDaemon {  privilegedAction = return ()
@@ -19,7 +20,8 @@ startDaemon :: IO ()
 startDaemon = do
     conf <- fromArgs parseExtra
     dbConf <- getPersistConfig conf
-    bannerstalkerd (appExtra conf) dbConf
+    manager <- newManager def
+    bannerstalkerd (appExtra conf) dbConf manager
 
 
 main :: IO ()

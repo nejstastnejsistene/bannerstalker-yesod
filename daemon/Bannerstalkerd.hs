@@ -2,26 +2,28 @@ module Bannerstalkerd where
 
 import Import
 import Prelude
+import Control.Monad
+import Control.Monad.Trans.Resource
 import Database.Persist
 import Database.Persist.GenericSql.Raw
 import Database.Persist.Postgresql
-import Control.Monad
-import Control.Monad.Trans.Resource
 import Data.Text (unpack)
 import Data.Time
 import Data.Time.Clock.POSIX
 import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import Network.HTTP.Conduit
 
 import CourseList
-import Model
-import Settings
 import Email
+import Model
+import Notifications
+import Settings
 
 -- Daemon function.
-bannerstalkerd :: Extra -> PersistConfig -> IO ()
-bannerstalkerd extra dbConf = do
+bannerstalkerd :: Extra -> PersistConfig -> Manager -> IO ()
+bannerstalkerd extra dbConf manager = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
     let semesters = map unpack $ extraSemesters extra
     runResourceT $ conn $ runSqlConn $ do 
@@ -160,12 +162,17 @@ bannerstalkerd extra dbConf = do
                     EmailNotification (userEmail user) Success Nothing
                 return ()
             when (userUseSms user) $ do
+                let phoneNum = userPhoneNum user
                 liftIO $ putStrLn $
-                    "notifying " ++ show (userPhoneNum user) ++
+                    "notifying " ++ show phoneNum ++
                     " about " ++ show (sectionTitle section)
+                err <- liftIO $ notifySms manager extra phoneNum section
+                let status = case err of
+                                Nothing -> Success
+                                _       -> Failure 
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time 
-                    SmsNotification (userPhoneNum user) Success Nothing
+                    SmsNotification phoneNum status err
                 return ()
                 
 -- Determines the next time that a notification should be sent.
