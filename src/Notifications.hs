@@ -2,12 +2,11 @@ module Notifications where
 import Prelude
 import Yesod.Default.Config
 import Settings
-import Data.Text.Encoding
 
 import Control.Exception
 import Data.Text
+import Data.Text.Encoding
 import qualified Data.Text.Lazy as LT
-import Database.Persist
 import Text.Hamlet
 import Text.Blaze.Html.Renderer.String
 import Network.HTTP.Conduit
@@ -41,13 +40,15 @@ notifySms :: Manager
              -> IO (RequestStatus, Maybe Text)
 notifySms manager extra recipient section = do
     twilio <- mkTwilio manager credentials
-    err <- sendSms twilio number (encodeUtf8 recipient) "Notification!"
+    err <- sendSms twilio number (encodeUtf8 recipient) message
     return (case err of Nothing -> Success; _ -> Failure, err)
     where
         account = (encodeUtf8 $ extraTwilioAccount extra) 
         token = (encodeUtf8 $ extraTwilioToken extra) 
         number = (encodeUtf8 $ extraTwilioNumber extra)
         credentials = TwilioCredentials account token
+        message = encodeUtf8 $ pack $ renderHtml 
+            $(shamletFile "templates/notification-sms.hamlet")
 
 main :: IO ()
 main = do
