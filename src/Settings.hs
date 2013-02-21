@@ -71,6 +71,7 @@ data Extra = Extra
     , extraAnalytics :: Maybe Text -- ^ Google Analytics
     , extraTwilioAccount :: Text
     , extraTwilioToken :: Text
+    , extraTwilioNumber :: Text
     , extraSemesters :: [Text]
     , extraLevel1NotifyInterval :: Int
     , extraLevel2NotifyInterval :: Int
@@ -83,6 +84,7 @@ parseExtra _ o = Extra
     <*> o .:? "analytics"
     <*> o .:  "twilioAccount"
     <*> o .:  "twilioToken"
+    <*> o .:  "twilioNumber"
     <*> o .:  "semesters"
     <*> o .:  "level1NotifyInterval"
     <*> o .:  "level2NotifyInterval"

@@ -6,6 +6,7 @@ Default: &defaults
   analytics: "UA-38565662-1"
   twilioAccount: <account>
   twilioToken: <token>
+  twilioNumber: <number>
   semesters: ["201320"]
   level1NotifyInterval: 7200 # 2 hours  
   level2NotifyInterval: 1800 # 30 minutes  
