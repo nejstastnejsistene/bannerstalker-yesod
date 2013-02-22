@@ -45,8 +45,6 @@ bannerstalkerd extra dbConf manager = do
         flushNotifications
 
     where
-        subject = "0"
-
         -- Applies the program to a given semester.
         refreshCourseList semester = do
             -- Pull current data from database.
@@ -54,7 +52,7 @@ bannerstalkerd extra dbConf manager = do
             let keys = map (sectionCrn . entityVal) sectionsList
                 oldSections = Map.fromList $ zip keys sectionsList
             -- Fetch new data from CourseList.
-            response <- liftIO $ fetchCourseList manager semester subject
+            response <- liftIO $ fetchCourseList manager semester
             time <- liftIO $ getCurrentTime
             case response of
                 -- Server error: record statuses as Unavailable.
@@ -62,8 +60,8 @@ bannerstalkerd extra dbConf manager = do
                     let recordUnavailable sectionId =
                             insert $ HistoryLog time sectionId Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
-                    insert $ CourseListLog time Failure
-                                    Nothing Nothing Nothing
+                    insert $ CourseListLog time Failure (Just err)
+                                        Nothing Nothing Nothing
                     mapM_ recordUnavailable sectionIds
                 -- Process the new data.
                 Right sectionsList -> do
@@ -104,7 +102,7 @@ bannerstalkerd extra dbConf manager = do
                 addedCrns = Set.difference newCrns oldCrns 
                 removedCrns = Set.difference oldCrns newCrns
                 existingCrns = Set.intersection oldCrns newCrns
-            insert $ CourseListLog time Success
+            insert $ CourseListLog time Success Nothing
                 (Just $ Set.size addedCrns)
                 (Just $ Set.size removedCrns)
                 (Just $ Set.size existingCrns)

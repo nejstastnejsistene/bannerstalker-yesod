@@ -1,6 +1,7 @@
 module CourseList (fetchCourseList) where
 
 import Prelude
+import Control.Exception
 import Data.ByteString (ByteString)
 import Data.Conduit
 import Data.Either
@@ -19,11 +20,8 @@ url :: String
 url = "http://courselist.wm.edu/wmcourseschedule/courseinfo/searchresults"
 
 -- Requests the raw html from the courselist website.
-requestCourseList :: Manager
-                     -> T.Text
-                     -> T.Text
-                     -> IO (Either T.Text T.Text)
-requestCourseList manager semester subject =
+requestCourseList :: Manager -> T.Text -> IO (Either T.Text T.Text)
+requestCourseList manager semester =
     runResourceT $ do
         req <- parseUrl url
         let req' = req { checkStatus = \_ _ -> Nothing }
@@ -37,7 +35,7 @@ requestCourseList manager semester subject =
     where
         params :: [(ByteString, ByteString)]
         params = [("term_code", encodeUtf8 semester)
-                 ,("term_subj", encodeUtf8 subject)
+                 ,("term_subj", "0")
                  ,("attr",      "0")
                  ,("levl",      "0")
                  ,("status",    "0")
@@ -91,12 +89,9 @@ makeSection semester
 makeSection _ _ = Left "Wrong number of arguments"
 
 
-fetchCourseList :: Manager
-                   -> T.Text
-                   -> T.Text
-                   -> IO (Either T.Text [Section])
-fetchCourseList manager semester subject = do
-    response <- requestCourseList manager semester subject
+unsafeFetchCourseList :: Manager -> T.Text -> IO (Either T.Text [Section])
+unsafeFetchCourseList manager semester = do
+    response <- requestCourseList manager semester
     case response of
         Left err -> return $ Left err
         Right html ->
@@ -105,4 +100,11 @@ fetchCourseList manager semester subject = do
                 (errors, sections) = partitionEithers eitherSections
             in case errors of
                 [] -> return $ Right sections
-                _  -> return $ Left $ head errors
+                _  -> return $ Left $ T.pack $ show errors
+
+fetchCourseList :: Manager -> T.Text -> IO (Either T.Text [Section])
+fetchCourseList manager semester = do
+    result <- try $ unsafeFetchCourseList manager semester
+    case result of
+        Left ex -> return $ Left $ T.pack $ show (ex :: SomeException)
+        Right x -> return x

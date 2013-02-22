@@ -33,6 +33,7 @@ Notification
 CourseListLog
     timestamp   UTCTime
     status      RequestStatus
+    error       Text Maybe
     added       Int Maybe
     removed     Int Maybe
     existing    Int Maybe
