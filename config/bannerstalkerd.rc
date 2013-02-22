@@ -27,4 +27,5 @@ bannerstalkerd_restart() {
     exec ${command} restart
 }
 
+load_rc_config ${name}
 run_rc_command "$1"
