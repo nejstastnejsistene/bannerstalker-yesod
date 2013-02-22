@@ -23,15 +23,18 @@ url = "http://courselist.wm.edu/wmcourseschedule/courseinfo/searchresults"
 requestCourseList :: Manager -> T.Text -> IO (Either T.Text T.Text)
 requestCourseList manager semester =
     runResourceT $ do
-        req <- parseUrl url
-        let req' = req { checkStatus = \_ _ -> Nothing }
-            req'' = urlEncodedBody params req'
-        response <- httpLbs req'' manager
+        defReq <- parseUrl url
+        let request = urlEncodedBody params $ defReq
+                        { checkStatus = \_ _ -> Nothing
+                        , responseTimeout = Just 60000000 -- 1 minute
+                        }
+        response <- httpLbs request manager
         let status = responseStatus response
-            body = toStrict $ decodeUtf8 $ responseBody response
         case status of
-            Status 201 "Created" -> return $ Right body
-            _                    -> return $ Left body
+            Status 200 "OK" ->
+                let body = toStrict $ decodeUtf8 $ responseBody response
+                in return $ Right body
+            _ -> return $ Left $ T.pack $ show status
     where
         params :: [(ByteString, ByteString)]
         params = [("term_code", encodeUtf8 semester)
