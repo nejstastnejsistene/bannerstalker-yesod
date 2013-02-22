@@ -18,7 +18,7 @@ fromAddr  = Address (Just "Bannerstalker") "admin@bannerstalker.com"
 
 notifyEmail :: Text -> Section -> IO (RequestStatus, Maybe Text)
 notifyEmail email section= do
-    message <- simpleMail toAddr fromAddr "subject" text html []
+    message <- simpleMail toAddr fromAddr subject text html []
     result <- (try $ renderSendMail message)
     case result of
         Left ex ->
@@ -26,6 +26,8 @@ notifyEmail email section= do
         Right _ -> return (Success, Nothing)
     where
         toAddr = Address Nothing email
+        subject = pack $ renderHtml
+                $(shamletFile "templates/notification-mail-subj.hamlet")
         text = LT.pack $ renderHtml
                 $(shamletFile "templates/notification-mail-text.hamlet")
         html = LT.pack $ renderHtml
