@@ -2,7 +2,7 @@ import Prelude
 import Yesod.Default.Config     (fromArgs, appExtra)
 import Application              (getPersistConfig)
 import Settings                 (parseExtra)
-import Bannerstalkerd           (bannerstalkerd)
+import Bannerstalkerd           (bannerstalkerdLoop)
 import System.Posix.Daemonize
 import Network.HTTP.Conduit
 
@@ -21,7 +21,7 @@ startDaemon = do
     conf <- fromArgs parseExtra
     dbConf <- getPersistConfig conf
     manager <- newManager def
-    bannerstalkerd (appExtra conf) dbConf manager
+    bannerstalkerdLoop (appExtra conf) dbConf manager
 
 
 main :: IO ()

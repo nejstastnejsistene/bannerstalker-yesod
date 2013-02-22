@@ -2,6 +2,7 @@ module Bannerstalkerd where
 
 import Import
 import Prelude
+import Control.Concurrent
 import Control.Monad
 import Control.Monad.Trans.Resource
 import Database.Persist
@@ -20,15 +21,30 @@ import Model
 import Notification
 import Settings
 
--- Daemon function.
+bannerstalkerdLoop :: Extra -> PersistConfig -> Manager -> IO ()
+bannerstalkerdLoop extra conf manager = do
+        time <- getCurrentTime
+        bannerstalkerd extra conf manager
+        doSleep
+        bannerstalkerdLoop extra conf manager
+    where
+        -- Sleep until the next 5 minute interval begins.
+        doSleep = do
+            time  <- getPOSIXTime
+            let nextTime = fromIntegral $ nextTimeInterval time 300
+            threadDelay $ round $ 1000000 * (nextTime - time)
+
+-- Single iteration of the daemon.
 bannerstalkerd :: Extra -> PersistConfig -> Manager -> IO ()
 bannerstalkerd extra dbConf manager = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
     let semesters = map unpack $ extraSemesters extra
     runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
+        flushNotifications
         mapM_ refreshCourseList semesters
         flushNotifications
+
     where
         subject = "0"
 
@@ -171,6 +187,12 @@ bannerstalkerd extra dbConf manager = do
                     SmsNotification phoneNum status err
                 return ()
                 
+-- Takes a posix time and returns the start time in seconds of the
+-- beginning of the next time interval.
+nextTimeInterval :: POSIXTime -> Int -> Int
+nextTimeInterval time interval =
+    (*) interval $ (truncate $ time / fromIntegral interval) + 1
+
 -- Determines the next time that a notification should be sent.
 -- For example, if interval is two hours, this will return the time
 -- rounded up to the next time with an hour divisible by 2. A negative
@@ -182,7 +204,5 @@ nextNotificationTime interval = do
     timeZone <- liftIO $ getCurrentTimeZone
     let tzSeconds = 60 * timeZoneMinutes timeZone
         localTime = utcTime + fromIntegral tzSeconds
-        truncated = truncate $ localTime / fromIntegral interval
-        localNextTime = (truncated + 1) * interval
-        posixNextTime = localNextTime - tzSeconds
-    return $ posixSecondsToUTCTime $ fromIntegral posixNextTime
+        nextTime = (nextTimeInterval localTime interval) - tzSeconds
+    return $ posixSecondsToUTCTime $ fromIntegral nextTime
