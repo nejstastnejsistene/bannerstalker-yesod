@@ -10,14 +10,14 @@ User
     UniqueEmail email
     deriving    Show
 Section
-    semester    String
+    semester    Text
     crn         Int
-    subject     String
-    courseId    String
-    title       String
-    instructor  String
-    days        String
-    time        String
+    subject     Text
+    courseId    Text
+    title       Text
+    instructor  Text
+    days        Text
+    time        Text
     currStatus  SectionStatus
     deriving    Show
 SectionRequest

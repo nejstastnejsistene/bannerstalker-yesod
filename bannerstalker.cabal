@@ -113,14 +113,15 @@ executable         bannerstalkerd
                      , bannerstalker
                      , yesod-default
 
-                     , HTTP
                      , blaze-html
+                     , bytestring
+                     , conduit
                      , containers
                      , hamlet
                      , hdaemonize
                      , http-conduit
+                     , http-types
                      , mime-mail
-                     , network                 
                      , persistent
                      , persistent-postgresql
                      , resourcet

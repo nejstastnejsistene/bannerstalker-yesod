@@ -38,11 +38,10 @@ bannerstalkerdLoop extra conf manager = do
 bannerstalkerd :: Extra -> PersistConfig -> Manager -> IO ()
 bannerstalkerd extra dbConf manager = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
-    let semesters = map unpack $ extraSemesters extra
     runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
         flushNotifications
-        mapM_ refreshCourseList semesters
+        mapM_ refreshCourseList $ extraSemesters extra
         flushNotifications
 
     where
@@ -55,7 +54,7 @@ bannerstalkerd extra dbConf manager = do
             let keys = map (sectionCrn . entityVal) sectionsList
                 oldSections = Map.fromList $ zip keys sectionsList
             -- Fetch new data from CourseList.
-            response <- liftIO $ fetchCourseList semester subject
+            response <- liftIO $ fetchCourseList manager semester subject
             time <- liftIO $ getCurrentTime
             case response of
                 -- Server error: record statuses as Unavailable.
