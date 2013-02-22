@@ -3,18 +3,21 @@ module Bannerstalkerd where
 import Import
 import Prelude
 import Control.Concurrent
+import Control.Exception
 import Control.Monad
 import Control.Monad.Trans.Resource
 import Database.Persist
 import Database.Persist.GenericSql.Raw
 import Database.Persist.Postgresql
-import Data.Text (unpack)
+import Data.Text (pack, unpack)
+import Data.Text.Lazy (fromChunks)
 import Data.Time
 import Data.Time.Clock.POSIX
 import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Network.HTTP.Conduit
+import Network.Mail.Mime
 
 import CourseList
 import Model
@@ -24,7 +27,11 @@ import Settings
 bannerstalkerdLoop :: Extra -> PersistConfig -> Manager -> IO ()
 bannerstalkerdLoop extra conf manager = do
         time <- getCurrentTime
-        bannerstalkerd extra conf manager
+        -- Put this in an error block for now so I am notified of errors.
+        result <- try $ bannerstalkerd extra conf manager
+        case result of
+            Left ex -> mailAlert $ pack $ show (ex :: SomeException)    
+            Right _ -> return ()
         doSleep
         bannerstalkerdLoop extra conf manager
     where
@@ -77,13 +84,10 @@ bannerstalkerd extra dbConf manager = do
                     sectionId <- insert section
                     insert $ HistoryLog time sectionId $
                         sectionCurrStatus section
-                    liftIO $ putStrLn $ "new class: " ++ show section
                 -- TODO what to do when a class is removed?
-                handleRemovedCrn crn = do
-                    liftIO $ putStrLn "Class removed, what do I do?"
-                    --let sectionId = entityKey $ fromJust $
-                    --                    Map.lookup crn oldSections
-                    --insert $ HistoryLog time sectionId Unavailable
+                handleRemovedCrn crn = liftIO $
+                    mailAlert $ pack $ "crn removed: " ++ show crn
+                    
                 -- Update changed statuses.
                 handleExistingCrn crn = do
                     let (Entity sectionId
@@ -91,8 +95,7 @@ bannerstalkerd extra dbConf manager = do
                             fromJust $ Map.lookup crn oldSections
                         (Section _ _ _ _ _ _ _ _ newStatus) =
                             fromJust $ Map.lookup crn newSections
-                        -- XXX Remember to change back to /=
-                    when (newStatus == oldStatus) $ do
+                    when (newStatus /= oldStatus) $ do
                         scheduleNotification sectionId newStatus
                         update sectionId [SectionCurrStatus =. newStatus]
                     insert $ HistoryLog time sectionId newStatus
@@ -106,10 +109,6 @@ bannerstalkerd extra dbConf manager = do
                 (Just $ Set.size addedCrns)
                 (Just $ Set.size removedCrns)
                 (Just $ Set.size existingCrns)
-            liftIO $ putStrLn $
-                "added:    " ++ show (Set.size addedCrns) ++ "\n" ++
-                "removed:  " ++ show (Set.size removedCrns) ++ "\n" ++
-                "existing: " ++ show (Set.size existingCrns)
             -- Process the partitions.
             mapM_ handleAddedCrn $ Set.toList addedCrns
             mapM_ handleRemovedCrn $ Set.toList removedCrns
@@ -125,15 +124,12 @@ bannerstalkerd extra dbConf manager = do
         updateNotifications currStatus (Entity reqId req) = do
             -- The last status the user was notified of.
             let lastStatus = sectionRequestLastStatus req
-            -- XXX Don't forget to change back to ==
-            case (lastStatus /= currStatus) of
+            case (lastStatus == currStatus) of
                 -- Status is unchanged, delete notification.
                 True -> do
                     deleteBy $ UniqueReqId reqId
                 -- Insert a new notification.
                 False -> do
-                    -- XXX Remove when I change back all the /='s
-                    deleteWhere [NotificationRequestId ==. reqId]
                     user <- fmap fromJust $ get $ sectionRequestUserId req
                     newTime <- liftIO $ nextNotificationTime $
                         getNotifyInterval extra $ userPrivilege user
@@ -184,6 +180,15 @@ bannerstalkerd extra dbConf manager = do
                     SmsNotification phoneNum status err
                 return ()
                 
+mailAlert :: Text -> IO ()
+mailAlert text = do
+    message <- simpleMail addr addr
+                    "Bannerstalker Alert" lazyText lazyText []
+    renderSendMail message
+    where
+        addr = Address (Just "Bannerstalker") "admin@bannerstalker.com"
+        lazyText = fromChunks [text]
+
 -- Takes a posix time and returns the start time in seconds of the
 -- beginning of the next time interval.
 nextTimeInterval :: POSIXTime -> Int -> Int
