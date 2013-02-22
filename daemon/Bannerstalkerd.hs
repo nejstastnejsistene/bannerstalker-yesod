@@ -5,6 +5,7 @@ import Prelude
 import Control.Concurrent
 import Control.Exception
 import Control.Monad
+import Control.Monad.Logger (runNoLoggingT)
 import Control.Monad.Trans.Resource
 import Database.Persist
 import Database.Persist.GenericSql.Raw
@@ -45,7 +46,7 @@ bannerstalkerdLoop extra conf manager = do
 bannerstalkerd :: Extra -> PersistConfig -> Manager -> IO ()
 bannerstalkerd extra dbConf manager = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
-    runResourceT $ conn $ runSqlConn $ do 
+    runNoLoggingT $ runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
         flushNotifications
         mapM_ refreshCourseList $ extraSemesters extra
