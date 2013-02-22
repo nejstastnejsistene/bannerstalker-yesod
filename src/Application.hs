@@ -3,6 +3,7 @@ module Application
     ( makeApplication
     , getApplicationDev
     , makeFoundation
+    , getAppConfig
     , getPersistConfig
     ) where
 
@@ -62,17 +63,33 @@ makeFoundation conf = do
     logger <- mkLogger True stdout
     let foundation = App conf s p manager dbconf logger
 
-    -- Perform database migration using our application's logging settings.
+   -- Perform database migration using our application's logging settings.
     runLoggingT
         (Database.Persist.Store.runPool dbconf (runMigration migrateAll) p)
         (messageLoggerSource foundation logger)
 
     return foundation
 
+getAppConfig :: DefaultEnv -> IO (AppConfig DefaultEnv Extra)
+getAppConfig env = loadConfig conf
+    where 
+        conf = (configSettings env)
+            { csParseExtra = parseExtra
+            , csFile = \e -> return $ case e of
+                Development -> "config/settings.yml"
+                _ -> "/usr/local/etc/bannerstalker/settings.yml"
+            }
+
 getPersistConfig :: AppConfig DefaultEnv Extra -> IO PersistConfig
 getPersistConfig conf =
-    withYamlEnvironment "config/postgresql.yml" (appEnv conf)
+    withYamlEnvironment filepath env
     Database.Persist.Store.loadConfig >>= Database.Persist.Store.applyEnv
+    where
+        env = appEnv conf
+        filepath = case env of
+            Development -> "config/postgresql.yml"
+            _ -> "/usr/local/etc/bannerstalker/postgresql.yml"
+        
 
 -- for yesod devel
 getApplicationDev :: IO (Int, Application)

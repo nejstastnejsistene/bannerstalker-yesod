@@ -27,7 +27,6 @@ import Settings
 
 bannerstalkerdLoop :: Extra -> PersistConfig -> Manager -> IO ()
 bannerstalkerdLoop extra conf manager = do
-        time <- getCurrentTime
         -- Put this in an error block for now so I am notified of errors.
         result <- try $ bannerstalkerd extra conf manager
         case result of

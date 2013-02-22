@@ -1,29 +1,33 @@
 import Prelude
-import Yesod.Default.Config     (fromArgs, appExtra)
-import Application              (getPersistConfig)
-import Settings                 (parseExtra)
-import Bannerstalkerd           (bannerstalkerdLoop)
 import System.Posix.Daemonize
 import Network.HTTP.Conduit
+import Yesod.Default.Config
 
-daemon :: CreateDaemon ()
-daemon = CreateDaemon {  privilegedAction = return ()
-                      ,  program = const startDaemon
-                      ,  name = Just "bannerstalkerd"
-                      ,  user = Just "bannerstalker"
-                      ,  group = Just "bannerstalker"
-                      ,  syslogOptions = []
-                      ,  pidfileDirectory = Just "/var/run"
+import Application
+import Bannerstalkerd
+import Settings
+
+type ConfigFiles = (AppConfig DefaultEnv Extra, PersistConfig)
+
+daemon :: CreateDaemon ConfigFiles
+daemon = simpleDaemon { privilegedAction = readConfig
+                      , program = startDaemon
+                      , name = Just "bannerstalkerd"
+                      , user = Just "bannerstalker"
+                      , group = Just "bannerstalker"
                       }
 
-startDaemon :: IO ()
-startDaemon = do
-    conf <- fromArgs parseExtra
+readConfig :: IO ConfigFiles
+readConfig = do
+    conf <- getAppConfig Testing
     dbConf <- getPersistConfig conf
+    return (conf, dbConf)
+
+startDaemon :: ConfigFiles -> IO ()
+startDaemon (conf, dbConf)= do
     manager <- newManager def
     bannerstalkerdLoop (appExtra conf) dbConf manager
 
 
 main :: IO ()
---main = serviced daemon
-main = startDaemon
+main = serviced daemon
