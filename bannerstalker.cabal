@@ -1,5 +1,5 @@
 name:              bannerstalker
-version:           0.1.0
+version:           0.1.1
 cabal-version:     >= 1.8
 build-type:        Simple
 
@@ -129,6 +129,7 @@ executable         bannerstalkerd
                      , mime-mail
                      , persistent
                      , persistent-postgresql
+                     , regex-pcre
                      , resourcet
                      , tagsoup
                      , text

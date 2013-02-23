@@ -30,7 +30,7 @@ bannerstalkerdLoop extra conf manager = do
         -- Put this in an error block for now so I am notified of errors.
         result <- try $ bannerstalkerd extra conf manager
         case result of
-            Left ex -> mailAlert $ pack $ show (ex :: SomeException)    
+            Left ex -> mailAlert $ pack $ show (ex :: SomeException)
             Right _ -> return ()
         doSleep
         bannerstalkerdLoop extra conf manager
