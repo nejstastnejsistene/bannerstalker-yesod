@@ -4,8 +4,7 @@ import Prelude
 import Yesod
 import Yesod.Static
 import Yesod.Auth
-import Yesod.Auth.BrowserId
-import Yesod.Auth.GoogleEmail
+import Yesod.Auth.Email
 import Yesod.Default.Config
 import Yesod.Default.Util (addStaticContentExternal)
 import Network.HTTP.Conduit (Manager)
@@ -18,8 +17,13 @@ import Settings (widgetFile, Extra (..))
 import Model
 import Text.Jasmine (minifym)
 import Web.ClientSession (getKey)
-import Text.Hamlet (hamletFile)
+import Text.Hamlet
 import System.Log.FastLogger (Logger)
+import Data.Maybe
+import Network.Mail.Mime
+import qualified Data.Text.Lazy as LT
+import Text.Blaze.Html.Renderer.String
+import Control.Monad (join)
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -144,9 +148,59 @@ instance YesodAuth App where
                 --fmap Just $ insert $ User (credsIdent creds) Nothing
 
     -- You can add other plugins like BrowserID, email or OAuth here
-    authPlugins _ = [authBrowserId, authGoogleEmail]
+    authPlugins _ = [authEmail]
 
     authHttpManager = httpManager
+
+instance YesodAuthEmail App where
+    type AuthEmailId App = UserId
+
+    -- Expects the user to have been added already.
+    addUnverified email verkey = runDB $ do
+        (Entity uid _) <- fmap fromJust $ getBy $ UniqueEmail email
+        update uid [UserVerkey =. Just verkey]
+        return uid
+
+    sendVerifyEmail email _ verurl = liftIO $
+        simpleMail to from subject text html [] >>= renderSendMail
+        where
+            to = Address Nothing email
+            from = Address Nothing "info@bannerstalker.com"
+            subject = "Verify your email address"
+            text = LT.pack $ renderHtml
+                    $(shamletFile "templates/verify-email-text.hamlet")
+            html = LT.pack $ renderHtml
+                    $(shamletFile "templates/verify-email-html.hamlet")
+
+    getVerifyKey = runDB . fmap (join . fmap userVerkey) . get
+
+    setVerifyKey uid key = runDB $ update uid [UserVerkey =. Just key]
+
+    verifyAccount uid = runDB $ do
+        muser <- get uid
+        case muser of
+            Nothing -> return Nothing
+            Just _ -> do
+                update uid [UserVerified =. True]
+                return $ Just uid
+
+    getPassword = runDB . fmap (fmap userPassword) . get
+
+    setPassword uid passwd = runDB $ update uid [UserPassword =. passwd]
+
+    getEmailCreds email = runDB $ do
+        muser <- getBy $ UniqueEmail email
+        case muser of
+            Nothing -> return Nothing
+            Just (Entity uid user) -> return $ Just EmailCreds
+                { emailCredsId = uid
+                , emailCredsAuthId = Just uid
+                , emailCredsStatus = True
+                , emailCredsVerkey = userVerkey user
+                }
+
+    getEmail = runDB . fmap (fmap userEmail) . get
+    
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.
