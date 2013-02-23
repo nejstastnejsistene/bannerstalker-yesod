@@ -24,10 +24,9 @@ readConfig = do
     return (conf, dbConf)
 
 startDaemon :: ConfigFiles -> IO ()
-startDaemon (conf, dbConf)= do
+startDaemon (conf, dbConf) = do
     manager <- newManager def
     bannerstalkerdLoop (appExtra conf) dbConf manager
-
 
 main :: IO ()
 main = serviced daemon
