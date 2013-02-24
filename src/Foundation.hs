@@ -14,7 +14,7 @@ import Database.Persist.GenericSql
 import Settings (widgetFile, Extra (..))
 import Text.Jasmine (minifym)
 import Web.ClientSession (getKey)
-import Text.Hamlet (hamletFile)
+import Text.Hamlet
 import System.Log.FastLogger (Logger)
 import Data.Text (Text)
 import Model
@@ -143,7 +143,7 @@ instance YesodAuth App where
                 --fmap Just $ insert $ User (credsIdent creds) Nothing
 
     -- You can add other plugins like BrowserID, email or OAuth here
-    authPlugins _ = [authBrowserId, authGoogleEmail]
+    authPlugins _ = [authEmail]
 
     authHttpManager = httpManager
 -}

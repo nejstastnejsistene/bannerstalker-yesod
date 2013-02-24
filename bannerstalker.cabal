@@ -139,7 +139,7 @@ executable         bannerstalkerd
                      , time
                      , transformers
 
-    ghc-options:       -threaded -O2
+    ghc-options:       -threaded -O2 -H64m
 
 test-suite test
     type:              exitcode-stdio-1.0
