@@ -21,6 +21,7 @@ library
                      Settings.StaticFiles
                      Settings.Development
                      Twilio
+                     Handler.Auth
                      Handler.Home
 
     if flag(dev) || flag(library-only)
@@ -78,6 +79,8 @@ library
                  , data-default
                  , http-types
                  , mime-mail
+                 , random
+                 , scrypt
                  , time
                  , utf8-string
 

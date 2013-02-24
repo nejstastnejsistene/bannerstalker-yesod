@@ -4,7 +4,7 @@ User
     privilege   PrivilegeLevel
     verkey      Text Maybe
     verified    Bool
-    phoneNum    Text
+    phoneNum    Text Maybe
     useEmail    Bool
     useSms      Bool
     UniqueEmail email

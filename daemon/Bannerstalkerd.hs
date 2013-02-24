@@ -172,7 +172,7 @@ bannerstalkerd extra dbConf manager = do
                     EmailNotification email status err
                 return ()
             when (userUseSms user) $ do
-                let phoneNum = userPhoneNum user
+                let phoneNum = fromJust $ userPhoneNum user
                 (status, err) <- liftIO $
                     notifySms manager extra phoneNum section
                 time <- liftIO $ getCurrentTime
