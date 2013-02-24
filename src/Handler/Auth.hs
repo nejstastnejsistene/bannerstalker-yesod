@@ -113,7 +113,18 @@ Thank you
 |]
 
 getVerifyR :: UserId -> Text -> Handler RepHtml
-getVerifyR _ _ = defaultLayout [whamlet|<h1>not implemented|]
+getVerifyR userId verKey = do
+    muser <- runDB $ get userId
+    case muser of
+        Just user -> if userVerkey user == Just verKey
+            then do
+                runDB $ update userId [ UserVerkey =. Nothing
+                                      , UserVerified =. True ]
+                toMaster <- getRouteToMaster
+                redirect $ toMaster HomeR
+            else return ()
+        Nothing -> return ()
+    defaultLayout $ [whamlet|<h1>invalid key|]
 
 getLoginR :: Handler RepHtml
 getLoginR = defaultLayout [whamlet|<h1>not implemented|]
