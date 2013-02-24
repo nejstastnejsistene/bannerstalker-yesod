@@ -59,13 +59,15 @@ attemptRegistration :: RegisterCreds -> Handler RegistrationResult
 attemptRegistration (RegisterCreds email passwd confirm) =
     if (snd $ T.breakOn "@" email) /= "@email.wm.edu"
         then return NotWmStudent
-    else if passwd /= confirm
-        then return PasswordMismatch
     else do
         muser <- runDB $ getBy $ UniqueEmail email
         case muser of
             Just _ -> return AlreadyRegistered
-            _ -> registerUser email passwd >> return RegistrationSuccessful
+            _ -> if passwd /= confirm then
+                    return PasswordMismatch
+                 else do
+                    registerUser email passwd
+                    return RegistrationSuccessful
 
 registerUser :: Text -> Text -> Handler ()
 registerUser email passwd = do
