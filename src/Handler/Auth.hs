@@ -29,6 +29,36 @@ registerForm = renderDivs $ RegisterCreds
     <*> areq passwordField "Password" Nothing
     <*> areq passwordField "Confirm Password" Nothing
 
+credsKey :: Text
+credsKey = "_ID"
+
+doLogin :: UserId -> Handler ()
+doLogin userId = setSession credsKey $ toPathPiece userId
+
+doLogout :: Handler ()
+doLogout = deleteSession credsKey
+
+currentUser :: Handler (Maybe User)
+currentUser = do
+    muserId <- lookupSession credsKey
+    case muserId of
+        -- Not logged in.
+        Nothing -> return Nothing
+        Just suserId -> do
+            case fromPathPiece suserId of
+                -- Invalid userId.
+                Nothing -> do
+                    doLogout
+                    return Nothing
+                Just userId -> do
+                    muser <- runDB $ get userId
+                    case muser of
+                        -- User does not exists.
+                        Nothing -> do
+                            doLogout
+                            return Nothing
+                        _ -> return muser
+
 getRegisterR :: Handler RepHtml
 getRegisterR = do
     (widget, enctype) <- generateFormPost registerForm
@@ -39,6 +69,7 @@ getRegisterR = do
     ^{widget}
     <input type=submit>
 |]
+
 postRegisterR :: Handler RepHtml
 postRegisterR = do
     ((result, _), _) <- runFormPost registerForm
@@ -73,11 +104,11 @@ registerUser :: Text -> Text -> Handler ()
 registerUser email passwd = do
     stdgen <- liftIO newStdGen
     let verKey = T.pack $ fst $ randomString 20 stdgen
-        pass = Pass $ encodeUtf8 passwd
-    passwdHash <- liftIO $ encryptPass' pass
+    passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
+        liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
     userId <- runDB $ insert $ User
         { userEmail = email
-        , userPassword = decodeUtf8 $ unEncryptedPass passwdHash
+        , userPassword = passwdHash
         , userPrivilege = Level1
         , userVerkey = Just verKey
         , userVerified = False
@@ -120,22 +151,57 @@ getVerifyR userId verKey = do
             then do
                 runDB $ update userId [ UserVerkey =. Nothing
                                       , UserVerified =. True ]
-                toMaster <- getRouteToMaster
-                redirect $ toMaster HomeR
-            else return ()
-        Nothing -> return ()
-    defaultLayout $ [whamlet|<h1>invalid key|]
+                doLogin userId
+                redirectUltDest HomeR
+            else keyError
+        Nothing -> keyError
+    where
+        keyError = defaultLayout [whamlet|<h1>invalid key|]
 
 getLoginR :: Handler RepHtml
-getLoginR = defaultLayout [whamlet|<h1>not implemented|]
+getLoginR = do
+    (widget, enctype) <- generateFormPost loginForm
+    defaultLayout $ do
+        setTitle "Login"
+        [whamlet|
+<form method=post action=@{LoginR} enctype=#{enctype}>
+    ^{widget}
+    <input type=submit>
+|]
 
 postLoginR :: Handler RepHtml
-postLoginR = defaultLayout [whamlet|<h1>not implemented|]
+postLoginR = do
+    ((result, _), _) <- runFormPost loginForm
+    case result of
+        FormSuccess (LoginCreds email passwd) -> do
+            muser <- runDB $ getBy $ UniqueEmail $ email
+            case muser of
+                Nothing -> loginError
+                Just (Entity userId user) -> do
+                    let pass = Pass $ encodeUtf8 passwd
+                        hash = EncryptedPass $
+                                    encodeUtf8 $ userPassword user
+                    if (userVerified user && verifyPass' pass hash)
+                        then do
+                            doLogin userId
+                            redirectUltDest HomeR
+                        else loginError
+        _ -> defaultLayout [whamlet|form error|]
+    where
+        loginError = defaultLayout [whamlet|invalid combo|]
 
 getLogoutR :: Handler RepHtml
-getLogoutR = setUltDestReferer >> postLogoutR
+getLogoutR = postLogoutR
 
 postLogoutR :: Handler RepHtml
 postLogoutR = do
-    deleteSession "_ID"
+    doLogout
     redirectUltDest HomeR
+
+getCheckR :: Handler RepHtml
+getCheckR = do
+    muser <- currentUser
+    case muser of
+        Nothing -> defaultLayout [whamlet|<h1>not logged in|]
+        Just user -> 
+            defaultLayout [whamlet|<h1>logged in as #{userEmail user}|]

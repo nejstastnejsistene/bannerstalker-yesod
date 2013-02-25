@@ -4,8 +4,9 @@
 /robots.txt             RobotsR GET
 
 /register               RegisterR GET POST
-/verify/#UserId/#Text     VerifyR GET
+/verify/#UserId/#Text   VerifyR GET
 /login                  LoginR GET POST
 /logout                 LogoutR GET POST
+/check                  CheckR GET
 
 /                       HomeR GET POST
