@@ -77,7 +77,7 @@ getAppConfig env = loadConfig conf
             { csParseExtra = parseExtra
             , csFile = \e -> return $ case e of
                 Development -> "config/settings.yml"
-                _ -> "/usr/local/etc/bannerstalker/settings.yml"
+                _ -> "/etc/bannerstalker/settings.yml"
             }
 
 getPersistConfig :: AppConfig DefaultEnv Extra -> IO PersistConfig
@@ -88,7 +88,7 @@ getPersistConfig conf =
         env = appEnv conf
         filepath = case env of
             Development -> "config/postgresql.yml"
-            _ -> "/usr/local/etc/bannerstalker/postgresql.yml"
+            _ -> "/etc/bannerstalker/postgresql.yml"
         
 
 -- for yesod devel
