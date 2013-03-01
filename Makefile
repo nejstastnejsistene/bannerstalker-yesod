@@ -1,3 +1,9 @@
+default:
+	cabal-dev install
+
+devel:
+	yesod -d devel
+
 deploy-daemon:
 	# Stop daemon
 	service bannerstalkerd stop
