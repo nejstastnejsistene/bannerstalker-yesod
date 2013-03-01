@@ -46,19 +46,32 @@ getRegisterR = do
 
 postRegisterR :: Handler RepHtml
 postRegisterR = do
-    ((result, _), _) <- runFormPost registerForm
-    case result of
+    ((result, widget), enctype) <- runFormPost registerForm
+    mError <- case result of
         FormSuccess creds -> do
             err <- attemptRegistration creds            
-            defaultLayout $ case err of
-                NotWmStudent -> [whamlet|<h1>not wm student|]
-                PasswordMismatch -> [whamlet|<h1>password mismatch|]
-                AlreadyRegistered -> [whamlet|
-<h1>already registered
-<p>plus resend verification
+            case err of
+                NotWmStudent -> return $ Just [whamlet|
+                    <p> Only W&M students with an
+                        \ email.wm.edu address may register.|]
+                PasswordMismatch -> return $ Just [whamlet|
+                    <p>Password mismatch.|]
+                AlreadyRegistered -> return $ Just [whamlet|
+                    <p> Someone is already registered with this email
+                        \ address.
+                    -- TODO: change this link.
+                    <a href=@{HomeR}>Resend Verification?|]
+                RegistrationSuccessful -> return Nothing
+        _ -> return $ Just [whamlet|<p>Form error. Please try again.|]
+    case mError of
+        Nothing -> defaultLayout [whamlet|<h1>success|]
+        Just errHtml -> defaultLayout [whamlet|
+<div style="color:red">
+    ^{errHtml}
+<form method=post action=@{RegisterR} enctype=#{enctype}>
+    ^{widget}
+    <input type=submit>
 |]
-                RegistrationSuccessful -> [whamlet|<h1>success|]
-        _ -> defaultLayout [whamlet|form error|]    
 
 attemptRegistration :: RegisterCreds -> Handler RegistrationResult
 attemptRegistration (RegisterCreds email passwd confirm) =
@@ -93,10 +106,10 @@ registerUser email passwd = do
     render <- getUrlRender
     tm <- getRouteToMaster
     let verUrl = render $ tm $ VerifyR userId verKey
-    sendVerifyEmail email verUrl
+    sendVerificationEmail email verUrl
 
-sendVerifyEmail :: Text -> Text -> Handler ()
-sendVerifyEmail email verUrl = liftIO $ do
+sendVerificationEmail :: Text -> Text -> Handler ()
+sendVerificationEmail email verUrl = liftIO $ do
     message <- simpleMail to from subject text html []
     renderSendMail message
     where
@@ -164,9 +177,9 @@ postLoginR = do
                             doLogin userId
                             redirectUltDest HomeR
                         else loginError
-        _ -> defaultLayout [whamlet|form error|]
+        _ -> defaultLayout [whamlet|<h1>form error|]
     where
-        loginError = defaultLayout [whamlet|invalid combo|]
+        loginError = defaultLayout [whamlet|<h1>invalid combo|]
 
 getLogoutR :: Handler RepHtml
 getLogoutR = postLogoutR
