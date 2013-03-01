@@ -14,7 +14,7 @@ import Twilio
 import Settings
 
 fromAddr :: Address
-fromAddr  = Address (Just "Bannerstalker") "admin@bannerstalker.com"
+fromAddr  = Address (Just "Bannerstalker") "info@bannerstalker.com"
 
 notifyEmail :: Text -> Section -> IO (RequestStatus, Maybe Text)
 notifyEmail email section= do
@@ -27,11 +27,11 @@ notifyEmail email section= do
     where
         toAddr = Address Nothing email
         subject = pack $ renderHtml
-                $(shamletFile "templates/notification-mail-subj.hamlet")
+                $(shamletFile "templates/notifications/mail-subj.hamlet")
         text = LT.pack $ renderHtml
-                $(shamletFile "templates/notification-mail-text.hamlet")
+                $(shamletFile "templates/notifications/mail-text.hamlet")
         html = LT.pack $ renderHtml
-                $(shamletFile "templates/notification-mail-html.hamlet")
+                $(shamletFile "templates/notifications/mail-html.hamlet")
 
 notifySms :: Manager
              -> Extra
@@ -48,4 +48,4 @@ notifySms manager extra recipient section = do
         number = (encodeUtf8 $ extraTwilioNumber extra)
         credentials = TwilioCredentials account token
         message = encodeUtf8 $ pack $ renderHtml 
-            $(shamletFile "templates/notification-sms.hamlet")
+            $(shamletFile "templates/notifications/sms.hamlet")
