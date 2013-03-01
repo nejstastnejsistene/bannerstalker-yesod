@@ -85,9 +85,9 @@ bannerstalkerd extra dbConf manager = do
                     insert $ HistoryLog time sectionId $
                         sectionCurrStatus section
                 -- TODO what to do when a class is removed?
+                -- For now I'll just handle these manually if it comes up.
                 handleRemovedCrn crn = liftIO $
                     mailAlert $ pack $ "crn removed: " ++ show crn
-                    
                 -- Update changed statuses.
                 handleExistingCrn crn = do
                     let (Entity sectionId
@@ -96,7 +96,7 @@ bannerstalkerd extra dbConf manager = do
                         (Section _ _ _ _ _ _ _ _ newStatus) =
                             fromJust $ Map.lookup crn newSections
                     when (newStatus /= oldStatus) $ do
-                        scheduleNotification sectionId newStatus
+                        queueNotifications sectionId newStatus
                         update sectionId [SectionCurrStatus =. newStatus]
                     insert $ HistoryLog time sectionId newStatus
                 -- Partition sections into added, removed, and existing.
@@ -115,7 +115,7 @@ bannerstalkerd extra dbConf manager = do
             mapM_ handleExistingCrn $ Set.toList existingCrns
 
         -- Schedules notifications for the given section and its status.
-        scheduleNotification sectionId currStatus = do
+        queueNotifications sectionId currStatus = do
             requests <- selectList
                 [SectionRequestSectionId ==. sectionId] []
             mapM_ (updateNotifications currStatus) requests
@@ -123,17 +123,15 @@ bannerstalkerd extra dbConf manager = do
         -- Adds or removes notifications to keep them up to date.
         updateNotifications currStatus (Entity reqId req) = do
             -- The last status the user was notified of.
-            let lastStatus = sectionRequestLastStatus req
-            case (lastStatus == currStatus) of
+            if sectionRequestLastStatus req == currStatus
                 -- Status is unchanged, delete notification.
-                True -> do
-                    deleteBy $ UniqueReqId reqId
+                then deleteBy $ UniqueReqId reqId
                 -- Insert a new notification.
-                False -> do
+                else do
                     user <- fmap fromJust $ get $ sectionRequestUserId req
-                    newTime <- liftIO $ nextNotificationTime $
+                    sendTime <- liftIO $ nextNotificationTime $
                         getNotifyInterval extra $ userPrivilege user
-                    insert $ Notification reqId newTime
+                    insert $ Notification reqId sendTime
                     return ()
 
         -- Sends all notifications whose time has passed.
@@ -145,7 +143,7 @@ bannerstalkerd extra dbConf manager = do
             users    <- selectList [] []
             sections <- selectList [] []
             let toMap entities = Map.fromList
-                    [(entityKey e, entityVal e) | e <- entities]
+                    [(k, v) | (Entity k v) <- entities]
                 sectionMap = toMap sections
                 userMap = toMap users
                 joinAndNotify (Entity reqId
@@ -179,14 +177,14 @@ bannerstalkerd extra dbConf manager = do
                 insert $ NotificationLog time 
                     SmsNotification phoneNum status err
                 return ()
-                
+
 mailAlert :: Text -> IO ()
 mailAlert text = do
-    message <- simpleMail addr addr
-                    "Bannerstalker Alert" lazyText lazyText []
+    message <- simpleMail addr addr subject lazyText lazyText []
     renderSendMail message
     where
         addr = Address (Just "Bannerstalker") "admin@bannerstalker.com"
+        subject = "Bannerstalker Alert"
         lazyText = fromChunks [text]
 
 -- Takes a posix time and returns the start time in seconds of the
