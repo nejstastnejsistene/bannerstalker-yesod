@@ -29,42 +29,16 @@ registerForm = renderDivs $ RegisterCreds
     <*> areq passwordField "Password" Nothing
     <*> areq passwordField "Confirm Password" Nothing
 
-credsKey :: Text
-credsKey = "_ID"
-
-doLogin :: UserId -> Handler ()
-doLogin userId = setSession credsKey $ toPathPiece userId
-
-doLogout :: Handler ()
-doLogout = deleteSession credsKey
-
-currentUser :: Handler (Maybe User)
-currentUser = do
-    muserId <- lookupSession credsKey
-    case muserId of
-        -- Not logged in.
-        Nothing -> return Nothing
-        Just suserId -> do
-            case fromPathPiece suserId of
-                -- Invalid userId.
-                Nothing -> do
-                    doLogout
-                    return Nothing
-                Just userId -> do
-                    muser <- runDB $ get userId
-                    case muser of
-                        -- User does not exists.
-                        Nothing -> do
-                            doLogout
-                            return Nothing
-                        _ -> return muser
-
 getRegisterR :: Handler RepHtml
 getRegisterR = do
-    (widget, enctype) <- generateFormPost registerForm
-    defaultLayout $ do
-        setTitle "Register"
-        [whamlet|
+    user <- currentUser
+    case user of
+        Just _ -> redirectUltDest HomeR
+        Nothing -> do
+            (widget, enctype) <- generateFormPost registerForm
+            defaultLayout $ do
+                setTitle "Register"
+                [whamlet|
 <form method=post action=@{RegisterR} enctype=#{enctype}>
     ^{widget}
     <input type=submit>
@@ -160,10 +134,14 @@ getVerifyR userId verKey = do
 
 getLoginR :: Handler RepHtml
 getLoginR = do
-    (widget, enctype) <- generateFormPost loginForm
-    defaultLayout $ do
-        setTitle "Login"
-        [whamlet|
+    user <- currentUser
+    case user of
+        Just _ -> redirectUltDest HomeR
+        Nothing -> do
+            (widget, enctype) <- generateFormPost loginForm
+            defaultLayout $ do
+                setTitle "Login"
+                [whamlet|
 <form method=post action=@{LoginR} enctype=#{enctype}>
     ^{widget}
     <input type=submit>
@@ -197,7 +175,7 @@ postLogoutR :: Handler RepHtml
 postLogoutR = do
     doLogout
     redirectUltDest HomeR
-
+{-
 getCheckR :: Handler RepHtml
 getCheckR = do
     muser <- currentUser
@@ -205,3 +183,4 @@ getCheckR = do
         Nothing -> defaultLayout [whamlet|<h1>not logged in|]
         Just user -> 
             defaultLayout [whamlet|<h1>logged in as #{userEmail user}|]
+-}

@@ -163,3 +163,35 @@ getExtra = fmap (appExtra . settings) getYesod
 -- wiki:
 --
 -- https://github.com/yesodweb/yesod/wiki/Sending-email
+
+
+credsKey :: Text
+credsKey = "_ID"
+
+doLogin :: UserId -> Handler ()
+doLogin userId = setSession credsKey $ toPathPiece userId
+
+doLogout :: Handler ()
+doLogout = deleteSession credsKey
+
+currentUser :: Handler (Maybe User)
+currentUser = do
+    muserId <- lookupSession credsKey
+    case muserId of
+        -- Not logged in.
+        Nothing -> return Nothing
+        Just suserId -> do
+            case fromPathPiece suserId of
+                -- Invalid userId.
+                Nothing -> do
+                    doLogout
+                    return Nothing
+                Just userId -> do
+                    muser <- runDB $ get userId
+                    case muser of
+                        -- User does not exists.
+                        Nothing -> do
+                            doLogout
+                            return Nothing
+                        _ -> return muser
+

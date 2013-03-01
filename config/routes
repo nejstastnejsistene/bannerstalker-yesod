@@ -7,6 +7,5 @@
 /verify/#UserId/#Text   VerifyR GET
 /login                  LoginR GET POST
 /logout                 LogoutR GET POST
-/check                  CheckR GET
 
-/                       HomeR GET POST
+/                       HomeR GET
