@@ -1,7 +1,6 @@
-rundaemon:
-	runhaskell -package-conf=cabal-dev/packages-7.4.2.conf -read-dot-ghci daemon/Main.hs Development
-
-install:
+deploy-daemon:
+	# Stop daemon
+	service bannerstalkerd stop
 	# Remove previous init.d script
 	rm -f /etc/init.d/bannerstalkerd
 	update-rc.d bannerstalkerd remove
@@ -12,3 +11,5 @@ install:
 	# Copy the executable to /usr/sbin
 	cp dist/build/bannerstalkerd/bannerstalkerd /usr/sbin/
 	chmod 555 /usr/sbin/bannerstalkerd
+	# Restart daemon
+	service bannerstalkerd start
