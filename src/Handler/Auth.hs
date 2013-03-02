@@ -13,11 +13,6 @@ import Text.Hamlet
 data LoginCreds = LoginCreds Text Text
 data RegisterCreds = RegisterCreds Text Text Text
 
-data RegistrationResult = NotWmStudent
-                        | PasswordMismatch
-                        | AlreadyRegistered
-                        | RegistrationSuccessful
-
 loginForm :: Form LoginCreds
 loginForm = renderDivs $ LoginCreds
     <$> areq emailField "Email" Nothing
@@ -48,23 +43,44 @@ postRegisterR :: Handler RepHtml
 postRegisterR = do
     ((result, widget), enctype) <- runFormPost registerForm
     mError <- case result of
-        FormSuccess creds -> do
-            err <- attemptRegistration creds            
-            case err of
-                NotWmStudent -> return $ Just [whamlet|
-                    <p> Only W&M students with an
-                        \ email.wm.edu address may register.|]
-                PasswordMismatch -> return $ Just [whamlet|
-                    <p>Password mismatch.|]
-                AlreadyRegistered -> return $ Just [whamlet|
-                    <p> Someone is already registered with this email
-                        \ address.
-                    -- TODO: change this link.
-                    <a href=@{HomeR}>Resend Verification?|]
-                RegistrationSuccessful -> return Nothing
+        FormSuccess (RegisterCreds email passwd confirm) -> 
+            -- Only @email.wm.edu students may register.
+            if (snd $ T.breakOn "@" email) /= "@email.wm.edu" then
+                return $ Just [whamlet|
+                    <p> Only W&M students with an email.wm.edu address may
+                        \ register.|]
+            else do
+                muser <- runDB $ getBy $ UniqueEmail email
+                case muser of
+                    -- Already registered.
+                    Just (Entity _ user) -> do
+                        let alreadyRegistered = [whamlet|
+                                <p> Someone is already registered with this
+                                    \ email address.|]
+                        if userVerified user
+                            then return $ Just alreadyRegistered
+                            else return $ Just [whamlet|
+                                ^{alreadyRegistered}
+                                -- TODO: change this link.
+                                <a href=@{HomeR}>Resend Verification|]
+                    _ ->
+                        -- Password mismatch.
+                        if passwd /= confirm then
+                            return $ Just [whamlet|
+                                <p> Passwords do not match|]
+                        -- Password too short.
+                        else if T.length passwd < 8 then
+                            return $ Just [whamlet|
+                                <p> Passwords must be at least 8
+                                    \ characters.|]
+                        -- Success!
+                        else do
+                            registerUser email passwd
+                            return Nothing
+        -- Form error.
         _ -> return $ Just [whamlet|<p>Form error. Please try again.|]
     case mError of
-        Nothing -> defaultLayout [whamlet|<h1>success|]
+        Nothing -> defaultLayout [whamlet|<h1>Check your email, bitch.|]
         Just errHtml -> defaultLayout [whamlet|
 <div style="color:red">
     ^{errHtml}
@@ -72,20 +88,6 @@ postRegisterR = do
     ^{widget}
     <input type=submit>
 |]
-
-attemptRegistration :: RegisterCreds -> Handler RegistrationResult
-attemptRegistration (RegisterCreds email passwd confirm) =
-    if (snd $ T.breakOn "@" email) /= "@email.wm.edu"
-        then return NotWmStudent
-    else do
-        muser <- runDB $ getBy $ UniqueEmail email
-        case muser of
-            Just _ -> return AlreadyRegistered
-            _ -> if passwd /= confirm then
-                    return PasswordMismatch
-                 else do
-                    registerUser email passwd
-                    return RegistrationSuccessful
 
 registerUser :: Text -> Text -> Handler ()
 registerUser email passwd = do
@@ -105,7 +107,7 @@ registerUser email passwd = do
         }
     render <- getUrlRender
     tm <- getRouteToMaster
-    let verUrl = render $ tm $ VerifyR userId verKey
+    let verUrl = render $ tm $ VerifyEmailR userId verKey
     sendVerificationEmail email verUrl
 
 sendVerificationEmail :: Text -> Text -> Handler ()
@@ -130,21 +132,6 @@ Thank you
 <p>Thank you
 |]
 
-getVerifyR :: UserId -> Text -> Handler RepHtml
-getVerifyR userId verKey = do
-    muser <- runDB $ get userId
-    case muser of
-        Just user -> if userVerkey user == Just verKey
-            then do
-                runDB $ update userId [ UserVerkey =. Nothing
-                                      , UserVerified =. True ]
-                doLogin userId
-                redirectUltDest HomeR
-            else keyError
-        Nothing -> keyError
-    where
-        keyError = defaultLayout [whamlet|<h1>invalid key|]
-
 getLoginR :: Handler RepHtml
 getLoginR = do
     user <- currentUser
@@ -162,24 +149,31 @@ getLoginR = do
 
 postLoginR :: Handler RepHtml
 postLoginR = do
-    ((result, _), _) <- runFormPost loginForm
-    case result of
+    ((result, widget), enctype) <- runFormPost loginForm
+    mError <- case result of
         FormSuccess (LoginCreds email passwd) -> do
             muser <- runDB $ getBy $ UniqueEmail $ email
             case muser of
-                Nothing -> loginError
+                Nothing -> return $ Just loginError
                 Just (Entity userId user) -> do
                     let pass = Pass $ encodeUtf8 passwd
                         hash = EncryptedPass $
                                     encodeUtf8 $ userPassword user
                     if (userVerified user && verifyPass' pass hash)
-                        then do
-                            doLogin userId
-                            redirectUltDest HomeR
-                        else loginError
-        _ -> defaultLayout [whamlet|<h1>form error|]
+                        then doLogin userId >> return Nothing
+                        else return $ Just loginError
+        _ -> return $ Just [whamlet|<p>form error|]
+    case mError of
+        Nothing -> redirectUltDest HomeR
+        Just errHtml -> defaultLayout [whamlet|
+<div style="color:red">
+    ^{errHtml}
+<form method=post action=@{LoginR} enctype=#{enctype}>
+    ^{widget}
+    <input type=submit>
+|]
     where
-        loginError = defaultLayout [whamlet|<h1>invalid combo|]
+        loginError = [whamlet|Invalid email/password combo.|]
 
 getLogoutR :: Handler RepHtml
 getLogoutR = postLogoutR
@@ -188,12 +182,37 @@ postLogoutR :: Handler RepHtml
 postLogoutR = do
     doLogout
     redirectUltDest HomeR
-{-
-getCheckR :: Handler RepHtml
-getCheckR = do
-    muser <- currentUser
-    case muser of
-        Nothing -> defaultLayout [whamlet|<h1>not logged in|]
-        Just user -> 
-            defaultLayout [whamlet|<h1>logged in as #{userEmail user}|]
--}
+
+getVerifyEmailR :: UserId -> Text -> Handler RepHtml
+getVerifyEmailR userId verKey = do
+    currUser <- currentUser
+    case currUser of
+        -- Already logged in.
+        Just _ -> redirectUltDest HomeR
+        -- Not logged in, check verification.
+        Nothing -> do
+            muser <- runDB $ get userId
+            case muser of
+                Just user -> if userVerkey user == Just verKey
+                    then do
+                        -- Verify and login user.
+                        runDB $ update userId [ UserVerkey =. Nothing
+                                              , UserVerified =. True ]
+                        doLogin userId
+                        redirectUltDest HomeR
+                    -- Ignore bad key.
+                    else redirectUltDest HomeR
+                -- Ignore nonexistant user.
+                Nothing -> redirectUltDest HomeR
+
+postResendVerificationEmailR :: Handler RepHtml
+postResendVerificationEmailR = do
+    defaultLayout [whamlet|<h1>not implemented yet|]
+
+getVerifySmsR :: UserId -> Text -> Handler RepHtml
+getVerifySmsR userId verKey =
+    defaultLayout [whamlet|not implemented yet|]
+
+postResendVerificationSmsR :: Handler RepHtml
+postResendVerificationSmsR =
+    defaultLayout [whamlet|not implemented yet|]
