@@ -1,16 +1,16 @@
 module Bannerstalkerd where 
 
-import Import
 import Prelude
 import Control.Concurrent
 import Control.Exception
 import Control.Monad
+import Control.Monad.IO.Class
 import Control.Monad.Logger (runNoLoggingT)
 import Control.Monad.Trans.Resource
 import Database.Persist
 import Database.Persist.GenericSql.Raw
 import Database.Persist.Postgresql
-import Data.Text (pack, unpack)
+import Data.Text (Text, pack, unpack)
 import Data.Text.Lazy (fromChunks)
 import Data.Time
 import Data.Time.Clock.POSIX
@@ -21,9 +21,12 @@ import Network.HTTP.Conduit
 import Network.Mail.Mime
 
 import CourseList
+import Email
 import Model
 import Notification
 import Settings
+
+sleepInterval = 300 -- 5 Minutes
 
 bannerstalkerdLoop :: Extra -> PersistConfig -> Manager -> IO ()
 bannerstalkerdLoop extra conf manager = do
@@ -38,8 +41,8 @@ bannerstalkerdLoop extra conf manager = do
         -- Sleep until the next 5 minute interval begins.
         doSleep = do
             time  <- getPOSIXTime
-            let nextTime = fromIntegral $ nextTimeInterval time 300
-            threadDelay $ round $ 1000000 * (nextTime - time)
+            let nextTime = nextTimeInterval time sleepInterval
+            threadDelay $ round $ 1000000 * (fromIntegral nextTime - time)
 
 -- Single iteration of the daemon.
 bannerstalkerd :: Extra -> PersistConfig -> Manager -> IO ()
@@ -181,9 +184,9 @@ bannerstalkerd extra dbConf manager = do
 mailAlert :: Text -> IO ()
 mailAlert text = do
     message <- simpleMail addr addr subject lazyText lazyText []
-    renderSendMail message
+    mySendmail message
     where
-        addr = Address (Just "Bannerstalker") "admin@bannerstalker.com"
+        addr = adminAddr
         subject = "Bannerstalker Alert"
         lazyText = fromChunks [text]
 

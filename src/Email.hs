@@ -1,10 +1,12 @@
 module Email where
 
+import Prelude
 import Data.Text
 import Network.Mail.Mime
 
--- Note to self:
--- Setup AmazonSES SPF and DKIM
+adminAddr = Address (Just "Bannerstalker") "admin@bannerstalker.com"
+infoAddr = Address (Just "Bannerstalker") "info@bannerstalker.com"
+
 mySendmail :: Mail -> IO ()
 mySendmail message = do
     let Address mName email = mailFrom message
@@ -12,5 +14,4 @@ mySendmail message = do
             case mName of
                 Just name -> ["-F", unpack name]
                 _ -> []
-    putStrLn $ show flags
     renderSendMailCustom "/usr/sbin/sendmail" flags message

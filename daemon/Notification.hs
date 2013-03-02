@@ -1,4 +1,5 @@
 module Notification where
+
 import Prelude
 import Control.Exception
 import Data.Text
@@ -9,23 +10,22 @@ import Text.Blaze.Html.Renderer.String
 import Network.HTTP.Conduit
 import Network.Mail.Mime
 
+import Email
 import Model
 import Twilio
 import Settings
 
-fromAddr :: Address
-fromAddr  = Address (Just "Bannerstalker") "info@bannerstalker.com"
-
 notifyEmail :: Text -> Section -> IO (RequestStatus, Maybe Text)
 notifyEmail email section= do
     message <- simpleMail toAddr fromAddr subject text html []
-    result <- (try $ renderSendMail message)
+    result <- (try $ mySendmail message)
     case result of
         Left ex ->
             return (Failure, Just $ pack $ show (ex :: SomeException))
         Right _ -> return (Success, Nothing)
     where
         toAddr = Address Nothing email
+        fromAddr = infoAddr
         subject = pack $ renderHtml
                 $(shamletFile "templates/notifications/mail-subj.hamlet")
         text = LT.pack $ renderHtml

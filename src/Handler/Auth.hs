@@ -10,6 +10,8 @@ import System.Random (newStdGen)
 import Text.Blaze.Html.Renderer.String
 import Text.Hamlet
 
+import Email
+
 data LoginCreds = LoginCreds Text Text
 data RegisterCreds = RegisterCreds Text Text Text
 
@@ -113,10 +115,10 @@ registerUser email passwd = do
 sendVerificationEmail :: Text -> Text -> Handler ()
 sendVerificationEmail email verUrl = liftIO $ do
     message <- simpleMail to from subject text html []
-    renderSendMail message
+    mySendmail message
     where
         to = Address Nothing email
-        from = Address (Just "Bannerstalker") "info@bannerstalker.com"
+        from = infoAddr
         subject = "Verify your email address"
         text = LT.pack $ renderHtml [shamlet|
 Please confirm your email address by clicking on the link below.

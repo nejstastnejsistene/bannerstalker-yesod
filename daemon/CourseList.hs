@@ -12,6 +12,7 @@ import Text.Regex.PCRE
 import Network.HTTP.Conduit
 import Network.HTTP.Types
 
+import Email
 import Model
 
 url :: String
