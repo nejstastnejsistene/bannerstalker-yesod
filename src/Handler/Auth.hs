@@ -129,7 +129,7 @@ sendVerificationEmail email verUrl = liftIO $ do
     mySendmail message
     where
         to = Address Nothing email
-        from = infoAddr
+        from = noreplyAddr
         subject = "Verify your email address"
         text = LT.pack $ renderHtml [shamlet|
 Please confirm your email address by clicking on the link below.

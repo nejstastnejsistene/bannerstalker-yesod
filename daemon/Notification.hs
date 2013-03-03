@@ -16,7 +16,7 @@ import Twilio
 import Settings
 
 notifyEmail :: Text -> Section -> IO (RequestStatus, Maybe Text)
-notifyEmail email section= do
+notifyEmail email section = do
     message <- simpleMail toAddr fromAddr subject text html []
     result <- (try $ mySendmail message)
     case result of
@@ -25,7 +25,7 @@ notifyEmail email section= do
         Right _ -> return (Success, Nothing)
     where
         toAddr = Address Nothing email
-        fromAddr = infoAddr
+        fromAddr = noreplyAddr
         subject = pack $ renderHtml
                 $(shamletFile "templates/notifications/mail-subj.hamlet")
         text = LT.pack $ renderHtml

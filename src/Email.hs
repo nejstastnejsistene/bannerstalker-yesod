@@ -4,9 +4,9 @@ import Prelude
 import Data.Text
 import Network.Mail.Mime
 
-adminAddr, infoAddr :: Address
+adminAddr, noreplyAddr :: Address
 adminAddr = Address (Just "Bannerstalker") "admin@bannerstalker.com"
-infoAddr = Address (Just "Bannerstalker") "info@bannerstalker.com"
+noreplyAddr = Address (Just "Bannerstalker") "noreply@bannerstalker.com"
 
 mySendmail :: Mail -> IO ()
 mySendmail message = do
