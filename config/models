@@ -1,13 +1,27 @@
 User
     email       Text
+    verified    Bool
     password    Text
     privilege   PrivilegeLevel
-    verkey      Text Maybe
-    verified    Bool
+    UniqueEmail email
+    deriving    Show
+Settings
+    userId      UserId
     phoneNum    Text Maybe
+    smsVerified Bool
     useEmail    Bool
     useSms      Bool
-    UniqueEmail email
+    UniqueUserSettings userId
+    deriving    Show
+EmailVerification
+    userId      UserId
+    verKey      Text
+    UniqueUserEmailVerification userId
+    deriving    Show
+SmsVerification
+    userId      UserId
+    verKey      Text
+    UniqueUserSmsVerification userId
     deriving    Show
 Section
     semester    Text

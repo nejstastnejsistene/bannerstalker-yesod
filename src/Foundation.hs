@@ -174,24 +174,24 @@ doLogin userId = setSession credsKey $ toPathPiece userId
 doLogout :: Handler ()
 doLogout = deleteSession credsKey
 
-currentUser :: Handler (Maybe User)
+currentUser :: Handler (Maybe UserId)
 currentUser = do
-    muserId <- lookupSession credsKey
-    case muserId of
+    mUserId <- lookupSession credsKey
+    case mUserId of
         -- Not logged in.
         Nothing -> return Nothing
-        Just suserId -> do
-            case fromPathPiece suserId of
-                -- Invalid userId.
-                Nothing -> do
-                    doLogout
-                    return Nothing
-                Just userId -> do
-                    muser <- runDB $ get userId
-                    case muser of
-                        -- User does not exists.
-                        Nothing -> do
-                            doLogout
-                            return Nothing
-                        _ -> return muser
+        Just sUserId -> case fromPathPiece sUserId of
+            -- Invalid userId.
+            Nothing -> do
+                doLogout
+                return Nothing
+            Just userId -> do
+                mUser <- runDB $ get userId
+                case mUser of
+                    -- User does not exist.
+                    Nothing -> do
+                        doLogout
+                        return Nothing
+                    -- Return current userId.
+                    Just _ -> return $ Just userId
 

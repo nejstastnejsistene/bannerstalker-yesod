@@ -1,8 +1,10 @@
 module Handler.Auth where
 
 import Import
+import Control.Monad
 import Crypto.Scrypt
 import qualified Data.Text as T
+import Data.Maybe
 import Data.Text.Encoding
 import qualified Data.Text.Lazy as LT
 import Network.Mail.Mime
@@ -82,7 +84,7 @@ postRegisterR = do
         -- Form error.
         _ -> return $ Just [whamlet|<p>Form error. Please try again.|]
     case mError of
-        Nothing -> defaultLayout [whamlet|<h1>Check your email, bitch.|]
+        Nothing -> defaultLayout [whamlet|<h1>Check your email.|]
         Just errHtml -> defaultLayout [whamlet|
 <div style="color:red">
     ^{errHtml}
@@ -97,16 +99,25 @@ registerUser email passwd = do
     let verKey = T.pack $ fst $ randomString 20 stdgen
     passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
         liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
-    userId <- runDB $ insert $ User
-        { userEmail = email
-        , userPassword = passwdHash
-        , userPrivilege = Level1
-        , userVerkey = Just verKey
-        , userVerified = False
-        , userPhoneNum = Nothing
-        , userUseEmail = True
-        , userUseSms = False
-        }
+    userId <- runDB $ do
+        userId <- insert $ User
+            { userEmail = email
+            , userVerified = False
+            , userPassword = passwdHash
+            , userPrivilege = Level1
+            }
+        _ <- insert $ Settings
+            { settingsUserId = userId
+            , settingsPhoneNum = Nothing
+            , settingsSmsVerified = False
+            , settingsUseEmail = True
+            , settingsUseSms = False
+            }
+        _ <- insert $ EmailVerification
+            { emailVerificationUserId = userId
+            , emailVerificationVerKey = verKey
+            }
+        return userId
     render <- getUrlRender
     tm <- getRouteToMaster
     let verUrl = render $ tm $ VerifyEmailR userId verKey
@@ -136,8 +147,8 @@ Thank you
 
 getLoginR :: Handler RepHtml
 getLoginR = do
-    user <- currentUser
-    case user of
+    userId <- currentUser
+    case userId of
         Just _ -> redirectUltDest HomeR
         Nothing -> do
             (widget, enctype) <- generateFormPost loginForm
@@ -187,25 +198,25 @@ postLogoutR = do
 
 getVerifyEmailR :: UserId -> Text -> Handler RepHtml
 getVerifyEmailR userId verKey = do
-    currUser <- currentUser
-    case currUser of
-        -- Already logged in.
-        Just _ -> redirectUltDest HomeR
-        -- Not logged in, check verification.
-        Nothing -> do
-            muser <- runDB $ get userId
-            case muser of
-                Just user -> if userVerkey user == Just verKey
-                    then do
-                        -- Verify and login user.
-                        runDB $ update userId [ UserVerkey =. Nothing
-                                              , UserVerified =. True ]
-                        doLogin userId
-                        redirectUltDest HomeR
-                    -- Ignore bad key.
-                    else redirectUltDest HomeR
-                -- Ignore nonexistant user.
-                Nothing -> redirectUltDest HomeR
+    currUserId <- currentUser
+    -- If not logged in...
+    when (isNothing currUserId) $ do
+        -- ...ignore nonexistant users...
+        mUser <- runDB $ get userId
+        when (isNothing mUser) $ return ()
+        -- ...and if the verKey is legit...
+        mEmailVer <- runDB $ getBy $ UniqueUserEmailVerification userId
+        case mEmailVer of
+            Just (Entity evKey (EmailVerification _ correctVerKey)) ->
+                when (verKey == correctVerKey) $ do
+                    -- ...then verify the user and login.
+                    runDB $ do
+                        update userId [UserVerified =. True]
+                        delete evKey
+                    doLogin userId
+            Nothing -> return ()
+    -- Always redirect to HomeR.
+    redirectUltDest HomeR
 
 postResendVerificationEmailR :: Handler RepHtml
 postResendVerificationEmailR = do

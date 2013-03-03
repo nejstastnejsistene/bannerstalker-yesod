@@ -5,8 +5,11 @@ import Import
 
 getHomeR :: Handler RepHtml
 getHomeR = do
-    muser <- currentUser
-    case muser of
+    mUserId <- currentUser
+    mUser <- case mUserId of
+        Nothing -> return Nothing
+        Just userId -> runDB $ get userId
+    case mUser of
         Just user -> defaultLayout [whamlet|
 <h1>Welcome, #{userEmail user}
 <a href=@{LogoutR}>Logout|]

@@ -143,19 +143,14 @@ bannerstalkerd extra dbConf manager = do
             reqIds <- fmap (map $ notificationRequestId . entityVal) $
                                 selectList [NotificationTime <. time] []
             requests <- selectList [SectionRequestId <-. reqIds] []
-            users    <- selectList [] []
             sections <- selectList [] []
-            let toMap entities = Map.fromList
-                    [(k, v) | (Entity k v) <- entities]
-                sectionMap = toMap sections
-                userMap = toMap users
+            let sectionMap = Map.fromList [(k, v) | Entity k v <- sections]
                 joinAndNotify (Entity reqId
                         (SectionRequest sectId userId lastStatus)) = do
                     let section = fromJust $ Map.lookup sectId sectionMap
-                        user = fromJust $ Map.lookup userId userMap
                         currStatus = sectionCurrStatus section
                     -- Send the notification.
-                    sendNotification user section
+                    sendNotification userId section
                     -- Update lastStatus
                     update reqId [SectionRequestLastStatus =. currStatus]
                     -- Delete the notification.
@@ -164,16 +159,19 @@ bannerstalkerd extra dbConf manager = do
 
         -- Check user settings and send mail and sms notifications
         -- for the given section.
-        sendNotification user section = do
-            when (userUseEmail user) $ do
+        sendNotification userId section = do
+            user <- fmap fromJust $ get userId
+            settings <- fmap (entityVal . fromJust) $
+                            getBy $ UniqueUserSettings (userId :: UserId)
+            when (settingsUseEmail settings) $ do
                 let email = userEmail user
                 (status, err) <- liftIO $ notifyEmail email section
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time
                     EmailNotification email status err
                 return ()
-            when (userUseSms user) $ do
-                let phoneNum = fromJust $ userPhoneNum user
+            when (settingsUseSms settings) $ do
+                let phoneNum = fromJust $ settingsPhoneNum settings
                 (status, err) <- liftIO $
                     notifySms manager extra phoneNum section
                 time <- liftIO $ getCurrentTime
