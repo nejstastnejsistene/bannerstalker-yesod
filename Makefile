@@ -1,8 +1,8 @@
 default:
-	cabal-dev install
+	cabal install
 
 devel:
-	yesod -d devel
+	dist/build/bannerstalker/bannerstalker Development
 
 deploy-daemon:
 	# Stop daemon
