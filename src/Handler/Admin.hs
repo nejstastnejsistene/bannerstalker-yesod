@@ -48,3 +48,33 @@ getAdminUserEditR userId = do
 
 postAdminUserEditR :: UserId -> Handler RepHtml
 postAdminUserEditR userId = defaultLayout [whamlet|<h1>not implemented|]
+
+addSemesterForm :: Form Semester
+addSemesterForm = renderDivs $ Semester
+    <$> areq textField "Code" Nothing
+    <*> areq textField "Name" Nothing
+    <*> areq boolField "Active" Nothing
+
+getAdminSemestersR :: Handler RepHtml
+getAdminSemestersR = do
+    (widget, enctype) <- generateFormPost addSemesterForm
+    semesters <- fmap (map entityVal) $ runDB $ selectList [] []
+    let mErrorMessage = Nothing :: Maybe Text
+    defaultLayout $ do
+        setTitle "Semesters"
+        $(widgetFile "admin-semesters")
+
+postAdminSemestersR :: Handler RepHtml
+postAdminSemestersR = do
+    ((result, widget), enctype) <- runFormPost addSemesterForm
+    mErrorMessage <- case result of
+        FormSuccess semester -> do
+            result <- runDB $ insertBy semester
+            case result of
+                Left _ -> return $ Just MsgSemesterExists
+                Right _ -> return Nothing
+        _ -> return $ Just MsgFormError
+    semesters <- fmap (map entityVal) $ runDB $ selectList [] []
+    defaultLayout $ do
+        setTitle "Semesters"
+        $(widgetFile "admin-semesters")
