@@ -59,7 +59,9 @@ postRegisterR = do
         -- Form error.
         _ -> return $ Just MsgFormError
     case mErrorMessage of
-        Nothing -> redirectUltDest VerificationSentR
+        Nothing -> defaultLayout $ do
+            setTitle "Verify your email"
+            $(widgetFile "verification-sent")
         _ -> defaultLayout $ do
             setTitle "Register"
             $(widgetFile "register")
@@ -119,7 +121,7 @@ postLoginR = do
         -- Form error.
         _ -> return $ Just MsgFormError
     case mErrorMessage of
-        Nothing -> redirectUltDest VerificationSentR
+        Nothing -> redirectUltDest HomeR
         _ -> defaultLayout $ do
             setTitle "Login"
             $(widgetFile "login")

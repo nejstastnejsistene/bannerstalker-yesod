@@ -1,11 +1,9 @@
 module Handler.Verify where
 
 import Import
-import Control.Monad
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
-import Data.Text.Lazy.Builder
 import Network.Mail.Mime
 import System.Random (newStdGen)
 import Text.Blaze.Html.Renderer.String
@@ -32,11 +30,11 @@ sendVerificationEmail email = do
         case mEmailVer of
             -- Insert new verification record.
             Nothing -> do
-                insert $ EmailVerification userId verKey
+                _ <- insert $ EmailVerification userId verKey
                 return ()
             -- Update a previous record with new verKey.
-            Just (Entity id _) -> do
-                update id [EmailVerificationVerKey =. verKey]
+            Just (Entity evId  _) -> do
+                update evId [EmailVerificationVerKey =. verKey]
                 return ()
     -- Generate verUrl and create and send email.
     render <- getUrlRender
@@ -51,28 +49,27 @@ sendVerificationEmail email = do
                 $(shamletFile "templates/verification/mail-html.hamlet")
     liftIO $ simpleMail to from subject text html [] >>= mySendmail
 
-getVerificationSentR :: Handler RepHtml
-getVerificationSentR =
-    defaultLayout [whamlet|<h1>verification sent|]
-
 getVerifyR :: UserId -> Text -> Handler RepHtml
 getVerifyR userId verKey = do
     currUserId <- currentUserId
-    -- Skip if logged in.
-    when (isNothing currUserId) $ do
-        -- Ignore nonexistant users.
-        mUser <- runDB $ get userId
-        when (isNothing mUser) $ return ()
-        mEmailVer <- runDB $ getBy $ UniqueUserEmailVer userId
-        case mEmailVer of
-            -- Doesn't have verification record, so ignore.
-            Nothing -> return ()
-            Just (Entity evKey (EmailVerification _ correctVerKey)) ->
-                -- Verify and login if keys match.
-                when (verKey == correctVerKey) $ do
-                    runDB $ do
-                        update userId [UserVerified =. True]
-                        delete evKey
-                    doLogin userId
-    -- Always redirect to HomeR.
-    redirectUltDest HomeR
+    success <- case currUserId of
+        -- Skip if logged in.
+        Just _ -> return False
+        Nothing -> do
+            mUser <- runDB $ getBy $ UniqueUserEmailVer userId
+            case mUser of
+                -- Skip nonexistant users.
+                Nothing -> return False
+                Just (Entity evId (EmailVerification _ correctVerKey)) ->
+                    -- Keys don't match.
+                    if (verKey /= correctVerKey) then return False
+                    -- Verify and login if keys match.
+                    else do
+                        runDB $ do
+                            update userId [UserVerified =. True]
+                            delete evId
+                        doLogin userId
+                        return True
+    if success
+        then redirectUltDest QuickstartR
+        else redirectUltDest HomeR

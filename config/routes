@@ -8,7 +8,8 @@
 /logout         LogoutR GET POST
 
 /verify/send            ResendVerificationR GET POST
-/verify/sent            VerificationSentR GET
 /verify/#UserId/#Text   VerifyR GET
+
+/quickstart     QuickstartR GET
 
 /               HomeR GET
