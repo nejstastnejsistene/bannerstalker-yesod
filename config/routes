@@ -12,7 +12,7 @@
 
 /quickstart                 QuickstartR GET
 
-/admin/users                AdminUsers GET
-/admin/users/edit/#UserId   AdminUserEdit GET
+/admin/users                AdminUsersR GET
+/admin/users/edit/#UserId   AdminUserEditR GET POST
 
 /                           HomeR GET

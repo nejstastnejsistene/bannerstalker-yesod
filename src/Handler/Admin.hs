@@ -1,10 +1,9 @@
 module Handler.Admin where
 
 import Import
-import qualified Data.Text as T
 
-getAdminUsers :: Handler RepHtml
-getAdminUsers = do
+getAdminUsersR :: Handler RepHtml
+getAdminUsersR = do
     users <- runDB $ selectList [] []
     defaultLayout $ do
         setTitle "Users"
@@ -16,24 +15,36 @@ $else
 <ul>
     $forall Entity userId user <- users
         <li>
-            <a href=@{AdminUserEdit userId}>#{userEmail user}
+            <a href=@{AdminUserEditR userId}>#{userEmail user}
                 $if not $ userVerified user
                     \ (unverified)
                 $if userAdmin user
                     \ (admin)
 |]
 
-getAdminUserEdit :: UserId -> Handler RepHtml
-getAdminUserEdit userId = do
+data UserRecord = UserRecord Bool Text Text
+
+editUserForm :: Form UserRecord
+editUserForm = renderDivs $ UserRecord
+    <$> areq boolField "Email verified" Nothing
+    <*> areq passwordField "Password" Nothing
+    <*> areq passwordField "Confirm password" Nothing
+
+getAdminUserEditR :: UserId -> Handler RepHtml
+getAdminUserEditR userId = do
     mUser <- runDB $ get userId
     case mUser of
         Nothing -> defaultLayout [whamlet|<h1>User does not exists|]
         Just (User email verified _ admin) -> do
+            (widget, enctype) <- generateFormPost editUserForm
             defaultLayout $ do
                 setTitle "Edit user"
                 [whamlet|
-<ul>
-    <li>Email: #{email}
-    <li>Verified: #{verified}
-    <li>Admin: #{admin}
+<h2>#{email}
+<form method=post action=@{AdminUserEditR userId} enctype=#{enctype}>
+    ^{widget}
+    <input type=submit>
 |]
+
+postAdminUserEditR :: UserId -> Handler RepHtml
+postAdminUserEditR userId = defaultLayout [whamlet|<h1>not implemented|]
