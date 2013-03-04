@@ -22,6 +22,7 @@ library
                      Settings.StaticFiles
                      Settings.Development
                      Twilio
+                     Handler.Admin
                      Handler.Auth
                      Handler.Home
                      Handler.Verify
