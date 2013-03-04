@@ -70,7 +70,7 @@ bannerstalkerd extra dbConf manager = do
                     let recordUnavailable sectionId =
                             insert $ HistoryLog t sectionId Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
-                    insert $ CourseListLog t Failure (Just err)
+                    insert $ CourseListLog t semester Failure (Just err)
                                         Nothing Nothing Nothing
                     mapM_ recordUnavailable sectionIds
                 -- Process the new data.
@@ -108,7 +108,7 @@ bannerstalkerd extra dbConf manager = do
                 addedCrns = Set.difference newCrns oldCrns 
                 removedCrns = Set.difference oldCrns newCrns
                 existingCrns = Set.intersection oldCrns newCrns
-            insert $ CourseListLog t Success Nothing
+            insert $ CourseListLog t semester Success Nothing
                 (Just $ Set.size addedCrns)
                 (Just $ Set.size removedCrns)
                 (Just $ Set.size existingCrns)

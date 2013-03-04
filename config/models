@@ -51,6 +51,7 @@ Notification
     deriving    Show
 CourseListLog
     timestamp   UTCTime
+    semester    Text
     status      RequestStatus
     error       Text Maybe
     added       Int Maybe
