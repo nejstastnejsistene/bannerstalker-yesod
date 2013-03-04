@@ -77,6 +77,7 @@ registerUser email passwd = do
             { userEmail = email
             , userVerified = False
             , userPassword = passwdHash
+            , userAdmin = False
             }
         -- Set user to Level1 for all current semesters.
         mapM_ (\x -> insert $ Privilege userId x Level1) semesters
