@@ -94,7 +94,7 @@ instance Yesod App where
     urlRenderOverride _ _ = Nothing
 
     -- The page to be redirected to when authentication is required.
-    authRoute _ = Just LoginR -- $ AuthR LoginR
+    --authRoute _ = Just LoginR -- $ AuthR LoginR
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -174,8 +174,8 @@ doLogin userId = setSession credsKey $ toPathPiece userId
 doLogout :: Handler ()
 doLogout = deleteSession credsKey
 
-currentUser :: Handler (Maybe UserId)
-currentUser = do
+currentUserId :: Handler (Maybe UserId)
+currentUserId = do
     mUserId <- lookupSession credsKey
     case mUserId of
         -- Not logged in.

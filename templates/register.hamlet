@@ -1,0 +1,5 @@
+$maybe errorMessage <- mErrorMessage
+    <p>_{errorMessage}
+<form method=post action=@{RegisterR} enctype=#{enctype}>
+    ^{widget}
+    <input type=submit>

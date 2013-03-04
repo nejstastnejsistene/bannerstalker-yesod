@@ -24,6 +24,7 @@ library
                      Twilio
                      Handler.Auth
                      Handler.Home
+                     Handler.Verify
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT

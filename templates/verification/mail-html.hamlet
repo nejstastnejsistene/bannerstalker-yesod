@@ -1,4 +1,4 @@
 <p>Please confirm your email address by clicking on the link below.
 <p>
-    <a href=#{verurl}>#{verurl}
+    <a href=#{verUrl}>#{verUrl}
 <p>Thank you

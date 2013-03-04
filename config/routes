@@ -7,10 +7,8 @@
 /login          LoginR GET POST
 /logout         LogoutR GET POST
 
-/verify/email/#UserId/#Text VerifyEmailR GET
-/verify/email/resend        ResendVerificationEmailR POST
-
-/verify/sms/#UserId/#Text   VerifySmsR GET
-/verify/sms/resend          ResendVerificationSmsR POST
+/verify/send            ResendVerificationR GET POST
+/verify/sent            VerificationSentR GET
+/verify/#UserId/#Text   VerifyR GET
 
 /               HomeR GET

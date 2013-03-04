@@ -16,12 +16,12 @@ Settings
 EmailVerification
     userId      UserId
     verKey      Text
-    UniqueUserEmailVerification userId
+    UniqueUserEmailVer userId
     deriving    Show
 SmsVerification
     userId      UserId
     verKey      Text
-    UniqueUserSmsVerification userId
+    UniqueUserSmsVer userId
     deriving    Show
 Section
     semester    Text

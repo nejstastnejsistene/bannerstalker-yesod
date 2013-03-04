@@ -1,4 +1,5 @@
 default:
+	rm -rf dist/
 	cabal install
 
 devel:
