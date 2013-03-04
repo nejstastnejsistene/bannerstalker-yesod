@@ -17,6 +17,7 @@ import Web.ClientSession (getKey)
 import Text.Hamlet
 import System.Log.FastLogger (Logger)
 import Data.Text (Text)
+import Data.Maybe
 import Model
 
 -- | The site argument for your application. This can be a good place to
@@ -73,7 +74,10 @@ instance Yesod App where
 
     defaultLayout widget = do
         master <- getYesod
-        mmsg <- getMessage
+        route' <- fmap fromJust getCurrentRoute
+        tm <- getRouteToMaster
+        let route = tm route'
+        mUserId <- currentUserId
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
@@ -125,28 +129,6 @@ instance YesodPersist App where
             f
             (connPool master)
 
-{-
-instance YesodAuth App where
-    type AuthId App = UserId
-
-    -- Where to send a user after successful login
-    loginDest _ = HomeR
-    -- Where to send a user after logout
-    logoutDest _ = HomeR
-
-    getAuthId creds = runDB $ do
-        x <- getBy $ UniqueEmail $ credsIdent creds
-        case x of
-            Just (Entity uid _) -> return $ Just uid
-            Nothing -> return Nothing --do
-                --fmap Just $ insert $ User (credsIdent creds) Nothing
-
-    -- You can add other plugins like BrowserID, email or OAuth here
-    authPlugins _ = [authEmail]
-
-    authHttpManager = httpManager
--}
-
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.
 instance RenderMessage App FormMessage where
@@ -167,13 +149,13 @@ getExtra = fmap (appExtra . settings) getYesod
 credsKey :: Text
 credsKey = "_ID"
 
-doLogin :: UserId -> Handler ()
+doLogin :: UserId -> GHandler sub App ()
 doLogin userId = setSession credsKey $ toPathPiece userId
 
-doLogout :: Handler ()
+doLogout :: GHandler sub App ()
 doLogout = deleteSession credsKey
 
-currentUserId :: Handler (Maybe UserId)
+currentUserId :: GHandler sub App (Maybe UserId)
 currentUserId = do
     mUserId <- lookupSession credsKey
     case mUserId of

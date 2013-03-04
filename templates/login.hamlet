@@ -1,3 +1,4 @@
+<h1>Login
 $maybe errorMessage <- mErrorMessage
     <p class="text-error">_{errorMessage}
 <form method=post action=@{LoginR} enctype=#{enctype}>
