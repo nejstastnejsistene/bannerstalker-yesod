@@ -51,18 +51,23 @@ bannerstalkerd extra dbConf manager = do
     runNoLoggingT $ runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
         flushNotifications
-        mapM_ refreshCourseList $ extraSemesters extra
+        -- Get all active semesters in the form [(id, code)].
+        semesterEntities <- selectList [SemesterActive ==. True] []
+        let semesters = [(sId, semesterCode sem) |
+                                 Entity sId sem <- semesterEntities]
+        mapM_ refreshCourseList semesters
         flushNotifications
 
     where
         -- Applies the program to a given semester.
-        refreshCourseList semester = do
+        refreshCourseList (semesterId, semesterCode) = do
             -- Pull current data from database.
-            sectionsList <- selectList [SectionSemester ==. semester] []
+            sectionsList <- selectList [SectionSemester ==. semesterId] []
             let keys = map (sectionCrn . entityVal) sectionsList
                 oldSections = Map.fromList $ zip keys sectionsList
             -- Fetch new data from CourseList.
-            response <- liftIO $ fetchCourseList manager semester
+            response <- liftIO $ fetchCourseList
+                                    manager semesterId semesterCode
             t <- liftIO $ getCurrentTime
             case response of
                 -- Server error: record statuses as Unavailable.
@@ -70,14 +75,14 @@ bannerstalkerd extra dbConf manager = do
                     let recordUnavailable sectionId =
                             insert $ HistoryLog t sectionId Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
-                    insert $ CourseListLog t semester Failure (Just err)
+                    insert $ CourseListLog t semesterId Failure (Just err)
                                         Nothing Nothing Nothing
                     mapM_ recordUnavailable sectionIds
                 -- Process the new data.
                 Right sectionsList -> do
                     let keys = map sectionCrn sectionsList
                         sections = Map.fromList $ zip keys sectionsList
-                    processCourseListData semester t oldSections sections
+                    processCourseListData semesterId t oldSections sections
 
         -- Updates Section and HistoryLog with the new CourseList data.
         processCourseListData semester t oldSections newSections = do

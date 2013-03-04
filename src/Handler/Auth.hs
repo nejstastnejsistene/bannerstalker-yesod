@@ -70,7 +70,7 @@ registerUser :: Text -> Text -> Handler ()
 registerUser email passwd = do
     passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
         liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
-    semesters <- fmap extraSemesters getExtra
+    semesters <- fmap (map entityKey) $ runDB $ selectList [] []
     runDB $ do
         -- Insert the user record.
         userId <- insert $ User

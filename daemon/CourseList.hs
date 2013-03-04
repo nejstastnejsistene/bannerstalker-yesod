@@ -45,7 +45,7 @@ requestCourseList manager semester = do
                  ,("order",     "asc")]
      
 -- Creates a Section given the semester and a list of arguments.
-makeSection :: T.Text -> [B.ByteString] -> Either T.Text Section
+makeSection :: SemesterId -> [B.ByteString] -> Either T.Text Section
 makeSection semester args = case map (T.strip . decodeUtf8) args of
     [crn, courseId, _, title, instr,  _, days, times, _, _, _, status] ->
         let crn' = read $ T.unpack crn
@@ -60,14 +60,17 @@ makeSection semester args = case map (T.strip . decodeUtf8) args of
                             title instr days times $ fromJust status'
     _ -> Left "Wrong number of arguments to makeSection"
 
-fetchCourseList :: Manager -> T.Text -> IO (Either T.Text [Section])
-fetchCourseList manager semester = do
-    response <- requestCourseList manager semester
+fetchCourseList :: Manager
+                   -> SemesterId
+                   -> T.Text
+                   -> IO (Either T.Text [Section])
+fetchCourseList manager semesterId semesterCode = do
+    response <- requestCourseList manager semesterCode
     return $ case response of
         Left err -> Left err
         Right html ->
             let rows = map tail $ html =~ pattern
-                eitherSections = map (makeSection semester) rows
+                eitherSections = map (makeSection semesterId) rows
                 (errors, sections) = partitionEithers eitherSections
             in case errors of
                 [] -> Right sections

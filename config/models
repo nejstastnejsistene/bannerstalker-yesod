@@ -7,7 +7,7 @@ User
     deriving    Show
 Privilege
     userId      UserId
-    semester    Text 
+    semester    SemesterId 
     level       PrivilegeLevel
     UniquePrivilege userId semester
 Settings
@@ -29,7 +29,7 @@ SmsVerification
     UniqueUserSmsVer userId
     deriving    Show
 Section
-    semester    Text
+    semester    SemesterId
     crn         Int
     subject     Text
     courseId    Text
@@ -51,7 +51,7 @@ Notification
     deriving    Show
 CourseListLog
     timestamp   UTCTime
-    semester    Text
+    semester    SemesterId
     status      RequestStatus
     error       Text Maybe
     added       Int Maybe
@@ -70,3 +70,9 @@ NotificationLog
     status      RequestStatus
     error       Text Maybe
     deriving    Show
+Semester
+    code        Text
+    name        Text
+    active      Bool
+    UniqueSemester code
+    deriving Show
