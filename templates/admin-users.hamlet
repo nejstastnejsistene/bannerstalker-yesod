@@ -1,12 +1,14 @@
-$if length users == 1
-    <p>1 user.
-$else
-    <p>#{length users} users.
-<ul>
+<h1>Registered Users
+<table class="table table-hover">
+    <tr>
+        <th>Email
+        <th>Verified
+        <th>Admin
+        <th>Edit
     $forall Entity userId user <- users
-        <li>
-            <a href=@{AdminUserEditR userId}>#{userEmail user}
-                $if not $ userVerified user
-                    \ (unverified)
-                $if userAdmin user
-                    \ (admin)
+        <tr>
+            <td>#{userEmail user}
+            <td>#{userVerified user}
+            <td>#{userAdmin user}
+            <td>
+                <a href=@{AdminUserEditR userId}>Edit

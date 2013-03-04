@@ -51,12 +51,13 @@ postAdminSemestersR = do
     ((result, widget), enctype) <- runFormPost addSemesterForm
     mErrorMessage <- case result of
         FormSuccess semester -> do
-            result <- runDB $ insertBy semester
-            case result of
+            key <- runDB $ insertBy semester
+            case key of
                 Left _ -> return $ Just MsgSemesterExists
                 Right _ -> return Nothing
         _ -> return $ Just MsgFormError
-    semesters <- fmap (map entityVal) $ runDB $ selectList [] []
+    semesters <- fmap (map entityVal) $
+                    runDB $ selectList [] [Asc SemesterCode]
     defaultLayout $ do
         setTitle "Semesters"
         $(widgetFile "admin-semesters")

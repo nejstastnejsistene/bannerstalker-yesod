@@ -1,4 +1,4 @@
 <h2>#{email}
 <form method=post action=@{AdminUserEditR userId} enctype=#{enctype}>
     ^{widget}
-    <input type=submit>
+    <button type=submit class=btn>Submit changes
