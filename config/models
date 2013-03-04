@@ -2,9 +2,14 @@ User
     email       Text
     verified    Bool
     password    Text
-    privilege   PrivilegeLevel
+    admin       Bool
     UniqueEmail email
     deriving    Show
+Privilege
+    userId      UserId
+    semester    Text 
+    level       PrivilegeLevel
+    UniquePrivilege userId semester
 Settings
     userId      UserId
     phoneNum    Text Maybe

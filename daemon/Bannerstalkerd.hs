@@ -63,29 +63,29 @@ bannerstalkerd extra dbConf manager = do
                 oldSections = Map.fromList $ zip keys sectionsList
             -- Fetch new data from CourseList.
             response <- liftIO $ fetchCourseList manager semester
-            time <- liftIO $ getCurrentTime
+            t <- liftIO $ getCurrentTime
             case response of
                 -- Server error: record statuses as Unavailable.
                 Left err -> do
                     let recordUnavailable sectionId =
-                            insert $ HistoryLog time sectionId Unavailable
+                            insert $ HistoryLog t sectionId Unavailable
                         sectionIds = map entityKey $ Map.elems oldSections
-                    insert $ CourseListLog time Failure (Just err)
+                    insert $ CourseListLog t Failure (Just err)
                                         Nothing Nothing Nothing
                     mapM_ recordUnavailable sectionIds
                 -- Process the new data.
                 Right sectionsList -> do
                     let keys = map sectionCrn sectionsList
                         sections = Map.fromList $ zip keys sectionsList
-                    processCourseListData time oldSections sections
+                    processCourseListData semester t oldSections sections
 
         -- Updates Section and HistoryLog with the new CourseList data.
-        processCourseListData time oldSections newSections = do
+        processCourseListData semester t oldSections newSections = do
             let -- Add new sections to database.
                 handleAddedCrn crn = do
                     let section = fromJust $ Map.lookup crn newSections
                     sectionId <- insert section
-                    insert $ HistoryLog time sectionId $
+                    insert $ HistoryLog t sectionId $
                         sectionCurrStatus section
                 -- TODO what to do when a class is removed?
                 -- For now I'll just handle these manually if it comes up.
@@ -99,16 +99,16 @@ bannerstalkerd extra dbConf manager = do
                         (Section _ _ _ _ _ _ _ _ newStatus) =
                             fromJust $ Map.lookup crn newSections
                     when (newStatus /= oldStatus) $ do
-                        queueNotifications sectionId newStatus
+                        queueNotifications semester sectionId newStatus
                         update sectionId [SectionCurrStatus =. newStatus]
-                    insert $ HistoryLog time sectionId newStatus
+                    insert $ HistoryLog t sectionId newStatus
                 -- Partition sections into added, removed, and existing.
                 oldCrns = Set.fromList $ Map.keys oldSections
                 newCrns = Set.fromList $ Map.keys newSections
                 addedCrns = Set.difference newCrns oldCrns 
                 removedCrns = Set.difference oldCrns newCrns
                 existingCrns = Set.intersection oldCrns newCrns
-            insert $ CourseListLog time Success Nothing
+            insert $ CourseListLog t Success Nothing
                 (Just $ Set.size addedCrns)
                 (Just $ Set.size removedCrns)
                 (Just $ Set.size existingCrns)
@@ -118,22 +118,25 @@ bannerstalkerd extra dbConf manager = do
             mapM_ handleExistingCrn $ Set.toList existingCrns
 
         -- Schedules notifications for the given section and its status.
-        queueNotifications sectionId currStatus = do
+        queueNotifications semester sectionId currStatus = do
             requests <- selectList
                 [SectionRequestSectionId ==. sectionId] []
-            mapM_ (updateNotifications currStatus) requests
+            mapM_ (updateNotifications semester currStatus) requests
             
         -- Adds or removes notifications to keep them up to date.
-        updateNotifications currStatus (Entity reqId req) = do
+        updateNotifications semester currStatus (Entity reqId req) = do
             -- The last status the user was notified of.
             if sectionRequestLastStatus req == currStatus
                 -- Status is unchanged, delete notification.
                 then deleteBy $ UniqueReqId reqId
                 -- Insert a new notification.
                 else do
-                    user <- fmap fromJust $ get $ sectionRequestUserId req
+                    let userId = sectionRequestUserId req
+                    user <- fmap fromJust $ get userId
+                    priv <- fmap (entityVal . fromJust) $ getBy $
+                        UniquePrivilege userId semester
                     sendTime <- liftIO $ nextNotificationTime $
-                        getNotifyInterval extra $ userPrivilege user
+                        getNotifyInterval extra $ privilegeLevel priv
                     insert $ Notification reqId sendTime
                     return ()
 
@@ -163,6 +166,7 @@ bannerstalkerd extra dbConf manager = do
             user <- fmap fromJust $ get userId
             settings <- fmap (entityVal . fromJust) $
                             getBy $ UniqueUserSettings (userId :: UserId)
+            -- Email notifications.
             when (settingsUseEmail settings) $ do
                 let email = userEmail user
                 (status, err) <- liftIO $ notifyEmail email section
@@ -170,6 +174,7 @@ bannerstalkerd extra dbConf manager = do
                 insert $ NotificationLog time
                     EmailNotification email status err
                 return ()
+            -- Sms notifications.
             when (settingsUseSms settings) $ do
                 let phoneNum = fromJust $ settingsPhoneNum settings
                 (status, err) <- liftIO $

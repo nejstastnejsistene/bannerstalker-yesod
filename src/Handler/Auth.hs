@@ -70,14 +70,17 @@ registerUser :: Text -> Text -> Handler ()
 registerUser email passwd = do
     passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
         liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
-    -- Insert User and Settings records.
+    semesters <- fmap extraSemesters getExtra
     runDB $ do
+        -- Insert the user record.
         userId <- insert $ User
             { userEmail = email
             , userVerified = False
             , userPassword = passwdHash
-            , userPrivilege = Level1
             }
+        -- Set user to Level1 for all current semesters.
+        mapM_ (\x -> insert $ Privilege userId x Level1) semesters
+        -- Insert default user settings.
         _ <- insert $ Settings
             { settingsUserId = userId
             , settingsPhoneNum = Nothing
