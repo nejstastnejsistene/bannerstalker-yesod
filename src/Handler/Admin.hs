@@ -7,20 +7,7 @@ getAdminUsersR = do
     users <- runDB $ selectList [] []
     defaultLayout $ do
         setTitle "Users"
-        [whamlet|
-$if length users == 1
-    <p>1 user.
-$else
-    <p>#{length users} users.
-<ul>
-    $forall Entity userId user <- users
-        <li>
-            <a href=@{AdminUserEditR userId}>#{userEmail user}
-                $if not $ userVerified user
-                    \ (unverified)
-                $if userAdmin user
-                    \ (admin)
-|]
+        $(widgetFile "admin-users")
 
 data UserRecord = UserRecord Bool Text Text
 
@@ -39,12 +26,7 @@ getAdminUserEditR userId = do
             (widget, enctype) <- generateFormPost editUserForm
             defaultLayout $ do
                 setTitle "Edit user"
-                [whamlet|
-<h2>#{email}
-<form method=post action=@{AdminUserEditR userId} enctype=#{enctype}>
-    ^{widget}
-    <input type=submit>
-|]
+                $(widgetFile "admin-edit-user")
 
 postAdminUserEditR :: UserId -> Handler RepHtml
 postAdminUserEditR userId = defaultLayout [whamlet|<h1>not implemented|]

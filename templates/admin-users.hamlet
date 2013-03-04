@@ -1,0 +1,12 @@
+$if length users == 1
+    <p>1 user.
+$else
+    <p>#{length users} users.
+<ul>
+    $forall Entity userId user <- users
+        <li>
+            <a href=@{AdminUserEditR userId}>#{userEmail user}
+                $if not $ userVerified user
+                    \ (unverified)
+                $if userAdmin user
+                    \ (admin)
