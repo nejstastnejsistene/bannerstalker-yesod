@@ -1,3 +1,7 @@
+$maybe errorMessage <- mErrorMessage
+    <div .alert .alert-error>
+        <strong>Oh god...
+        _{errorMessage}
 <div .row>
     <div .span4>
         <h3>Basic Information
@@ -68,3 +72,26 @@
             <label .checkbox>
                 <input name=check3 type=checkbox value=yes>Don't be a dumbass.
             <button type=submit .btn .btn-danger>Delete user
+<div .row>
+    <div .span2>
+        <h3>Requests
+        <table .table>
+            <tr>
+                <th>Semester
+                <th>CRN
+    <div .span4>
+        <h3>Queued Notifications
+        <table .table>
+                <th>Time
+                <th>Semester
+                <th>CRN
+                <th>Recipient
+    <div .span6>
+        <h3>Sent Notifications
+        <table .table>
+            <tr>
+                <th>Time
+                <th>CRN
+                <th>Recipient
+                <th>Status
+                <th>Error

@@ -18,7 +18,10 @@ getAdminUsersR = do
 data SemesterPriv = SemesterPriv Text Text PrivilegeLevel
 
 getAdminEditUserR :: UserId -> Handler RepHtml
-getAdminEditUserR userId = do
+getAdminEditUserR userId = getAdminEditUserHelper userId Nothing
+
+getAdminEditUserHelper :: UserId -> Maybe Text -> Handler RepHtml
+getAdminEditUserHelper userId mErrorMessage = do
     mUser <- runDB $ get userId
     case mUser of
         Nothing -> defaultLayout [whamlet|<h1>User does not exist!|]
@@ -36,7 +39,9 @@ getAdminEditUserR userId = do
                 $(widgetFile "admin-edit-user")
 
 postAdminEditUserR :: UserId -> Handler RepHtml
-postAdminEditUserR _ = defaultLayout [whamlet|<h1>not implemented|]
+postAdminEditUserR userId = do
+    let mErrorMessage = Just "Not implemented yet!"
+    getAdminEditUserHelper userId mErrorMessage
 
 addSemesterForm :: Form Semester
 addSemesterForm = renderDivs $ Semester
