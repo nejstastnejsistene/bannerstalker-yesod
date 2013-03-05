@@ -1,7 +1,3 @@
-<div .alert .alert-warning>
-    <strong>Yeah, I know.
-    This page is a mess. Luckily, normal users will never see it so it can
-    \ stay a mess.
 $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>
         <strong>Oh god...

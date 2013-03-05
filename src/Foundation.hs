@@ -77,6 +77,7 @@ instance Yesod App where
         route' <- fmap fromJust getCurrentRoute
         tm <- getRouteToMaster
         let route = tm route'
+            adminRoute = fst (splitAt 5 $ show route) == "Admin"
         mUser <- currentUser
 
         -- We break up the default layout into two components:
