@@ -1,0 +1,4 @@
+$maybe user <- mUser
+    <h1>Welcome, #{userEmail user}
+$nothing
+    <h1>Not logged in!
