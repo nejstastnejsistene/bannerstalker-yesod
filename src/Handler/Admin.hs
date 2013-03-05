@@ -40,7 +40,33 @@ getAdminEditUserHelper userId mErrorMessage = do
 
 postAdminEditUserR :: UserId -> Handler RepHtml
 postAdminEditUserR userId = do
-    let mErrorMessage = Just "Not implemented yet!"
+    (postData, _) <- runRequestBody
+    mErrorMessage <- case fromJust $ lookup "type" postData of
+        "basic" -> return $ Just "not implemented"
+        "password" -> return $ Just "not implemented"
+        "settings" -> return $ Just "not implemented"
+        "privileges" -> return $ Just "not implemented"
+        "delete" -> do
+            email <- fmap (userEmail . fromJust) $ runDB $ get userId
+            let mEmail = lookup "email" postData
+                check1 = lookup "check1" postData == Just "yes"
+                check2 = lookup "check2" postData == Just "yes" 
+                check3 = lookup "check3" postData == Just "yes"
+            if (mEmail == Just email && check1 && check2 && check3)
+                then runDB $ do
+                    reqIds <- fmap (map entityKey) $
+                        selectList [SectionRequestUserId ==. userId] []
+                    deleteWhere [NotificationRequestId <-. reqIds]
+                    mapM_ delete reqIds
+                    deleteWhere [NotificationLogUserId ==. userId]
+                    deleteWhere [SmsVerificationUserId ==. userId]
+                    deleteWhere [EmailVerificationUserId ==. userId]
+                    deleteWhere [PrivilegeUserId ==. userId]
+                    deleteWhere [SettingsUserId ==. userId]
+                    delete userId
+                    return Nothing
+                else return $ Just "Delete user: missed some safeguards."
+        _ -> return $ Just "unknown type"
     getAdminEditUserHelper userId mErrorMessage
 
 addSemesterForm :: Form Semester
