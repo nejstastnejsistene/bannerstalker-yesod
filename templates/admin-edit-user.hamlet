@@ -19,30 +19,30 @@ $maybe errorMessage <- mErrorMessage
                 <input name=admin type=checkbox value=yes :userAdmin user:checked>Admin
             <button type=submit .btn>Submit changes
     <div .span4>
-        <h3>Change Password
-        <form method=post>
-            <input type=hidden name=type value=password>
-            <div .required>
-                <label for=password>New password
-                <input #password name=password type=password required value>
-            <div .required>
-                <label for=confirm>Confirm new password
-                <input #confirm name=confirm type=password required value>
-            <button type=submit .btn>Change password
-    <div .span4>
         <h3>Settings
+        $with Settings _ mPhoneNum phoneVerified useEmail useSms <- userSettings
+            <label for=phoneNum>Phone number
+            <input #phoneNum name=phoneNum type=tel :isJust mPhoneNum:value=#{fromJust mPhoneNum} disabled>
+            <label .checkbox>
+                <input name=smsVerified type=checkbox value=yes :phoneVerified:checked disabled>Phone number is verified
+            <label .checkbox>
+                <input name=useEmail type=checkbox value=yes :useEmail:checked disabled>Use Email Notifications
+            <label .checkbox>
+                <input name=useSms type=checkbox value=yes :useSms:checked disabled>Use SMS Notifications
+    <div .span4>
+        <h3>Delete user
         <form method=post>
-            $with Settings _ mPhoneNum phoneVerified useEmail useSms <- userSettings
-                <input type=hidden name=type value=settings>
-                <label for=phoneNum>Phone number
-                <input #phoneNum name=phoneNum type=tel :isJust mPhoneNum:value=#{fromJust mPhoneNum}>
-                <label .checkbox>
-                    <input name=smsVerified type=checkbox value=yes :phoneVerified:checked>Phone number is verified
-                <label .checkbox>
-                    <input name=useEmail type=checkbox value=yes :useEmail:checked>Use Email Notifications
-                <label .checkbox>
-                    <input name=useSms type=checkbox value=yes :useSms:checked>Use SMS Notifications
-            <button type=submit .btn>Submit changes
+            <input type=hidden name=type value=delete>
+            <div .required>
+                <label for=email>Enter their email address.
+                <input #email name=email type=email>
+            <label .checkbox>
+                <input name=check1 type=checkbox value=yes>Are you sure?
+            <label .checkbox>
+                <input name=check2 type=checkbox value=yes>This can't be undone.
+            <label .checkbox>
+                <input name=check3 type=checkbox value=yes>Don't be a dumbass.
+            <button type=submit .btn .btn-danger>Delete user
 <div .row>
     <div .span8>
         <h3>Privileges
@@ -63,27 +63,13 @@ $maybe errorMessage <- mErrorMessage
                                 <option value=Admin :level == Admin:selected>Admin
             <button type=submit .btn>Submit changes
     <div .span4>
-        <h3>Delete user
-        <form method=post>
-            <input type=hidden name=type value=delete>
-            <div .required>
-                <label for=email>Enter their email address.
-                <input #email name=email type=email>
-            <label .checkbox>
-                <input name=check1 type=checkbox value=yes>Are you sure?
-            <label .checkbox>
-                <input name=check2 type=checkbox value=yes>This can't be undone.
-            <label .checkbox>
-                <input name=check3 type=checkbox value=yes>Don't be a dumbass.
-            <button type=submit .btn .btn-danger>Delete user
-<div .row>
-    <div .span2>
         <h3>Requests
         <table .table>
             <tr>
                 <th>Semester
                 <th>CRN
-    <div .span4>
+<div .row>
+    <div .span6>
         <h3>Queued Notifications
         <table .table>
                 <th>Time

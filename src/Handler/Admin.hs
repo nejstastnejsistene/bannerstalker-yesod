@@ -2,6 +2,7 @@ module Handler.Admin where
 
 import Import
 import Data.Maybe
+import qualified Data.Text as T
 
 getAdminR :: Handler RepHtml
 getAdminR = defaultLayout $ do
@@ -53,9 +54,20 @@ postAdminEditUserR userId = do
                         update userId [ UserVerified =. verified
                                       , UserAdmin =. admin]
                         return Nothing
-        "password" -> return $ Just "not implemented"
-        "settings" -> return $ Just "not implemented"
-        "privileges" -> return $ Just "not implemented"
+        "privileges" -> do
+            let updatePriv (key, value) = do
+                    let (priv, code) = T.splitAt 4 key
+                    case priv of
+                        "priv" -> runDB $ do
+                            semId <- fmap (entityKey . fromJust) $
+                                            getBy $ UniqueSemester code
+                            updateWhere [ PrivilegeUserId ==. userId
+                                        , PrivilegeSemester ==. semId ]
+                                [PrivilegeLevel =. (read $ T.unpack value)]
+                            return ()
+                        _ -> return ()
+            mapM_ updatePriv postData
+            return Nothing
         "delete" -> do
             email <- fmap (userEmail . fromJust) $ runDB $ get userId
             let mEmail = lookup "email" postData
