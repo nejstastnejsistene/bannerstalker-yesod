@@ -42,7 +42,17 @@ postAdminEditUserR :: UserId -> Handler RepHtml
 postAdminEditUserR userId = do
     (postData, _) <- runRequestBody
     mErrorMessage <- case fromJust $ lookup "type" postData of
-        "basic" -> return $ Just "not implemented"
+        "basic" -> do
+            let verified = lookup "verified" postData == Just "yes"
+                admin = lookup "admin" postData == Just "yes"
+            runDB $ do
+                ver <- fmap (userVerified . fromJust) $ get userId
+                if (ver && not verified)
+                    then return $ Just "Why would you unverify someone?"
+                    else do
+                        update userId [ UserVerified =. verified
+                                      , UserAdmin =. admin]
+                        return Nothing
         "password" -> return $ Just "not implemented"
         "settings" -> return $ Just "not implemented"
         "privileges" -> return $ Just "not implemented"
