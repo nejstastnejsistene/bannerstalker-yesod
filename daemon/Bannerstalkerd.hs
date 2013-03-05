@@ -177,7 +177,7 @@ bannerstalkerd extra dbConf manager = do
                 (status, err) <- liftIO $ notifyEmail email section
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time
-                    EmailNotification email status err
+                    EmailNotification userId email status err
                 return ()
             -- Sms notifications.
             when (settingsUseSms settings) $ do
@@ -186,7 +186,7 @@ bannerstalkerd extra dbConf manager = do
                     notifySms manager extra phoneNum section
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time 
-                    SmsNotification phoneNum status err
+                    SmsNotification userId phoneNum status err
                 return ()
 
 mailAlert :: Text -> IO ()

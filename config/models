@@ -66,6 +66,7 @@ HistoryLog
 NotificationLog
     timestamp   UTCTime
     type        NotificationType
+    userId      UserId
     recipient   Text
     status      RequestStatus
     error       Text Maybe
