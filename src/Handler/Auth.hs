@@ -27,8 +27,8 @@ registerForm = renderDivs $ RegisterCreds
 getRegisterR :: Handler RepHtml
 getRegisterR = do
     -- Redirect to home if already logged in.
-    userId <- currentUserId
-    when (isJust userId) $ redirectUltDest HomeR
+    mUser <- currentUser
+    when (isJust mUser) $ redirectUltDest HomeR
     -- Create form and display page.
     (widget, enctype) <- generateFormPost registerForm
     let mErrorMessage = Nothing :: Maybe Text
@@ -95,8 +95,8 @@ registerUser email passwd = do
 getLoginR :: Handler RepHtml
 getLoginR = do
     -- Redirect to home if already logged in.
-    userId <- currentUserId
-    when (isJust userId) $ redirectUltDest HomeR
+    mUser <- currentUser
+    when (isJust mUser) $ redirectUltDest HomeR
     -- Create form and display page.
     (widget, enctype) <- generateFormPost loginForm
     let mErrorMessage = Nothing :: Maybe Text

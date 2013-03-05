@@ -77,7 +77,7 @@ instance Yesod App where
         route' <- fmap fromJust getCurrentRoute
         tm <- getRouteToMaster
         let route = tm route'
-        mUserId <- currentUserId
+        mUser <- currentUser
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
@@ -155,8 +155,8 @@ doLogin userId = setSession credsKey $ toPathPiece userId
 doLogout :: GHandler sub App ()
 doLogout = deleteSession credsKey
 
-currentUserId :: GHandler sub App (Maybe UserId)
-currentUserId = do
+currentUser :: GHandler sub App (Maybe (Entity User))
+currentUser = do
     mUserId <- lookupSession credsKey
     case mUserId of
         -- Not logged in.
@@ -173,6 +173,6 @@ currentUserId = do
                     Nothing -> do
                         doLogout
                         return Nothing
-                    -- Return current userId.
-                    Just _ -> return $ Just userId
+                    -- Return user.
+                    Just user -> return $ Just $ Entity userId user
 

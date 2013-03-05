@@ -51,8 +51,8 @@ sendVerificationEmail email = do
 
 getVerifyR :: UserId -> Text -> Handler RepHtml
 getVerifyR userId verKey = do
-    currUserId <- currentUserId
-    success <- case currUserId of
+    mCurrUser <- currentUser
+    success <- case mCurrUser of
         -- Skip if logged in.
         Just _ -> return False
         Nothing -> do

@@ -1,4 +1,4 @@
-$maybe user <- mUser
+$maybe Entity userId user <- mUser
     <h1>Welcome, #{userEmail user}
 $nothing
     <div .row>
