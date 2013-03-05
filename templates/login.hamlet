@@ -1,6 +1,8 @@
 <h1>Login
 $maybe errorMessage <- mErrorMessage
-    <p class="text-error">_{errorMessage}
+    <div .alert .alert-error>
+        <strong>Uh-oh!
+        _{errorMessage}
 <form method=post action=@{LoginR} enctype=#{enctype}>
     ^{widget}
     <button type=submit class=btn>Login

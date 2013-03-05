@@ -1,6 +1,8 @@
 <h1>Register
 $maybe errorMessage <- mErrorMessage
-    <p class="text-error">_{errorMessage}
+    <div .alert .alert-error>
+        <strong>I can't let you do that, Dave.
+        _{errorMessage}
 <form method=post action=@{RegisterR} enctype=#{enctype}>
     ^{widget}
     <button type=submit class=btn>Register

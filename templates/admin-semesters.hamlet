@@ -14,7 +14,9 @@
                 <td>(button goes here)
 <h2>Add semester
 $maybe errorMessage <- mErrorMessage
-    <p class="text-error">_{errorMessage}
+    <div .alert .alert-error>
+        <strong>Oh shit!
+        _{errorMessage}
 <form method=post action=@{AdminSemestersR} enctype=#{enctype}>
     ^{widget}
     <button type=submit class=btn>Add semester

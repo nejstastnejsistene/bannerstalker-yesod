@@ -17,6 +17,11 @@ editUserForm = renderDivs $ UserRecord
     <*> areq passwordField "Password" Nothing
     <*> areq passwordField "Confirm password" Nothing
 
+getAdminR :: Handler RepHtml
+getAdminR = defaultLayout $ do
+    setTitle "Admin"
+    $(widgetFile "admin")
+
 getAdminUserEditR :: UserId -> Handler RepHtml
 getAdminUserEditR userId = do
     mUser <- runDB $ get userId

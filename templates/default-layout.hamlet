@@ -2,6 +2,8 @@
     <li :route == HomeR:.active>
         <a href=@{HomeR}>Home
     $maybe userId <- mUserId
+        <li :route == AdminR:.active>
+            <a href=@{AdminR}>Admin
         <li :route == QuickstartR:.active>
             <a href=@{QuickstartR}>Quickstart
         <li>

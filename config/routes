@@ -12,6 +12,7 @@
 
 /quickstart                 QuickstartR GET
 
+/admin                      AdminR GET
 /admin/users                AdminUsersR GET
 /admin/users/edit/#UserId   AdminUserEditR GET POST
 /admin/semesters            AdminSemestersR GET POST
