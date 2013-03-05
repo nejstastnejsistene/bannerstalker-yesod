@@ -14,7 +14,7 @@
 
 /admin                      AdminR GET
 /admin/users                AdminUsersR GET
-/admin/users/edit/#UserId   AdminUserEditR GET POST
+/admin/users/edit/#UserId   AdminEditUserR GET POST
 /admin/semesters            AdminSemestersR GET POST
 
 /                           HomeR GET

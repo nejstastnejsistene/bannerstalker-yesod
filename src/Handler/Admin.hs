@@ -1,6 +1,12 @@
 module Handler.Admin where
 
 import Import
+import Data.Maybe
+
+getAdminR :: Handler RepHtml
+getAdminR = defaultLayout $ do
+    setTitle "Admin"
+    $(widgetFile "admin")
 
 getAdminUsersR :: Handler RepHtml
 getAdminUsersR = do
@@ -9,32 +15,28 @@ getAdminUsersR = do
         setTitle "Users"
         $(widgetFile "admin-users")
 
-data UserRecord = UserRecord Bool Text Text
+data SemesterPriv = SemesterPriv Text Text PrivilegeLevel
 
-editUserForm :: Form UserRecord
-editUserForm = renderDivs $ UserRecord
-    <$> areq boolField "Email verified" Nothing
-    <*> areq passwordField "Password" Nothing
-    <*> areq passwordField "Confirm password" Nothing
-
-getAdminR :: Handler RepHtml
-getAdminR = defaultLayout $ do
-    setTitle "Admin"
-    $(widgetFile "admin")
-
-getAdminUserEditR :: UserId -> Handler RepHtml
-getAdminUserEditR userId = do
+getAdminEditUserR :: UserId -> Handler RepHtml
+getAdminEditUserR userId = do
     mUser <- runDB $ get userId
     case mUser of
-        Nothing -> defaultLayout [whamlet|<h1>User does not exists|]
-        Just (User email verified _ admin) -> do
-            (widget, enctype) <- generateFormPost editUserForm
+        Nothing -> defaultLayout [whamlet|<h1>User does not exist!|]
+        Just user -> do
+            userSettings <- fmap (entityVal . fromJust) $
+                runDB $ getBy $ UniqueUserSettings userId
+            s <- runDB $ selectList [SemesterActive ==. True] []
+            p <- runDB $ selectList [PrivilegeUserId ==. userId] []
+            let privileges = [ SemesterPriv code name level
+                             | Entity sId1 (Semester code name _) <- s
+                             , Entity _ (Privilege _ sId2 level) <- p
+                             , sId1 == sId2 ]           
             defaultLayout $ do
-                setTitle "Edit user"
+                setTitle "Edit User"
                 $(widgetFile "admin-edit-user")
 
-postAdminUserEditR :: UserId -> Handler RepHtml
-postAdminUserEditR userId = defaultLayout [whamlet|<h1>not implemented|]
+postAdminEditUserR :: UserId -> Handler RepHtml
+postAdminEditUserR _ = defaultLayout [whamlet|<h1>not implemented|]
 
 addSemesterForm :: Form Semester
 addSemesterForm = renderDivs $ Semester

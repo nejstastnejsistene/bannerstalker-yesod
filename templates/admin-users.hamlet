@@ -4,11 +4,11 @@
         <th>Email
         <th>Verified
         <th>Admin
-        <th>Edit
+        <th>
     $forall Entity userId user <- users
         <tr>
             <td>#{userEmail user}
             <td>#{userVerified user}
             <td>#{userAdmin user}
             <td>
-                <a href=@{AdminUserEditR userId}>Edit
+                <a href=@{AdminEditUserR userId} .btn .btn-small>Edit user info

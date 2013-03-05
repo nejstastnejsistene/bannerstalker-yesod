@@ -1,7 +1,7 @@
 <ul .nav .nav-tabs>
     <li :route == HomeR:.active>
         <a href=@{HomeR}>Home
-    $maybe Entity userId user <- mUser
+    $maybe Entity _ user <- mUser
         $if userAdmin user
             <li :route == AdminR:.active>
                 <a href=@{AdminR}>Admin
