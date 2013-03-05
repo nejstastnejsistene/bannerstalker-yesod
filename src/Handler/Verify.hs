@@ -71,5 +71,5 @@ getVerifyR userId verKey = do
                         doLogin userId
                         return True
     if success
-        then redirectUltDest QuickstartR
+        then redirectUltDest HomeR
         else redirectUltDest HomeR

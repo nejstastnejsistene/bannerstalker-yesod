@@ -10,8 +10,6 @@
 /verify/send                ResendVerificationR GET POST
 /verify/#UserId/#Text       VerifyR GET
 
-/quickstart                 QuickstartR GET
-
 /admin                      AdminR GET
 /admin/users                AdminUsersR GET
 /admin/users/edit/#UserId   AdminEditUserR GET POST

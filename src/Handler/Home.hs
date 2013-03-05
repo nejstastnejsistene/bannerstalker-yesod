@@ -13,8 +13,3 @@ getHomeR = do
     defaultLayout $ do
         setTitle "Bannerstalker"
         $(widgetFile "home")
-
-getQuickstartR :: Handler RepHtml
-getQuickstartR = defaultLayout $ do
-    setTitle "Quickstart"
-    $(widgetFile "quickstart")
