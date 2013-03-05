@@ -25,6 +25,7 @@ import System.Log.FastLogger (mkLogger)
 import Handler.Admin
 import Handler.Auth
 import Handler.Home
+import Handler.Settings
 import Handler.Verify
 
 -- This line actually creates our YesodDispatch instance. It is the second half

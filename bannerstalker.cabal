@@ -25,6 +25,7 @@ library
                      Handler.Admin
                      Handler.Auth
                      Handler.Home
+                     Handler.Settings
                      Handler.Verify
 
     if flag(dev) || flag(library-only)
