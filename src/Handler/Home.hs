@@ -6,6 +6,7 @@ import Data.Maybe
 import Data.Text (unpack)
 
 import Handler.Auth
+import Handler.Search
 
 getHomeR :: Handler RepHtml
 getHomeR = do
@@ -28,6 +29,7 @@ homeHelper (Entity userId user) mErrorMessage = do
     semesters <- runDB $ selectList [SemesterActive ==. True] []
     let semestersMap = [ (sId, name)
                        | Entity sId (Semester _ name _) <- semesters ]
+    subjectWidget <- selectSubject
     token <- getToken
     defaultLayout $ do
         setTitle "Bannerstalker"

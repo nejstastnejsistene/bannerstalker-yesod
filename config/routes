@@ -17,5 +17,6 @@
 
 /search                     SearchR GET POST
 /settings                   SettingsR GET POST
+/upgrade                    UpgradeR GET
 
 /                           HomeR GET POST

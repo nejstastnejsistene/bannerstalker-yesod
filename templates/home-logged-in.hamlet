@@ -42,5 +42,5 @@ $maybe errorMessage <- mErrorMessage
 <h3>Search for CRNs
 <form .form-inline method=post action=@{SearchR}>
     ^{token}
-    <input type=text name=string>
+    ^{subjectWidget}
     <button type=submit .btn>Search
