@@ -46,7 +46,7 @@ requestCourseList manager semester = do
      
 -- Creates a Section given the semester and a list of arguments.
 makeSection :: SemesterId -> [B.ByteString] -> Either T.Text Section
-makeSection semester args = case map (T.strip . decodeUtf8) args of
+makeSection semester args = case args' of
     [crn, courseId, _, title, instr,  _, days, times, _, _, _, status] ->
         let crn' = read $ T.unpack crn
             subject:courseId':_ = T.words courseId
@@ -59,6 +59,8 @@ makeSection semester args = case map (T.strip . decodeUtf8) args of
             else Right $ Section semester crn' subject courseId'
                             title instr days times $ fromJust status'
     _ -> Left "Wrong number of arguments to makeSection"
+    where
+        args' = map (T.strip . (T.replace "&nbsp;" "") . decodeUtf8) args
 
 fetchCourseList :: Manager
                    -> SemesterId
