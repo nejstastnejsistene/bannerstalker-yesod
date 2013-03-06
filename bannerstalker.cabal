@@ -133,6 +133,7 @@ executable         bannerstalkerd
                      , hdaemonize
                      , http-conduit
                      , http-types
+                     , hxt
                      , mime-mail
                      , persistent
                      , persistent-postgresql

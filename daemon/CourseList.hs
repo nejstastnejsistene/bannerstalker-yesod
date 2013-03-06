@@ -2,12 +2,14 @@ module CourseList (fetchCourseList) where
 
 import Prelude
 import qualified Data.ByteString as B
+import Data.Char
 import Data.Conduit
 import Data.Conduit.List (consume)
 import Data.Either
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Text.Encoding
+import Text.XML.HXT.Parser.XhtmlEntities
 import Text.Regex.PCRE
 import Network.HTTP.Conduit
 import Network.HTTP.Types
@@ -43,6 +45,29 @@ requestCourseList manager semester = do
                  ,("search",    "Search")
                  ,("sort",      "crn_key")
                  ,("order",     "asc")]
+
+-- Went a little crazy and wrote a function to decode html entity refs...
+-- Based off code from the now defunct web-encodings package.
+decodeHtml :: T.Text -> T.Text
+decodeHtml text = case T.uncons text of
+    Nothing -> ""
+    Just ('&', xs) ->
+        let (before, after) = T.breakOn ";" xs
+            remaining = T.tail after
+        in case parseEntityRef $ T.unpack before of
+            Nothing -> decodeHtml remaining
+            Just ch -> T.cons ch $ decodeHtml remaining
+    Just (x, xs) -> T.cons x $ decodeHtml xs
+    where
+        parseEntityRef ('#':'x':hex) = readHexChar hex
+        parseEntityRef ('#':'X':hex) = readHexChar hex
+        parseEntityRef ('#':    dec) = readDecChar dec
+        parseEntityRef s = case lookup s xhtmlEntities of
+            Nothing -> Nothing
+            Just dec -> Just $ chr dec
+        readHexChar s = readDecChar $ "0x" ++ s
+        readDecChar s = case reads s of
+            (i, _):_ -> Just $ chr (i :: Int)
      
 -- Creates a Section given the semester and a list of arguments.
 makeSection :: SemesterId -> [B.ByteString] -> Either T.Text Section
@@ -60,7 +85,7 @@ makeSection semester args = case args' of
                             title instr days times $ fromJust status'
     _ -> Left "Wrong number of arguments to makeSection"
     where
-        args' = map (T.strip . (T.replace "&nbsp;" "") . decodeUtf8) args
+        args' = map (T.strip . decodeHtml . decodeUtf8) args
 
 fetchCourseList :: Manager
                    -> SemesterId
