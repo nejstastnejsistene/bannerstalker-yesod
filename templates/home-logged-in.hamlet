@@ -1,32 +1,35 @@
-<h1>Welcome, #{userEmail user}
-<table .table .table-bordered>
-    <tr>
-        <th>Semester
-        <th>CRN
-        <th>Course ID
-        <th>Title
-        <th>Instructor
-        <th>Days
-        <th>Times
-        <th>Status
-        <th>
-    $forall Section sem crn subj cId title instr time day stat <- sections
+<h3>Welcome to Bannerstalker!
+$if length sections > 0
+    <table .table>
         <tr>
-            <td>#{fromJust $ lookup sem semestersMap}
-            <td>#{crn}
-            <td>#{subj} #{cId}
-            <td>#{title}
-            <td>#{instr}
-            <td>#{time}
-            <td>#{day}
-            <td>#{stat}
-            <td>
-                <form method=post>
-                    ^{token}
-                    <input type=hidden name=type value=remove>
-                    <input type=hidden name=crn value=#{crn}>
-                    <button type=submit .close>&times;
-<h1>Add CRN
+            <th>Semester
+            <th>CRN
+            <th>Course ID
+            <th>Title
+            <th>Instructor
+            <th>Days
+            <th>Times
+            <th>Status
+            <th>
+        $forall Section sem crn subj cId ttl inst time day stat <- sections
+            <tr>
+                <td>#{fromJust $ lookup sem semestersMap}
+                <td>#{crn}
+                <td>#{subj} #{cId}
+                <td>#{ttl}
+                <td>#{inst}
+                <td>#{time}
+                <td>#{day}
+                <td>#{stat}
+                <td>
+                    <form method=post>
+                        ^{token}
+                        <input type=hidden name=type value=remove>
+                            <input type=hidden name=crn value=#{crn}>
+                        <button type=submit .btn .btn-small>Remove
+$else
+    <p>You are not stalking any classes.
+<h3>Add CRN
 $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>
         <strong>Oops!
@@ -36,3 +39,8 @@ $maybe errorMessage <- mErrorMessage
     <input type=hidden name=type value=add>
     <input type=text name=crn>
     <button type=submit .btn>Add CRN
+<h3>Search for CRNs
+<form .form-inline method=post action=@{SearchR}>
+    ^{token}
+    <input type=text name=string>
+    <button type=submit .btn>Search
