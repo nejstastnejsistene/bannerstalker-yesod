@@ -177,6 +177,7 @@ currentUser = do
                     -- Return user.
                     Just user -> return $ Just $ Entity userId user
 
+getToken :: Handler Widget
 getToken = do
     req <- getRequest
     return [whamlet|
