@@ -17,4 +17,4 @@
 
 /settings                   SettingsR GET POST
 
-/                           HomeR GET
+/                           HomeR GET POST

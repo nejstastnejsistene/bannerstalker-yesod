@@ -1,0 +1,38 @@
+<h1>Welcome, #{userEmail user}
+<table .table .table-bordered>
+    <tr>
+        <th>Semester
+        <th>CRN
+        <th>Course ID
+        <th>Title
+        <th>Instructor
+        <th>Days
+        <th>Times
+        <th>Status
+        <th>
+    $forall Section sem crn subj cId title instr time day stat <- sections
+        <tr>
+            <td>#{fromJust $ lookup sem semestersMap}
+            <td>#{crn}
+            <td>#{subj} #{cId}
+            <td>#{title}
+            <td>#{instr}
+            <td>#{time}
+            <td>#{day}
+            <td>#{stat}
+            <td>
+                <form method=post>
+                    ^{token}
+                    <input type=hidden name=type value=remove>
+                    <input type=hidden name=crn value=#{crn}>
+                    <button type=submit .close>&times;
+<h1>Add CRN
+$maybe errorMessage <- mErrorMessage
+    <div .alert .alert-error>
+        <strong>Oops!
+        _{errorMessage}
+<form .form-inline method=post>
+    ^{token}
+    <input type=hidden name=type value=add>
+    <input type=text name=crn>
+    <button type=submit .btn>Add CRN

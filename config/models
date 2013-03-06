@@ -38,11 +38,13 @@ Section
     days        Text
     time        Text
     currStatus  SectionStatus
+    UniqueCrn   crn
     deriving    Show
 SectionRequest
     sectionId   SectionId
     userId      UserId
     lastStatus  SectionStatus
+    UniqueRequest sectionId userId
     deriving    Show
 Notification
     requestId   SectionRequestId

@@ -5,3 +5,5 @@ PasswordTooShort: Passwords must be at least 8 characters long.
 FormError: Form error. Please try again.
 LoginError: Invalid email/password combination.
 SemesterExists: A semester with this code already exists.
+InvalidCrn: Please enter a valid CRN.
+AlreadyStalking: You are already "stalking" that CRN.

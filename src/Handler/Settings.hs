@@ -27,13 +27,8 @@ getSettingsR = do
     let canSms = any (\p -> privilegeLevel p > Level1) privileges
     userSettings <- fmap (entityVal . fromJust) $
         runDB $ getBy $ UniqueUserSettings userId
-    req <- getRequest
-    let token = [whamlet|
-$newline never
-$maybe tok <- reqToken req
-    <input type=hidden name=_token value=#{tok}>
-|]
     (widget, enctype) <- generateFormPost changePasswordForm
+    token <- getToken
     defaultLayout $ do
         setTitle "Settings"
         $(widgetFile "settings")

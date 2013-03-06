@@ -177,3 +177,10 @@ currentUser = do
                     -- Return user.
                     Just user -> return $ Just $ Entity userId user
 
+getToken = do
+    req <- getRequest
+    return [whamlet|
+$newline never
+$maybe token <- reqToken req
+    <input type=hidden name=_token value=#{token}>
+|]

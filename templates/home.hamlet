@@ -1,18 +1,15 @@
-$maybe Entity _ user <- mUser
-    <h1>Welcome, #{userEmail user}
-$nothing
-    <div .row>
-        <div .span8>
-            <h1>Bannerstalker
-            <h2>Is Pretty
-            <h3>Awesome
-            <p>Alright that's all I've got. Mike, come help me out.
-        <div .span4>
-            <h1>Login
-            <form method=post action=@{LoginR} enctype=#{lEnctype}>
-                ^{loginWidget}
-                <button type=submit class=btn>Login
-            <h1>Register
-            <form method=post action=@{RegisterR} enctype=#{rEnctype}>
-                ^{registerWidget}
-                <button type=submit class=btn>Register
+<div .row>
+    <div .span8>
+        <h1>Bannerstalker
+        <h2>Is Pretty
+        <h3>Awesome
+        <p>Alright that's all I've got. Mike, come help me out.
+    <div .span4>
+        <h1>Login
+        <form method=post action=@{LoginR} enctype=#{lEnctype}>
+            ^{loginWidget}
+            <button type=submit class=btn>Login
+        <h1>Register
+        <form method=post action=@{RegisterR} enctype=#{rEnctype}>
+            ^{registerWidget}
+            <button type=submit class=btn>Register
