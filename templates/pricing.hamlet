@@ -1,0 +1,48 @@
+<table .table .table-striped .table-bordered .table-condensed>
+    <thead>
+        <tr>
+            <th>
+            <th>
+                <h3>Premium User
+                <h1>$10
+                per semester
+            <th>
+                <h3>Limited User
+                <h1>$5
+                per semester
+            <th>
+                <h3>Free User
+                <h1>Free
+                always!
+    <tbody>
+        <tr>
+            <th>Number of CRNs
+            <td>
+                <p .text-success>Unlimited
+            <td>
+                <p .text-warning>5 at a time
+            <td>
+                <p .text-error>1 at a time
+        <tr>
+            <th>Update Interval
+            <td>
+                <p .text-success>5 minutes
+            <td>
+                <p .text-warning>30 minutes
+            <td>
+                <p .text-error>2 hours
+        <tr>
+            <th>Email Notifications
+            <td>Check
+            <td>Check
+            <td>Check
+        <tr>
+            <th>SMS Notifications
+            <td>Check
+            <td>Check
+            <td>
+        <tr>
+            <th>
+            <td>
+            <td>
+            <td>

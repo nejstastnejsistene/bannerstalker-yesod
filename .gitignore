@@ -8,3 +8,4 @@ config/settings.yml
 *.sqlite3
 cabal-dev/
 yesod-devel/
+bootstrap/

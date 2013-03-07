@@ -71,6 +71,8 @@ instance Yesod App where
     isAuthorized SearchR _ = isLoggedIn
     isAuthorized SettingsR _ = isLoggedIn
     isAuthorized UpgradeR _ = isLoggedIn
+    isAuthorized AboutR _ = return Authorized
+    isAuthorized PricingR _ = return Authorized
     isAuthorized RegisterR _ = return Authorized
     isAuthorized ResendVerificationR _ = return Authorized
     isAuthorized (VerifyR _ _) _ = return Authorized

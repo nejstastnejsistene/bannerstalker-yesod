@@ -1,9 +1,13 @@
 <div .row>
     <div .span8>
-        <h1>Bannerstalker
-        <h2>Is Pretty
-        <h3>Awesome
-        <p>Alright that's all I've got. Mike, come help me out.
+        <div .hero-unit>
+            <h1>Bannerstalker
+            <h2>Is Pretty Awesome
+            <p .lead>Alright that's all I've got. Mike, come help me out.
+            <p .lead>Some more paragraphs go here.
+            <p .lead>And here as well.
+            <p .lead>Ahoj!
+            <p .lead>Ahoj ahoj!
     <div .span4>
         <h1>Login
         <form method=post action=@{LoginR} enctype=#{lEnctype}>

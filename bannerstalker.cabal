@@ -25,6 +25,7 @@ library
                      Handler.Admin
                      Handler.Auth
                      Handler.Home
+                     Handler.Info
                      Handler.Settings
                      Handler.Upgrade
                      Handler.Verify
