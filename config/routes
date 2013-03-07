@@ -15,7 +15,7 @@
 /admin/users/edit/#UserId   AdminEditUserR GET POST
 /admin/semesters            AdminSemestersR GET POST
 
-/search                     SearchR GET POST
+/search                     SearchR GET
 /settings                   SettingsR GET POST
 /upgrade                    UpgradeR GET
 

@@ -5,8 +5,6 @@
         $if userAdmin user
             <li :adminRoute:.active>
                 <a href=@{AdminR}>Admin
-        <li :route == SearchR:.active>
-            <a href=@{SearchR}>Search
         <li :route == UpgradeR:.active>
             <a href=@{UpgradeR}>Upgrade
         <li :route == SettingsR:.active>

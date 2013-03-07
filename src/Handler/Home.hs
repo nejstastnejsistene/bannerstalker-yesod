@@ -6,7 +6,15 @@ import Data.Maybe
 import Data.Text (unpack)
 
 import Handler.Auth
-import Handler.Search
+
+crnForm :: Widget -> Text -> Text -> Handler (Int -> Widget)
+crnForm token action message = return (\crn -> [whamlet|
+<form method=post action=@{HomeR}>
+    ^{token}
+    <input type=hidden name=type value=#{action}>
+    <input type=hidden name=crn value=#{crn}>
+    <button type=submit .btn .btn-small>#{message}
+|])
 
 getHomeR :: Handler RepHtml
 getHomeR = do
@@ -25,12 +33,11 @@ homeHelper (Entity userId user) mErrorMessage = do
     sectIds <- fmap (map $ sectionRequestSectionId . entityVal) $ runDB $
         selectList [SectionRequestUserId  ==. userId] []
     sections <- fmap (map entityVal) $ runDB $  
-        selectList [SectionId <-. sectIds] [Asc SectionId]
-    semesters <- runDB $ selectList [SemesterActive ==. True] []
-    let semestersMap = [ (sId, name)
-                       | Entity sId (Semester _ name _) <- semesters ]
-    subjectWidget <- selectSubject
+        selectList [SectionId <-. sectIds] [Asc SectionCrn]
     token <- getToken
+    removeCrnForm <- crnForm token "remove" "Remove"
+    sectionsWidget <- iterSections sections removeCrnForm
+    subjectWidget <- selectSubject
     defaultLayout $ do
         setTitle "Bannerstalker"
         $(widgetFile "home-logged-in")
@@ -56,6 +63,19 @@ postHomeR = do
                         _ -> return $ Just MsgInvalidCrn
             homeHelper user mErrorMessage
 
+getSearchR :: Handler RepHtml
+getSearchR = do
+    subject <- runInputGet $ ireq textField "subject"
+    sections <- fmap (map entityVal) $ runDB $
+        selectList [SectionSubject ==. subject] [Asc SectionCrn]
+    token <- getToken
+    addCrnForm <- crnForm token "add" "Add CRN"
+    sectionsWidget <- iterSections sections addCrnForm
+    subjectWidget <- selectSubject
+    defaultLayout $ do
+        setTitle "Search"
+        $(widgetFile "search")
+
 addCrn :: UserId -> Int -> Handler (Maybe AppMessage)
 addCrn userId crn = runDB $ do
     mSection <- getBy $ UniqueCrn crn
@@ -75,3 +95,14 @@ removeCrn userId crn = runDB $ do
         Just (Entity sectionId _) -> do
             deleteBy $ UniqueRequest sectionId userId
             return Nothing
+
+iterSections :: [Section] -> (Int -> Widget) -> Handler Widget
+iterSections sections crnWidget = do
+    semesters <- runDB $ selectList [] []
+    token <- getToken
+    let semestersMap =
+            [(sId, name) | Entity sId (Semester _ name _) <- semesters]
+    return $(widgetFile "iter-sections")
+
+selectSubject :: Handler Widget
+selectSubject = return $(widgetFile "select-subject")
