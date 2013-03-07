@@ -17,6 +17,11 @@ $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>
         <strong>Oh shit!
         _{errorMessage}
-<form method=post action=@{AdminSemestersR} enctype=#{enctype}>
-    ^{widget}
+<form method=post action=@{AdminSemestersR}>
+    <label for=name>
+    <input #name name=name type=text>
+    <label for=code>
+    <input #code name=code type=text>
+    <label>
+        <input #active name=active type=checkbox>Currently active
     <button type=submit class=btn>Add semester

@@ -13,16 +13,16 @@ import Handler.Verify
 data LoginCreds = LoginCreds Text Text
 data RegisterCreds = RegisterCreds Text Text Text
 
-loginForm :: Form LoginCreds
-loginForm = renderDivs $ LoginCreds
-    <$> areq emailField "Email" Nothing
-    <*> areq passwordField "Password" Nothing
+loginForm :: FormInput App App LoginCreds
+loginForm = LoginCreds
+    <$> ireq emailField "email"
+    <*> ireq passwordField "password"
 
-registerForm :: Form RegisterCreds
-registerForm = renderDivs $ RegisterCreds
-    <$> areq emailField "Email" Nothing
-    <*> areq passwordField "Password" Nothing
-    <*> areq passwordField "Confirm Password" Nothing
+registerForm :: FormInput App App RegisterCreds
+registerForm = RegisterCreds
+    <$> ireq emailField "email"
+    <*> ireq passwordField "password"
+    <*> ireq passwordField "confirm"
 
 getRegisterR :: Handler RepHtml
 getRegisterR = do
@@ -30,34 +30,32 @@ getRegisterR = do
     mUser <- currentUser
     when (isJust mUser) $ redirectUltDest HomeR
     -- Create form and display page.
-    (widget, enctype) <- generateFormPost registerForm
     let mErrorMessage = Nothing :: Maybe Text
+    token <- getToken
     defaultLayout $ do
         setTitle "Register"
         $(widgetFile "register")
 
 postRegisterR :: Handler RepHtml
 postRegisterR = do
-    ((result, widget), enctype) <- runFormPost registerForm
-    mErrorMessage <- case result of
-        FormSuccess (RegisterCreds email passwd confirm) -> do
-            mUser <- runDB $ getBy $ UniqueEmail email
-            -- Only @email.wm.edu students may register.
-            if (snd $ T.breakOn "@" email) /= "@email.wm.edu" then
-                return $ Just MsgWMStudentsOnly
-            -- Already registered.
-            else if (isJust mUser) then
-                return $ Just MsgAlreadyRegistered
-            -- Password mismatch.
-            else if passwd /= confirm then
-                return $ Just MsgPasswordMismatch
-            -- Password too short.
-            else if T.length passwd < 8 then
-                return $ Just MsgPasswordTooShort
-            -- Success!
-            else registerUser email passwd >> return Nothing
-        -- Form error.
-        _ -> return $ Just MsgFormError
+    RegisterCreds email passwd confirm <- runInputPost registerForm
+    mErrorMessage <- do
+        mUser <- runDB $ getBy $ UniqueEmail email
+        -- Only @email.wm.edu students may register.
+        if (snd $ T.breakOn "@" email) /= "@email.wm.edu" then
+            return $ Just MsgWMStudentsOnly
+        -- Already registered.
+        else if (isJust mUser) then
+            return $ Just MsgAlreadyRegistered
+        -- Password mismatch.
+        else if passwd /= confirm then
+            return $ Just MsgPasswordMismatch
+        -- Password too short.
+        else if T.length passwd < 8 then
+            return $ Just MsgPasswordTooShort
+        -- Success!
+        else registerUser email passwd >> return Nothing
+    token <- getToken
     case mErrorMessage of
         Nothing -> defaultLayout $ do
             setTitle "Verify your email"
@@ -98,7 +96,6 @@ getLoginR = do
     mUser <- currentUser
     when (isJust mUser) $ redirectUltDest HomeR
     -- Create form and display page.
-    (widget, enctype) <- generateFormPost loginForm
     let mErrorMessage = Nothing :: Maybe Text
     defaultLayout $ do
         setTitle "Login"
@@ -106,24 +103,21 @@ getLoginR = do
 
 postLoginR :: Handler RepHtml
 postLoginR = do
-    ((result, widget), enctype) <- runFormPost loginForm
-    mErrorMessage <- case result of
-        FormSuccess (LoginCreds email passwd) -> do
-            mUser <- runDB $ getBy $ UniqueEmail $ email
-            case mUser of
-                -- User does not exists with this email.
-                Nothing -> return $ Just MsgLoginError
-                Just (Entity userId user) -> do
-                    -- Compare password hashes.
-                    let pass = Pass $ encodeUtf8 passwd
-                        hash = EncryptedPass $
-                                    encodeUtf8 $ userPassword user
-                    if (userVerified user && verifyPass' pass hash)
-                        then doLogin userId >> return Nothing
-                        -- Passwords don't match.
-                        else return $ Just MsgLoginError
-        -- Form error.
-        _ -> return $ Just MsgFormError
+    LoginCreds email passwd <- runInputPost loginForm
+    mErrorMessage <- do
+        mUser <- runDB $ getBy $ UniqueEmail $ email
+        case mUser of
+            -- User does not exists with this email.
+            Nothing -> return $ Just MsgLoginError
+            Just (Entity userId user) -> do
+                -- Compare password hashes.
+                let pass = Pass $ encodeUtf8 passwd
+                    hash = EncryptedPass $
+                                encodeUtf8 $ userPassword user
+                if (userVerified user && verifyPass' pass hash)
+                    then doLogin userId >> return Nothing
+                    -- Passwords don't match.
+                    else return $ Just MsgLoginError
     case mErrorMessage of
         Nothing -> redirectUltDest HomeR
         _ -> defaultLayout $ do
@@ -137,3 +131,17 @@ postLogoutR :: Handler RepHtml
 postLogoutR = do
     doLogout
     redirectUltDest HomeR
+
+getForgotPasswordR :: Handler RepHtml
+getForgotPasswordR = do
+    mUser <- currentUser
+    case mUser of
+        Just _ -> redirectUltDest SettingsR
+        Nothing -> defaultLayout [whamlet|<h1>Not implemented!|]
+
+getResetPasswordR :: Handler RepHtml
+getResetPasswordR = do
+    mUser <- currentUser
+    case mUser of
+        Just _ -> redirectUltDest SettingsR
+        Nothing -> defaultLayout [whamlet|<h1>Not implemented!|]

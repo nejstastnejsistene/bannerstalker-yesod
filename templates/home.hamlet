@@ -10,10 +10,22 @@
             <p .lead>Ahoj ahoj!
     <div .span4>
         <h1>Login
-        <form method=post action=@{LoginR} enctype=#{lEnctype}>
-            ^{loginWidget}
+        <form method=post action=@{LoginR}>
+            ^{token}
+            <label for=email>Email
+            <input #email name=email type=email>
+            <label for=password>Password
+            <input #password name=password type=password>
+            <br>
             <button type=submit class=btn>Login
         <h1>Register
-        <form method=post action=@{RegisterR} enctype=#{rEnctype}>
-            ^{registerWidget}
+        <form method=post action=@{RegisterR}>
+            ^{token}
+            <label for=email>Email
+            <input #email name=email type=email>
+            <label for=password>Password
+            <input #password name=password type=password>
+            <label for=confirm>Confirm password
+            <input #confirm name=confirm type=password>
+            <br>
             <button type=submit class=btn>Register

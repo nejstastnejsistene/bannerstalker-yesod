@@ -3,6 +3,13 @@ $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>
         <strong>I can't let you do that, Dave.
         _{errorMessage}
-<form method=post action=@{RegisterR} enctype=#{enctype}>
-    ^{widget}
+<form method=post action=@{RegisterR}>
+    ^{token}
+    <label for=email>Email
+    <input #email name=email type=email>
+    <label for=password>Password
+    <input #password name=password type=password>
+    <label for=confirm>Confirm Password
+    <input #confirm name=confirm type=password>
+    <br>
     <button type=submit class=btn>Register

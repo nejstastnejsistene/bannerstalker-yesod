@@ -91,15 +91,14 @@ postAdminEditUserR userId = do
         _ -> return $ Just "unknown type"
     getAdminEditUserHelper userId mErrorMessage
 
-addSemesterForm :: Form Semester
-addSemesterForm = renderDivs $ Semester
-    <$> areq textField "Code" Nothing
-    <*> areq textField "Name" Nothing
-    <*> areq boolField "Active" Nothing
+addSemesterForm :: FormInput App App Semester
+addSemesterForm = Semester
+    <$> ireq textField "Code"
+    <*> ireq textField "Name"
+    <*> ireq boolField "Active"
 
 getAdminSemestersR :: Handler RepHtml
 getAdminSemestersR = do
-    (widget, enctype) <- generateFormPost addSemesterForm
     semesters <- fmap (map entityVal) $ runDB $ selectList [] []
     let mErrorMessage = Nothing :: Maybe Text
     defaultLayout $ do
@@ -108,16 +107,15 @@ getAdminSemestersR = do
 
 postAdminSemestersR :: Handler RepHtml
 postAdminSemestersR = do
-    ((result, widget), enctype) <- runFormPost addSemesterForm
-    mErrorMessage <- case result of
-        FormSuccess semester -> do
-            key <- runDB $ insertBy semester
-            case key of
-                Left _ -> return $ Just MsgSemesterExists
-                Right _ -> return Nothing
-        _ -> return $ Just MsgFormError
+    semester <- runInputPost addSemesterForm
+    mErrorMessage <- do
+        key <- runDB $ insertBy semester
+        case key of
+            Left _ -> return $ Just MsgSemesterExists
+            Right _ -> return Nothing
     semesters <- fmap (map entityVal) $
                     runDB $ selectList [] [Asc SemesterCode]
+    token <- getToken
     defaultLayout $ do
         setTitle "Semesters"
         $(widgetFile "admin-semesters")

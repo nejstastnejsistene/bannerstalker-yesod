@@ -22,8 +22,12 @@
                 <input #phone type=tel disabled>
         <div .span4>
             <h3>Change Password
-            <form method=post encoding=#{enctype}>
-                ^{widget}
+            <form method=post>
+                ^{token}
+                <label for=password>New password
+                <input #password name=password type=password>
+                <label for=confirm>Confirm new password
+                <input #confirm name=confirm type=password>
                 <button type=submit .btn>Change password
         <div .row>
             <div .row>

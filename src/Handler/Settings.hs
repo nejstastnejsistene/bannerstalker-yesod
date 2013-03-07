@@ -5,10 +5,10 @@ import Data.Maybe
 
 data PasswordCreds = PasswordCreds Text Text
 
-changePasswordForm :: Form PasswordCreds
-changePasswordForm = renderDivs $ PasswordCreds
-    <$> areq passwordField "New password" Nothing
-    <*> areq passwordField "Confirm new password" Nothing
+changePasswordForm :: FormInput App App PasswordCreds
+changePasswordForm = PasswordCreds
+    <$> ireq passwordField "password"
+    <*> ireq passwordField "confirm"
 
 getSettingsR :: Handler RepHtml
 getSettingsR = do
@@ -27,7 +27,6 @@ getSettingsR = do
     let canSms = any (\p -> privilegeLevel p > Level1) privileges
     userSettings <- fmap (entityVal . fromJust) $
         runDB $ getBy $ UniqueUserSettings userId
-    (widget, enctype) <- generateFormPost changePasswordForm
     token <- getToken
     defaultLayout $ do
         setTitle "Settings"
