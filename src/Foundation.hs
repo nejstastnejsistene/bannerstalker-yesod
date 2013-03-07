@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 module Foundation where
 
 import Prelude
@@ -17,7 +18,6 @@ import Web.ClientSession (getKey)
 import Text.Hamlet
 import System.Log.FastLogger (Logger)
 import Data.Text (Text)
-import Data.Maybe
 import Model
 
 -- | The site argument for your application. This can be a good place to
@@ -64,6 +64,29 @@ type Form x = Html -> MForm App App (FormResult x, Widget)
 instance Yesod App where
     approot = ApprootMaster $ appRoot . settings
 
+    isAuthorized AdminR _ = isAdmin
+    isAuthorized AdminUsersR _ = isAdmin
+    isAuthorized (AdminEditUserR _) _ = isAdmin
+    isAuthorized AdminSemestersR _ = isAdmin
+    isAuthorized SearchR _ = isLoggedIn
+    isAuthorized SettingsR _ = isLoggedIn
+    isAuthorized UpgradeR _ = isLoggedIn
+    isAuthorized RegisterR _ = return Authorized
+    isAuthorized ResendVerificationR _ = return Authorized
+    isAuthorized (VerifyR _ _) _ = return Authorized
+    isAuthorized LoginR _ = return Authorized
+    isAuthorized LogoutR _ = return Authorized
+    isAuthorized HomeR _ = return Authorized
+    isAuthorized (StaticR _) _ = return Authorized
+    isAuthorized FaviconR _ = return Authorized
+    isAuthorized RobotsR _ = return Authorized
+
+    errorHandler NotFound = fmap chooseRep $ defaultLayout $ do
+        setTitle "Not Found"
+        toWidget $(widgetFile "404")
+    errorHandler err = defaultErrorHandler err
+
+
     -- Store session data on the client in encrypted cookies,
     -- default session idle timeout is 120 minutes
     makeSessionBackend _ = do
@@ -74,9 +97,11 @@ instance Yesod App where
 
     defaultLayout widget = do
         master <- getYesod
-        route' <- fmap fromJust getCurrentRoute
+        route' <- getCurrentRoute
         tm <- getRouteToMaster
-        let route = tm route'
+        let route = case route' of 
+                Nothing -> HomeR
+                Just route'' -> tm route''
             adminRoute = fst (splitAt 5 $ show route) == "Admin"
         mUser <- currentUser
 
@@ -98,7 +123,7 @@ instance Yesod App where
     urlRenderOverride _ _ = Nothing
 
     -- The page to be redirected to when authentication is required.
-    --authRoute _ = Just LoginR -- $ AuthR LoginR
+    authRoute _ = Just LoginR
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -146,6 +171,22 @@ getExtra = fmap (appExtra . settings) getYesod
 --
 -- https://github.com/yesodweb/yesod/wiki/Sending-email
 
+isAdmin :: forall sub. GHandler sub App AuthResult
+isAdmin = do
+    mUser <- currentUser
+    return $ case mUser of
+        Nothing -> AuthenticationRequired
+        Just (Entity _ user) ->
+            if userAdmin user
+                then Authorized
+                else Unauthorized "These aren't the routes you're looking for."
+
+isLoggedIn :: forall sub. GHandler sub App AuthResult
+isLoggedIn = do
+    mUser <- currentUser
+    return $ case mUser of
+        Nothing -> AuthenticationRequired
+        Just _ -> Authorized
 
 credsKey :: Text
 credsKey = "_ID"
