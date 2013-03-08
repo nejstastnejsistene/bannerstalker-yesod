@@ -92,10 +92,20 @@ bannerstalkerd extra dbConf manager = do
                     let section = fromJust $ Map.lookup crn newSections
                     sectionId <- insert section
                     insert $ HistoryLog t crn $ sectionCurrStatus section
-                -- TODO what to do when a class is removed?
-                -- For now I'll just handle these manually if it comes up.
-                handleRemovedCrn crn = liftIO $
-                    mailAlert $ pack $ "crn removed: " ++ show crn
+                -- Attempt to remove the section if no one is stalking it,
+                -- otherwise manual intervention is required.
+                handleRemovedCrn crn = do
+                    let Entity sectionId _ =
+                            fromJust $ Map.lookup crn oldSections
+                    requests <- selectList
+                        [SectionRequestSectionId ==. sectionId] []
+                    case requests of
+                        [] -> do
+                            deleteBy $ UniqueCrn crn
+                            liftIO $ mailAlert $
+                                pack $ "crn removed: " ++ show crn
+                        _ -> liftIO $ mailAlert $ pack $
+                            "conflicts while removing crn: " ++ show crn
                 -- Update changed statuses.
                 handleExistingCrn crn = do
                     let (Entity sectionId
