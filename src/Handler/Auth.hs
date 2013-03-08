@@ -191,17 +191,60 @@ getResetPasswordR userId verKey = do
     case mCurrUser of
         Just _ -> redirectUltDest SettingsR
         Nothing -> do
-            mUser <- runDB $ get userId
+            mUser <- confirmPasswdHash userId verKey
             case mUser of
-                Nothing -> redirectUltDest SettingsR
-                Just (User email _ passwd _) ->
-                    if verKey == T.splitOn "|" passwd !! 4 then
+                Nothing -> expiredResetLink
+                Just (User email _ _ _) -> do
+                    let mErrorMessage = Nothing :: Maybe AppMessage
+                    defaultLayout $ do
+                        setTitle "Reset Password"
+                        $(widgetFile "reset-password")
+
+postResetPasswordR :: UserId -> Text -> Handler RepHtml
+postResetPasswordR userId verKey = do
+    mCurrUser <- currentUser
+    case mCurrUser of
+        Just _ -> redirectUltDest SettingsR
+        Nothing -> do
+            mUser <- confirmPasswdHash userId verKey
+            case mUser of
+                Nothing -> expiredResetLink
+                Just (User email _ _ _) -> do
+                    (passwd, confirm) <- runInputPost $ (,)
+                        <$> ireq passwordField "password"
+                        <*> ireq passwordField "confirm"
+                    if passwd == confirm then do
+                        changePassword userId passwd
+                        doLogin userId
+                        redirectUltDest HomeR
+                    else do
+                        let mErrorMessage = Just MsgPasswordMismatch
+                        token <- getToken
                         defaultLayout $ do
-                            setTitle "Reset Password"
+                            setTitle "Password Reset Sent"
                             $(widgetFile "reset-password")
-                    else defaultLayout [whamlet|
+
+confirmPasswdHash :: UserId -> Text -> Handler (Maybe User)
+confirmPasswdHash userId verKey= do
+    mUser <- runDB $ get userId
+    case mUser of
+        Nothing -> return Nothing
+        Just user@(User _ _ passwd _) -> 
+            if verKey == T.splitOn "|" passwd !! 4 then
+                return $ Just user
+            else return Nothing
+
+changePassword :: UserId -> Text -> Handler ()
+changePassword userId passwd = do
+    passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
+        liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
+    runDB $ update userId [UserPassword =. passwdHash]
+    return ()
+
+expiredResetLink :: Handler RepHtml
+expiredResetLink = defaultLayout [whamlet|
 <h3>This link is expired
-<p .lead>
+<p>
     Request another one
     <a href=@{ForgotPasswordR}>here.
 |]

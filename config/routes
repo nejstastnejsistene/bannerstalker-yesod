@@ -11,7 +11,7 @@
 /verify/#UserId/#Text       VerifyR GET
 
 /password                     ForgotPasswordR GET POST
-/password/reset/#UserId/#Text ResetPasswordR GET
+/password/reset/#UserId/#Text ResetPasswordR GET POST
 
 /admin                      AdminR GET
 /admin/users                AdminUsersR GET
