@@ -35,7 +35,7 @@ getRegisterR = do
     mUser <- currentUser
     when (isJust mUser) $ redirectUltDest HomeR
     -- Create form and display page.
-    let mErrorMessage = Nothing :: Maybe Text
+    let mErrorMessage = Nothing :: Maybe AppMessage
     token <- getToken
     defaultLayout $ do
         setTitle "Register"
@@ -101,7 +101,7 @@ getLoginR = do
     mUser <- currentUser
     when (isJust mUser) $ redirectUltDest HomeR
     -- Create form and display page.
-    let mErrorMessage = Nothing :: Maybe Text
+    let mErrorMessage = Nothing :: Maybe AppMessage
     defaultLayout $ do
         setTitle "Login"
         $(widgetFile "login")
@@ -119,10 +119,12 @@ postLoginR = do
                 let pass = Pass $ encodeUtf8 passwd
                     hash = EncryptedPass $
                                 encodeUtf8 $ userPassword user
-                if (userVerified user && verifyPass' pass hash)
-                    then doLogin userId >> return Nothing
+                if (userVerified user) then
+                    if (verifyPass' pass hash) then
+                        doLogin userId >> return Nothing
                     -- Passwords don't match.
                     else return $ Just MsgLoginError
+                else return $ Just MsgResendVerification
     case mErrorMessage of
         Nothing -> redirectUltDest HomeR
         _ -> defaultLayout $ do
@@ -139,7 +141,7 @@ postLogoutR = do
 
 getForgotPasswordR :: Handler RepHtml
 getForgotPasswordR = do
-    let mErrorMessage = Nothing :: Maybe Text
+    let mErrorMessage = Nothing :: Maybe AppMessage
     mUser <- currentUser
     case mUser of
         Just _ -> redirectUltDest SettingsR

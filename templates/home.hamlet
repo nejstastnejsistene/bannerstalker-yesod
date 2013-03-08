@@ -18,6 +18,8 @@
             <input #password name=password type=password>
             <br>
             <button type=submit class=btn>Login
+        <a href=@{ForgotPasswordR}>Forget your password?
+        <br>
         <h1>Register
         <form method=post action=@{RegisterR}>
             ^{token}

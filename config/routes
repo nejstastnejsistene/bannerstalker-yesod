@@ -26,4 +26,4 @@
 
 /invalid                    InvalidR GET
 
-/                           HomeR GET
+/                           HomeR GET POST
