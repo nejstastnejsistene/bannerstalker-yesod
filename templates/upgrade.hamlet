@@ -1,0 +1,8 @@
+<form method=post>
+    <script
+        src="https://checkout.stripe.com/v2/checkout.js"
+        class="stripe-button"
+        data-key="pk_test_1582eqSGcx11JyaPMcegLmnP"
+        data-amount="2000"
+        data-name="Demo Site"
+        data-description="2 widgets ($20.00)">

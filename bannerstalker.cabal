@@ -21,6 +21,7 @@ library
                      Settings
                      Settings.StaticFiles
                      Settings.Development
+                     Stripe
                      Twilio
                      Handler.Admin
                      Handler.Auth

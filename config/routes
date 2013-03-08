@@ -20,7 +20,7 @@
 
 /search                     SearchR GET
 /settings                   SettingsR GET POST
-/upgrade                    UpgradeR GET
+/upgrade                    UpgradeR GET POST
 /pricing                    PricingR GET
 /about                      AboutR GET
 

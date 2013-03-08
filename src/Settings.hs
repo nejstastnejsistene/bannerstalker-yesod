@@ -72,6 +72,8 @@ data Extra = Extra
     , extraTwilioAccount :: Text
     , extraTwilioToken :: Text
     , extraTwilioNumber :: Text
+    , extraStripePublicKey :: Text
+    , extraStripeSecretKey :: Text
     , extraLevel1NotifyInterval :: Int
     , extraLevel2NotifyInterval :: Int
     , extraLevel3NotifyInterval :: Int
@@ -84,6 +86,8 @@ parseExtra _ o = Extra
     <*> o .:  "twilioAccount"
     <*> o .:  "twilioToken"
     <*> o .:  "twilioNumber"
+    <*> o .:  "stripePublicKey"
+    <*> o .:  "stripeSecretKey"
     <*> o .:  "level1NotifyInterval"
     <*> o .:  "level2NotifyInterval"
     <*> o .:  "level3NotifyInterval"
