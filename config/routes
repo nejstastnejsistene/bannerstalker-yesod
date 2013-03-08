@@ -7,8 +7,11 @@
 /login                      LoginR GET POST
 /logout                     LogoutR GET POST
 
-/verify/send                ResendVerificationR GET POST
+/verify/resend              ResendVerificationR GET POST
 /verify/#UserId/#Text       VerifyR GET
+
+/password                     ForgotPasswordR GET POST
+/password/reset/#UserId/#Text ResetPasswordR GET
 
 /admin                      AdminR GET
 /admin/users                AdminUsersR GET
@@ -21,4 +24,6 @@
 /pricing                    PricingR GET
 /about                      AboutR GET
 
-/                           HomeR GET POST
+/invalid                    InvalidR GET
+
+/                           HomeR GET

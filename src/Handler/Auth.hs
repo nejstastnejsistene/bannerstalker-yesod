@@ -6,8 +6,13 @@ import Control.Monad
 import Crypto.Scrypt
 import Data.Maybe
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as LT
 import Data.Text.Encoding
+import Network.Mail.Mime
+import Text.Blaze.Html.Renderer.String
+import Text.Hamlet
 
+import Email
 import Handler.Verify
 
 data LoginCreds = LoginCreds Text Text
@@ -134,14 +139,67 @@ postLogoutR = do
 
 getForgotPasswordR :: Handler RepHtml
 getForgotPasswordR = do
+    let mErrorMessage = Nothing :: Maybe Text
     mUser <- currentUser
     case mUser of
         Just _ -> redirectUltDest SettingsR
-        Nothing -> defaultLayout [whamlet|<h1>Not implemented!|]
+        Nothing -> defaultLayout $ do
+            setTitle "Forgot Password"
+            $(widgetFile "forgot-password")
 
-getResetPasswordR :: Handler RepHtml
-getResetPasswordR = do
-    mUser <- currentUser
-    case mUser of
+postForgotPasswordR :: Handler RepHtml
+postForgotPasswordR = do
+    mCurrUser <- currentUser
+    case mCurrUser of
         Just _ -> redirectUltDest SettingsR
-        Nothing -> defaultLayout [whamlet|<h1>Not implemented!|]
+        Nothing -> do
+            email <- runInputPost $ ireq emailField "email"
+            mUser <- runDB $ getBy $ UniqueEmail email
+            case mUser of
+                Nothing -> do
+                    let mErrorMessage = Just MsgEmailDoesntExist
+                    defaultLayout $ do
+                        setTitle "Forgot Password"
+                        $(widgetFile "forgot-password")
+                Just (Entity userId (User _ _ passwd _)) -> do
+                    render <- getUrlRender
+                    tm <- getRouteToMaster
+                    let verKey = T.splitOn "|" passwd !! 4
+                        verUrl = render $ tm $ ResetPasswordR userId verKey
+                    sendPasswordReset email verUrl
+                    defaultLayout $ do
+                        setTitle "Password Reset Sent"
+                        $(widgetFile "reset-sent")
+
+sendPasswordReset :: Text -> Text -> Handler ()
+sendPasswordReset email verUrl =
+    liftIO $ simpleMail to from subject text html [] >>= mySendmail
+    where
+        to = Address Nothing email
+        from = noreplyAddr
+        subject = "Bannerstalker password reset"
+        text = LT.pack $ renderHtml
+                $(shamletFile "templates/password-reset/mail-text.hamlet")
+        html = LT.pack $ renderHtml
+                $(shamletFile "templates/password-reset/mail-html.hamlet")
+           
+getResetPasswordR :: UserId -> Text -> Handler RepHtml
+getResetPasswordR userId verKey = do
+    mCurrUser <- currentUser
+    case mCurrUser of
+        Just _ -> redirectUltDest SettingsR
+        Nothing -> do
+            mUser <- runDB $ get userId
+            case mUser of
+                Nothing -> redirectUltDest SettingsR
+                Just (User email _ passwd _) ->
+                    if verKey == T.splitOn "|" passwd !! 4 then
+                        defaultLayout $ do
+                            setTitle "Reset Password"
+                            $(widgetFile "reset-password")
+                    else defaultLayout [whamlet|
+<h3>This link is expired
+<p .lead>
+    Request another one
+    <a href=@{ForgotPasswordR}>here.
+|]

@@ -72,4 +72,9 @@ getVerifyR userId verKey = do
                         return True
     if success
         then redirectUltDest HomeR
-        else redirectUltDest HomeR
+        else defaultLayout [whamlet|
+<h3>This link is expired
+<p .lead>
+    Request another one
+    <a href=@{ResendVerificationR}>here.
+|]

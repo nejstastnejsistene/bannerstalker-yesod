@@ -3,7 +3,8 @@ AlreadyRegistered: Someone is already registered with this email address.
 PasswordMismatch: The passwords do not match.
 PasswordTooShort: Passwords must be at least 8 characters long.
 FormError: Form error. Please try again.
-LoginError: Invalid email/password combination.
+LoginError: Unrecognized email/password combination.
 SemesterExists: A semester with this code already exists.
 InvalidCrn: Please enter a valid CRN.
 AlreadyStalking: You are already "stalking" that CRN.
+EmailDoesntExist: There are no users registered with that email.

@@ -82,6 +82,9 @@ instance Yesod App where
     isAuthorized (StaticR _) _ = return Authorized
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
+    isAuthorized ForgotPasswordR _ = return Authorized
+    isAuthorized (ResetPasswordR _ _) _ = return Authorized
+    isAuthorized InvalidR _ = return Authorized
 
     errorHandler NotFound = fmap chooseRep $ defaultLayout $ do
         setTitle "Not Found"
@@ -102,10 +105,11 @@ instance Yesod App where
         route' <- getCurrentRoute
         tm <- getRouteToMaster
         let route = case route' of 
-                Nothing -> HomeR
+                Nothing -> InvalidR
                 Just route'' -> tm route''
             adminRoute = fst (splitAt 5 $ show route) == "Admin"
         mUser <- currentUser
+        token <- getToken
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
@@ -220,7 +224,7 @@ currentUser = do
                     -- Return user.
                     Just user -> return $ Just $ Entity userId user
 
-getToken :: Handler Widget
+getToken :: forall sub. GHandler sub App Widget
 getToken = do
     req <- getRequest
     return [whamlet|
