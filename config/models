@@ -62,7 +62,7 @@ CourseListLog
     deriving    Show
 HistoryLog
     timestamp   UTCTime
-    sectionId   SectionId
+    crn         Int
     status      SectionStatus
     deriving    Show
 NotificationLog

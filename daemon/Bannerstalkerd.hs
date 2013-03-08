@@ -72,12 +72,13 @@ bannerstalkerd extra dbConf manager = do
             case response of
                 -- Server error: record statuses as Unavailable.
                 Left err -> do
-                    let recordUnavailable sectionId =
-                            insert $ HistoryLog t sectionId Unavailable
-                        sectionIds = map entityKey $ Map.elems oldSections
-                    insert $ CourseListLog t semesterId Failure (Just err)
-                                        Nothing Nothing Nothing
-                    mapM_ recordUnavailable sectionIds
+                    insert $ CourseListLog t semesterId
+                        Failure (Just err) Nothing Nothing Nothing
+                    let recordUnavailable crn =
+                            insert $ HistoryLog t crn Unavailable
+                        crns = map (sectionCrn . entityVal) $
+                            Map.elems oldSections
+                    mapM_ recordUnavailable crns
                 -- Process the new data.
                 Right sectionsList -> do
                     let keys = map sectionCrn sectionsList
@@ -90,8 +91,7 @@ bannerstalkerd extra dbConf manager = do
                 handleAddedCrn crn = do
                     let section = fromJust $ Map.lookup crn newSections
                     sectionId <- insert section
-                    insert $ HistoryLog t sectionId $
-                        sectionCurrStatus section
+                    insert $ HistoryLog t crn $ sectionCurrStatus section
                 -- TODO what to do when a class is removed?
                 -- For now I'll just handle these manually if it comes up.
                 handleRemovedCrn crn = liftIO $
@@ -106,7 +106,7 @@ bannerstalkerd extra dbConf manager = do
                     when (newStatus /= oldStatus) $ do
                         queueNotifications semester sectionId newStatus
                         update sectionId [SectionCurrStatus =. newStatus]
-                    insert $ HistoryLog t sectionId newStatus
+                    insert $ HistoryLog t crn newStatus
                 -- Partition sections into added, removed, and existing.
                 oldCrns = Set.fromList $ Map.keys oldSections
                 newCrns = Set.fromList $ Map.keys newSections
