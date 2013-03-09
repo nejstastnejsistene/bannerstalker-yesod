@@ -1,48 +1,58 @@
-<table .table .table-striped .table-bordered .table-condensed>
+<table .table .table-striped>
     <thead>
         <tr>
             <th>
             <th>
-                <h3>Premium User
-                <h1>$10
-                per semester
+                <h3>Free User
+                <h1>Free!
             <th>
                 <h3>Limited User
                 <h1>$5
-                per semester
-            <th>
-                <h3>Free User
-                <h1>Free
-                always!
+                    <small>/semester
+            <th .premium-top>
+                <h3>Premium User
+                <h1>$10
+                    <small>/semester
     <tbody>
         <tr>
             <th>Number of CRNs
             <td>
-                <p .text-success>Unlimited
+                <p .text-error>
+                    <strong>1 at a time
             <td>
-                <p .text-warning>5 at a time
-            <td>
-                <p .text-error>1 at a time
+                <p .text-warning>
+                    <strong>5 at a time
+            <td .premium>
+                <p .text-success>
+                    <strong>Unlimited
         <tr>
             <th>Update Interval
             <td>
-                <p .text-success>5 minutes
+                <p .text-error>
+                    <strong>2 hours
             <td>
-                <p .text-warning>30 minutes
-            <td>
-                <p .text-error>2 hours
+                <p .text-warning>
+                    <strong>30 minutes
+            <td .premium>
+                <p .text-success>
+                    <strong>ASAP
         <tr>
             <th>Email Notifications
-            <td>Check
-            <td>Check
-            <td>Check
+            <td>
+                <i .icon-check>
+                Check
+            <td>
+                <i .icon-check>
+                Check
+            <td .premium>
+                <i .icon-check>
+                Check
         <tr>
             <th>SMS Notifications
-            <td>Check
-            <td>Check
-            <td>
-        <tr>
-            <th>
             <td>
             <td>
-            <td>
+                <i .icon-check>
+                Check
+            <td .premium-bottom>
+                <i .icon-check>
+                Check
