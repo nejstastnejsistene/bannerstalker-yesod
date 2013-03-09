@@ -1,5 +1,5 @@
 <h3>Search for CRNs
-<form .form-inline method=post action=@{SearchR}>
+<form .form-inline method=get action=@{SearchR}>
     ^{subjectWidget}
     <button type=submit .btn>Search
 $if length sections > 1
