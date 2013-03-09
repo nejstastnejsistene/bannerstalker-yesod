@@ -155,8 +155,16 @@ bannerstalkerd extra dbConf manager = do
                     insert $ Notification reqId sendTime
                     return ()
 
+        -- Construct an immediate notification for new requests.
+        notifyNewRequests = do
+            reqIds <- fmap (map entityKey) $ selectList
+                [SectionRequestLastStatus ==. Unavailable] []
+            sendTime <- liftIO $ nextNotificationTime $ -1
+            mapM_ (\reqId -> insert $ Notification reqId sendTime) reqIds
+
         -- Sends all notifications whose time has passed.
         flushNotifications = do
+            notifyNewRequests
             time <- liftIO $ getCurrentTime
             reqIds <- fmap (map $ notificationRequestId . entityVal) $
                                 selectList [NotificationTime <. time] []
@@ -168,7 +176,8 @@ bannerstalkerd extra dbConf manager = do
                     let section = fromJust $ Map.lookup sectId sectionMap
                         currStatus = sectionCurrStatus section
                     -- Send the notification.
-                    sendNotification userId section
+                    sendNotification userId section $
+                                            lastStatus == Unavailable
                     -- Update lastStatus
                     update reqId [SectionRequestLastStatus =. currStatus]
                     -- Delete the notification.
@@ -177,14 +186,14 @@ bannerstalkerd extra dbConf manager = do
 
         -- Check user settings and send mail and sms notifications
         -- for the given section.
-        sendNotification userId section = do
+        sendNotification userId section new = do
             user <- fmap fromJust $ get userId
             settings <- fmap (entityVal . fromJust) $
                             getBy $ UniqueUserSettings (userId :: UserId)
             -- Email notifications.
             when (settingsUseEmail settings) $ do
                 let email = userEmail user
-                (status, err) <- liftIO $ notifyEmail email section
+                (status, err) <- liftIO $ notifyEmail email section new
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time
                     EmailNotification userId email status err
@@ -193,7 +202,7 @@ bannerstalkerd extra dbConf manager = do
             when (settingsUseSms settings) $ do
                 let phoneNum = fromJust $ settingsPhoneNum settings
                 (status, err) <- liftIO $
-                    notifySms manager extra phoneNum section
+                    notifySms manager extra phoneNum section new
                 time <- liftIO $ getCurrentTime
                 insert $ NotificationLog time 
                     SmsNotification userId phoneNum status err

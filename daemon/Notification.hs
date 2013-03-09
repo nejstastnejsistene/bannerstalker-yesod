@@ -15,8 +15,8 @@ import Model
 import Twilio
 import Settings
 
-notifyEmail :: Text -> Section -> IO (RequestStatus, Maybe Text)
-notifyEmail email section = do
+notifyEmail :: Text -> Section -> Bool -> IO (RequestStatus, Maybe Text)
+notifyEmail email section newRequest = do
     message <- simpleMail toAddr fromAddr subject text html []
     result <- (try $ mySendmail message)
     case result of
@@ -26,19 +26,29 @@ notifyEmail email section = do
     where
         toAddr = Address Nothing email
         fromAddr = noreplyAddr
-        subject = pack $ renderHtml
-                $(shamletFile "templates/notifications/mail-subj.hamlet")
-        text = LT.pack $ renderHtml
-                $(shamletFile "templates/notifications/mail-text.hamlet")
-        html = LT.pack $ renderHtml
-                $(shamletFile "templates/notifications/mail-html.hamlet")
+        subject = pack $ renderHtml $ case newRequest of
+            False -> $(shamletFile
+                        "templates/notifications/mail-subj.hamlet")
+            True -> $(shamletFile
+                        "templates/notifications/mail-subj-new.hamlet")
+        text = LT.pack $ renderHtml $ case newRequest of
+            False -> $(shamletFile
+                        "templates/notifications/mail-text.hamlet")
+            True -> $(shamletFile
+                        "templates/notifications/mail-text-new.hamlet")
+        html = LT.pack $ renderHtml $ case newRequest of
+            False -> $(shamletFile
+                        "templates/notifications/mail-html.hamlet")
+            True -> $(shamletFile
+                        "templates/notifications/mail-html-new.hamlet")
 
 notifySms :: Manager
              -> Extra
              -> Text
              -> Section
+             -> Bool
              -> IO (RequestStatus, Maybe Text)
-notifySms manager extra recipient section = do
+notifySms manager extra recipient section newRequest = do
     twilio <- mkTwilio manager credentials
     err <- sendSms twilio number (encodeUtf8 recipient) message
     return (case err of Nothing -> Success; _ -> Failure, err)
@@ -47,5 +57,6 @@ notifySms manager extra recipient section = do
         token = (encodeUtf8 $ extraTwilioToken extra) 
         number = (encodeUtf8 $ extraTwilioNumber extra)
         credentials = TwilioCredentials account token
-        message = encodeUtf8 $ pack $ renderHtml 
-            $(shamletFile "templates/notifications/sms.hamlet")
+        message = encodeUtf8 $ pack $ renderHtml $ case newRequest of
+            False -> $(shamletFile "templates/notifications/sms.hamlet")
+            True -> $(shamletFile "templates/notifications/sms-new.hamlet")

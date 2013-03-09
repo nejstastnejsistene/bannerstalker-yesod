@@ -1,1 +1,1 @@
-Bannerstalker notification: #{sectionTitle section} is now #{sectionCurrStatus section}
+Bannerstalker notification: #{sectionTitle section} (CRN #{sectionCrn section})is now #{sectionCurrStatus section}
