@@ -15,8 +15,12 @@ postUpgradeR = do
     manager <- fmap httpManager getYesod
     extra <- getExtra
     asdf <- liftIO $ makeCharge manager extra stripeToken "1000" "test"
-    defaultLayout $
+    defaultLayout $ do
+        setTitle "Payment Successful"
         [whamlet|
-$maybe msg <- asdf
-    <p>#{msg}
+$case asdf
+    $of Left a
+        <p>#{show a}
+    $of Right b
+        <p>#{show b}
 |]
