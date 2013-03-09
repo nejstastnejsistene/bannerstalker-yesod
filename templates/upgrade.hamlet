@@ -1,8 +1,37 @@
-<form method=post>
-    <script
-        src="https://checkout.stripe.com/v2/checkout.js"
-        class="stripe-button"
-        data-key="pk_test_1582eqSGcx11JyaPMcegLmnP"
-        data-amount="2000"
-        data-name="Demo Site"
-        data-description="2 widgets ($20.00)">
+<div .row>
+    <div .span12>
+        <h1>Upgrade now for cool features!
+        <p .lead>SMS notifications, more frequent update intervals, and higher class limits await you!
+<div .row>
+    <div .span6>
+        <div .hero-unit>
+            <h2>Upgrade to Level2
+            <ul>
+                <li>
+                    <p .lead>Beat the competition by having us check your classes every 30 minutes, that's 4x more frequently than you get for free!
+                <li>
+                    <p .lead>Stalk up to 5 classes at once! No more trying to stalk one class at a time, knock them all out at once!
+            <form method=post>
+                <script
+                    src="https://checkout.stripe.com/v2/checkout.js"
+                    class="stripe-button"
+                    data-key="pk_test_1582eqSGcx11JyaPMcegLmnP"
+                    data-amount="500"
+                    data-name="Bannerstalker"
+                    data-description="Upgrade to Level2">
+    <div .span6>
+        <div .hero-unit>
+            <h2>Upgrade to Level3
+            <ul>
+                <li>
+                    <p .lead>Receive notifications as soon as your classes become available! That's over 20x more often than the free user level!
+                <li>
+                    <p .lead>Stalk as many classes as you like! Trying to get into one of many labs? This option is for you!
+            <form method=post>
+                <script
+                    src="https://checkout.stripe.com/v2/checkout.js"
+                    class="stripe-button"
+                    data-key="pk_test_1582eqSGcx11JyaPMcegLmnP"
+                    data-amount="1000"
+                    data-name="Bannerstalker"
+                    data-description="Upgrade to Level3">
