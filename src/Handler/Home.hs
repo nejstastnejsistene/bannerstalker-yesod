@@ -69,11 +69,39 @@ addCrn userId crn = runDB $ do
     mSection <- getBy $ UniqueCrn crn
     case mSection of
         Nothing -> return $ Just MsgInvalidCrn
-        Just (Entity sectionId _) -> do
-            result <- insertBy $ SectionRequest sectionId userId Unavailable
-            case result of
-                Left _ -> return $ Just MsgAlreadyStalking
-                Right _ -> return Nothing
+        Just (Entity sectionId section) -> do
+            let semester = sectionSemester section
+            numCrns <- countCrns semester
+            crnLimit <- getCrnLimit semester
+            if numCrns < crnLimit
+                then do
+                    result <- insertBy $
+                        SectionRequest sectionId userId Unavailable
+                    case result of
+                        Left _ -> return $ Just MsgAlreadyStalking
+                        Right _ -> return Nothing
+                else return $ Just MsgCrnLimitReached
+    where
+        countCrns semester = do
+            sections <- fmap (map entityVal) $
+                selectList [SectionRequestUserId ==. userId] []
+            count
+                 [ SectionId <-. (map sectionRequestSectionId sections)
+                 , SectionSemester ==. semester ]
+        getCrnLimit semester = do
+            mPrivilege <- getBy $ UniquePrivilege userId semester
+            level <- case mPrivilege of
+                Nothing -> do 
+                    _ <- insert $ Privilege userId semester Level1
+                    return Level1
+                Just (Entity _ privilege) ->
+                    return $ privilegeLevel privilege
+            return $ case level of
+                    Level1 -> 1
+                    Level2 -> 5
+                    Level3 -> 10
+                    Admin -> 100
+
 
 removeCrn :: UserId -> Int -> Handler (Maybe AppMessage)
 removeCrn userId crn = runDB $ do

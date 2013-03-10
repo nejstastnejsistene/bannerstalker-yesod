@@ -10,7 +10,7 @@ $maybe errorMessage <- mErrorMessage
         _{errorMessage}
 <form .form-inline method=post>
     ^{token}
-    <input type=hidden name=type value=add>
+    <input type=hidden name=method value=add>
     <input type=text name=crn>
     <button type=submit .btn>Add CRN
 <h3>Search for CRNs
