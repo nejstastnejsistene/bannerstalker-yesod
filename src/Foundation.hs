@@ -17,7 +17,9 @@ import Text.Jasmine (minifym)
 import Web.ClientSession (getKey)
 import Text.Hamlet
 import System.Log.FastLogger (Logger)
+import qualified Data.Map as Map
 import Data.Text (Text)
+import Data.Text.Encoding
 import Model
 
 -- | The site argument for your application. This can be a good place to
@@ -83,6 +85,7 @@ instance Yesod App where
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
     isAuthorized ForgotPasswordR _ = return Authorized
+    isAuthorized ResetSentR _ = return Authorized
     isAuthorized (ResetPasswordR _ _) _ = return Authorized
     isAuthorized InvalidR _ = return Authorized
 
@@ -232,3 +235,17 @@ $newline never
 $maybe token <- reqToken req
     <input type=hidden name=_token value=#{token}>
 |]
+
+getSessionWith :: Text -> Handler (Maybe Text)
+getSessionWith key = do
+    session <- getSession
+    return $ fmap decodeUtf8 $ Map.lookup key session
+
+setSessionWith :: Text -> Maybe Text -> Handler ()
+setSessionWith key mValue = case mValue of
+    Just value -> setSession key value
+    Nothing -> deleteSession key
+
+formError, passwordMismatch :: Text
+formError = "Form error. Please try again."
+passwordMismatch = "The passwords do not match."

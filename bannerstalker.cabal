@@ -83,6 +83,7 @@ library
                  , blaze-html
                  , blaze-markup
                  , conduit
+                 , containers
                  , bytestring
                  , data-default
                  , http-types

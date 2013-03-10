@@ -2,11 +2,7 @@
 $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>
         <strong>Uh-oh!
-        _{errorMessage}
-        $case errorMessage
-            $of MsgResendVerification
-                \ <a href=@{ResendVerificationR}>Resend verification
-            $of _
+        #{errorMessage}
 <form method=post action=@{LoginR}>
     <label for=email>Email
     <input #email name=email type=email>

@@ -29,13 +29,17 @@ registerForm = RegisterCreds
     <*> ireq passwordField "password"
     <*> ireq passwordField "confirm"
 
+registerErrorKey :: Text
+registerErrorKey = "_RegisterR_mErrorMessage"
+
 getRegisterR :: Handler RepHtml
 getRegisterR = do
     -- Redirect to home if already logged in.
     mUser <- currentUser
     when (isJust mUser) $ redirectUltDest HomeR
     -- Create form and display page.
-    let mErrorMessage = Nothing :: Maybe AppMessage
+    mErrorMessage <- getSessionWith registerErrorKey
+    deleteSession registerErrorKey
     token <- getToken
     defaultLayout $ do
         setTitle "Register"
@@ -48,16 +52,16 @@ postRegisterR = do
         mUser <- runDB $ getBy $ UniqueEmail email
         -- Only @email.wm.edu students may register.
         if (snd $ T.breakOn "@" email) /= "@email.wm.edu" then
-            return $ Just MsgWMStudentsOnly
+            return $ Just "W&M students only"
         -- Already registered.
         else if (isJust mUser) then
-            return $ Just MsgAlreadyRegistered
+            return $ Just "Already registered"
         -- Password mismatch.
         else if passwd /= confirm then
-            return $ Just MsgPasswordMismatch
+            return $ Just "Password mismatch"
         -- Password too short.
         else if T.length passwd < 8 then
-            return $ Just MsgPasswordTooShort
+            return $ Just "Password must be at least 8 characters"
         -- Success!
         else registerUser email passwd >> return Nothing
     token <- getToken
@@ -65,9 +69,9 @@ postRegisterR = do
         Nothing -> defaultLayout $ do
             setTitle "Verify your email"
             $(widgetFile "verification-sent")
-        _ -> defaultLayout $ do
-            setTitle "Register"
-            $(widgetFile "register")
+        _ -> do
+            setSessionWith registerErrorKey mErrorMessage
+            redirectUltDest RegisterR
 
 registerUser :: Text -> Text -> Handler ()
 registerUser email passwd = do
@@ -95,13 +99,18 @@ registerUser email passwd = do
         return ()
     sendVerificationEmail email
 
+loginErrorKey, badLoginCombo :: Text
+loginErrorKey = "_LoginR_mErrorMessage"
+badLoginCombo = "That is not a valid username/password combination."
+
 getLoginR :: Handler RepHtml
 getLoginR = do
     -- Redirect to home if already logged in.
     mUser <- currentUser
     when (isJust mUser) $ redirectUltDest HomeR
     -- Create form and display page.
-    let mErrorMessage = Nothing :: Maybe AppMessage
+    mErrorMessage <- getSessionWith loginErrorKey
+    deleteSession loginErrorKey
     defaultLayout $ do
         setTitle "Login"
         $(widgetFile "login")
@@ -113,7 +122,7 @@ postLoginR = do
         mUser <- runDB $ getBy $ UniqueEmail $ email
         case mUser of
             -- User does not exists with this email.
-            Nothing -> return $ Just MsgLoginError
+            Nothing -> return $ Just badLoginCombo
             Just (Entity userId user) -> do
                 -- Compare password hashes.
                 let pass = Pass $ encodeUtf8 passwd
@@ -123,13 +132,13 @@ postLoginR = do
                     if (verifyPass' pass hash) then
                         doLogin userId >> return Nothing
                     -- Passwords don't match.
-                    else return $ Just MsgLoginError
-                else return $ Just MsgResendVerification
+                    else return $ Just badLoginCombo
+                else return $ Just "you're account isn't verified yet, [here] is a link..."
     case mErrorMessage of
         Nothing -> redirectUltDest HomeR
-        _ -> defaultLayout $ do
-            setTitle "Login"
-            $(widgetFile "login")
+        _ -> do
+            setSessionWith loginErrorKey mErrorMessage
+            redirectUltDest LoginR
 
 getLogoutR :: Handler RepHtml
 getLogoutR = postLogoutR
@@ -139,15 +148,20 @@ postLogoutR = do
     doLogout
     redirectUltDest HomeR
 
+forgotPasswordErrorKey :: Text
+forgotPasswordErrorKey = "_ForgotPasswordR_mErrorMessage"
+
 getForgotPasswordR :: Handler RepHtml
 getForgotPasswordR = do
-    let mErrorMessage = Nothing :: Maybe AppMessage
     mUser <- currentUser
     case mUser of
         Just _ -> redirectUltDest SettingsR
-        Nothing -> defaultLayout $ do
-            setTitle "Forgot Password"
-            $(widgetFile "forgot-password")
+        Nothing -> do
+            mErrorMessage <- getSessionWith forgotPasswordErrorKey
+            deleteSession forgotPasswordErrorKey
+            defaultLayout $ do
+                setTitle "Forgot Password"
+                $(widgetFile "forgot-password")
 
 postForgotPasswordR :: Handler RepHtml
 postForgotPasswordR = do
@@ -159,19 +173,15 @@ postForgotPasswordR = do
             mUser <- runDB $ getBy $ UniqueEmail email
             case mUser of
                 Nothing -> do
-                    let mErrorMessage = Just MsgEmailDoesntExist
-                    defaultLayout $ do
-                        setTitle "Forgot Password"
-                        $(widgetFile "forgot-password")
+                    setSession forgotPasswordErrorKey "Email doesn't exist"
+                    redirectUltDest ForgotPasswordR
                 Just (Entity userId (User _ _ passwd _)) -> do
                     render <- getUrlRender
                     tm <- getRouteToMaster
                     let verKey = T.splitOn "|" passwd !! 4
                         verUrl = render $ tm $ ResetPasswordR userId verKey
                     sendPasswordReset email verUrl
-                    defaultLayout $ do
-                        setTitle "Password Reset Sent"
-                        $(widgetFile "reset-sent")
+                    redirectUltDest ResetSentR
 
 sendPasswordReset :: Text -> Text -> Handler ()
 sendPasswordReset email verUrl =
@@ -184,7 +194,15 @@ sendPasswordReset email verUrl =
                 $(shamletFile "templates/password-reset/mail-text.hamlet")
         html = LT.pack $ renderHtml
                 $(shamletFile "templates/password-reset/mail-html.hamlet")
+
+getResetSentR :: Handler RepHtml
+getResetSentR = defaultLayout $ do
+    setTitle "Password Reset Sent"
+    $(widgetFile "reset-sent")
            
+resetPasswordErrorKey :: Text
+resetPasswordErrorKey = "_ResetPasswordR_mErrorMessage"
+
 getResetPasswordR :: UserId -> Text -> Handler RepHtml
 getResetPasswordR userId verKey = do
     mCurrUser <- currentUser
@@ -195,7 +213,8 @@ getResetPasswordR userId verKey = do
             case mUser of
                 Nothing -> expiredResetLink
                 Just (User email _ _ _) -> do
-                    let mErrorMessage = Nothing :: Maybe AppMessage
+                    mErrorMessage <- getSessionWith resetPasswordErrorKey
+                    deleteSession resetPasswordErrorKey
                     defaultLayout $ do
                         setTitle "Reset Password"
                         $(widgetFile "reset-password")
@@ -209,7 +228,7 @@ postResetPasswordR userId verKey = do
             mUser <- confirmPasswdHash userId verKey
             case mUser of
                 Nothing -> expiredResetLink
-                Just (User email _ _ _) -> do
+                Just _ -> do
                     (passwd, confirm) <- runInputPost $ (,)
                         <$> ireq passwordField "password"
                         <*> ireq passwordField "confirm"
@@ -218,11 +237,8 @@ postResetPasswordR userId verKey = do
                         doLogin userId
                         redirectUltDest HomeR
                     else do
-                        let mErrorMessage = Just MsgPasswordMismatch
-                        token <- getToken
-                        defaultLayout $ do
-                            setTitle "Password Reset Sent"
-                            $(widgetFile "reset-password")
+                        setSession resetPasswordErrorKey passwordMismatch
+                        redirectUltDest $ ResetPasswordR userId verKey
 
 confirmPasswdHash :: UserId -> Text -> Handler (Maybe User)
 confirmPasswdHash userId verKey= do

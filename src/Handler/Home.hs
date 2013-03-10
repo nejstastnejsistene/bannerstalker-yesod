@@ -3,9 +3,10 @@ module Handler.Home where
 
 import Import
 import Data.Maybe
-import Data.Text (unpack)
 
---import Handler.Auth
+mainErrorKey, addErrorKey :: Text
+mainErrorKey = "_HomeR_mMainError"
+addErrorKey = "_HomeR_mAddError"
 
 getHomeR :: Handler RepHtml
 getHomeR = do
@@ -16,41 +17,38 @@ getHomeR = do
             defaultLayout $ do
                 setTitle "Bannerstalker"
                 $(widgetFile "home")
-        Just user -> homeHelper user Nothing
-
-homeHelper :: Entity User -> Maybe AppMessage -> Handler RepHtml
-homeHelper (Entity userId user) mErrorMessage = do
-    sectIds <- fmap (map $ sectionRequestSectionId . entityVal) $ runDB $
-        selectList [SectionRequestUserId  ==. userId] []
-    sections <- fmap (map entityVal) $ runDB $  
-        selectList [SectionId <-. sectIds] [Asc SectionCrn]
-    sectionsWidget <- iterSections sections =<< removeCrnForm
-    subjectWidget <- selectSubject
-    token <- getToken
-    defaultLayout $ do
-        setTitle "Bannerstalker"
-        $(widgetFile "home-logged-in")
+        Just (Entity userId user) -> do
+            sectIds <- fmap (map $ sectionRequestSectionId . entityVal) $
+                runDB $  selectList [SectionRequestUserId  ==. userId] []
+            sections <- fmap (map entityVal) $ runDB $  
+                selectList [SectionId <-. sectIds] [Asc SectionCrn]
+            sectionsWidget <- iterSections sections =<< removeCrnForm
+            subjectWidget <- selectSubject
+            token <- getToken
+            -- Retrieve error messages from session.
+            mMainError <- getSessionWith mainErrorKey
+            mAddError <- getSessionWith addErrorKey
+            -- Reset error messages.
+            deleteSession mainErrorKey
+            deleteSession addErrorKey
+            defaultLayout $ do
+                setTitle "Bannerstalker"
+                $(widgetFile "home-logged-in")
 
 postHomeR :: Handler RepHtml
 postHomeR = do
     mUser <- currentUser
     case mUser of
         Nothing -> redirectUltDest HomeR
-        Just user -> do
-            (postType, mTextCrn) <- runInputPost $ (,)
-                                <$> ireq textField "method"
-                                <*> iopt textField "crn"
-            mErrorMessage <- case mTextCrn of
-                Nothing -> return $ Just MsgInvalidCrn
-                Just textCrn -> do
-                    let pairs = reads $ unpack textCrn :: [(Int, String)]
-                    case pairs of
-                        [(crn, "")] -> case postType of
-                            "add" -> addCrn (entityKey user) crn
-                            "remove" -> removeCrn (entityKey user) crn
-                            _ -> return $ Just MsgFormError
-                        _ -> return $ Just MsgInvalidCrn
-            homeHelper user mErrorMessage
+        Just (Entity userId _) -> do
+            (postType, crn) <- runInputPost $ (,)
+                <$> ireq textField "method"
+                <*> ireq intField "crn"
+            case postType of
+                "add" -> addCrn userId crn >>= setSessionWith addErrorKey
+                "remove" -> removeCrn userId crn
+                _ -> setSession addErrorKey formError
+            redirectUltDest HomeR
 
 getSearchR :: Handler RepHtml
 getSearchR = do
@@ -64,11 +62,11 @@ getSearchR = do
         setTitle "Search"
         $(widgetFile "search")
 
-addCrn :: UserId -> Int -> Handler (Maybe AppMessage)
+addCrn :: UserId -> Int -> Handler (Maybe Text)
 addCrn userId crn = runDB $ do
     mSection <- getBy $ UniqueCrn crn
     case mSection of
-        Nothing -> return $ Just MsgInvalidCrn
+        Nothing -> return $ Just "Invalid Crn"
         Just (Entity sectionId section) -> do
             let semester = sectionSemester section
             numCrns <- countCrns semester
@@ -78,9 +76,9 @@ addCrn userId crn = runDB $ do
                     result <- insertBy $
                         SectionRequest sectionId userId Unavailable
                     case result of
-                        Left _ -> return $ Just MsgAlreadyStalking
+                        Left _ -> return $ Just "Already stalking"
                         Right _ -> return Nothing
-                else return $ Just MsgCrnLimitReached
+                else return $ Just "Crn limit reached"
     where
         countCrns semester = do
             sections <- fmap (map entityVal) $
@@ -103,14 +101,13 @@ addCrn userId crn = runDB $ do
                     Admin -> 100
 
 
-removeCrn :: UserId -> Int -> Handler (Maybe AppMessage)
+removeCrn :: UserId -> Int -> Handler ()
 removeCrn userId crn = runDB $ do
     mSection <- getBy $ UniqueCrn crn
     case mSection of
-        Nothing -> return Nothing
-        Just (Entity sectionId _) -> do
+        Nothing -> return ()
+        Just (Entity sectionId _) ->
             deleteBy $ UniqueRequest sectionId userId
-            return Nothing
 
 iterSections :: [Section] -> (Int -> Widget) -> Handler Widget
 iterSections sections crnWidget = do

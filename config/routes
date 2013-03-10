@@ -12,6 +12,7 @@
 
 /password                     ForgotPasswordR GET POST
 /password/reset/#UserId/#Text ResetPasswordR GET POST
+/password/reset/sent          ResetSentR GET
 
 /admin                      AdminR GET
 /admin/users                AdminUsersR GET

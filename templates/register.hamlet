@@ -2,7 +2,7 @@
 $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>
         <strong>I can't let you do that, Dave.
-        _{errorMessage}
+        #{errorMessage}
 <form method=post action=@{RegisterR}>
     ^{token}
     <label for=email>Email

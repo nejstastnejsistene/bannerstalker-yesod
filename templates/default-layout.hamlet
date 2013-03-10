@@ -9,7 +9,7 @@
         <a href=@{AboutR}>About
     <li :route == PricingR:.active>
         <a href=@{PricingR}>Pricing
-    $maybe Entity _ user <- mUser
+    $maybe _ <- mUser
         <li :route == UpgradeR:.active>
             <a href=@{UpgradeR}>Upgrade
         <li :route == SettingsR:.active>

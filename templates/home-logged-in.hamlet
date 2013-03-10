@@ -1,13 +1,17 @@
 <h3>Welcome to Bannerstalker!
+$maybe mainError <- mMainError
+    <div .alert .alert-error>
+        <strong>Oops!
+        #{mainError}
 $if length sections > 0
     ^{sectionsWidget}
 $else
     <p>You are not stalking any classes.
 <h3>Add CRN
-$maybe errorMessage <- mErrorMessage
+$maybe addError <- mAddError
     <div .alert .alert-error>
-        <strong>Oops!
-        _{errorMessage}
+        <stron>Oops!
+        #{addError}
 <form .form-inline method=post>
     ^{token}
     <input type=hidden name=method value=add>
