@@ -1,14 +1,15 @@
 <ul .nav .nav-tabs>
     <li :route == HomeR:.active>
         <a href=@{HomeR}>Home
+    $maybe Entity _ user <- mUser
+        $if userAdmin user
+            <li :adminRoute:.active>
+                <a href=@{AdminR}>Admin
     <li :route == AboutR:.active>
         <a href=@{AboutR}>About
     <li :route == PricingR:.active>
         <a href=@{PricingR}>Pricing
     $maybe Entity _ user <- mUser
-        $if userAdmin user
-            <li :adminRoute:.active>
-                <a href=@{AdminR}>Admin
         <li :route == UpgradeR:.active>
             <a href=@{UpgradeR}>Upgrade
         <li :route == SettingsR:.active>
