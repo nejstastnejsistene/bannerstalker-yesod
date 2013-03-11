@@ -246,6 +246,7 @@ setSessionWith key mValue = case mValue of
     Just value -> setSession key value
     Nothing -> deleteSession key
 
-formError, passwordMismatch :: Text
+formError, passwordMismatch, passwordTooShort :: Text
 formError = "Form error. Please try again."
 passwordMismatch = "The passwords do not match."
+passwordTooShort = "Passwords must be at least 8 characters long."

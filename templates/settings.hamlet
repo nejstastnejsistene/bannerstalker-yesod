@@ -1,20 +1,37 @@
 <div .row>
     <div .span4>
         <h3>Account Settings
+        $maybe phoneInfo <- mPhoneInfo
+            <div .alert .alert-info>
+                #{phoneInfo}
+        $maybe phoneError <- mPhoneError
+            <div .alert .alert-error>
+                <strong>Oops!
+                #{phoneError}
+        <form method=post>
         <label for=email>Email
         <input #email type=email value=#{userEmail user} disabled>
         <label for=phone>Phone Number
         <form method=post>
             ^{token}
+            <input type=hidden name=method value=phone>
             $maybe phoneNum <- settingsPhoneNum userSettings
-                <input #phone type=tel value=#{phoneNum}>
+                <input #phone type=tel name=phoneNum value=#{phoneNum}>
             $nothing
-                <input #phone type=tel>
+                <input #phone type=tel name=phoneNum>
             <br>
             <button type=submit .btn>Update
         <h3>Change Password
+        $maybe passwordInfo <- mPasswordInfo
+            <div .alert .alert-info>
+                #{passwordInfo}
+        $maybe passwordError <- mPasswordError
+            <div .alert .alert-error>
+                <strong>Oops!
+                #{passwordError}
         <form method=post>
             ^{token}
+            <input type=hidden name=method value=password>
             <label for=password>New password
             <input #password name=password type=password>
             <label for=confirm>Confirm new password
@@ -23,11 +40,11 @@
             <button type=submit .btn>Change password
     $forall Semester code name _ <- semesters
         <div .span4>
-            $with p <- fromJust $ lookup code privMap
+            $with priv <- fromJust $ lookup code privMap
                 <h3>#{name}
                 <label for=level>User status
                 <input #level type=text disabled
-                    $case p
+                    $case priv
                         $of Level1
                             value="Free user"
                         $of Level2
@@ -45,7 +62,7 @@
                         SMS notifications
                 <label for=interval>Update interval
                 <input #interval type=text disabled
-                    $case p
+                    $case priv
                         $of Level1
                             value="2 hours"
                         $of Level2
@@ -55,7 +72,7 @@
                     >
                 <label for=limit>CRN limit
                 <input #limit type=text disabled
-                    $case p
+                    $case priv
                         $of Level1
                             value="1 at a time"
                         $of Level2

@@ -58,10 +58,10 @@ postRegisterR = do
             return $ Just "Already registered"
         -- Password mismatch.
         else if passwd /= confirm then
-            return $ Just "Password mismatch"
+            return $ Just passwordMismatch
         -- Password too short.
         else if T.length passwd < 8 then
-            return $ Just "Password must be at least 8 characters"
+            return $ Just passwordTooShort
         -- Success!
         else registerUser email passwd >> return Nothing
     token <- getToken
