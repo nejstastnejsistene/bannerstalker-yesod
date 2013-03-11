@@ -4,44 +4,46 @@
             <p .lead>Wondering why so many fields are grayed out?
             <p .lead>Or do you want SMS notifications?
             <a href=@{UpgradeR} .btn .btn-primary .btn-large>Upgrade now
-    <div .row>
-        <div .span4>
-            <h3>Account Settings
-            <label for=email>Email
-            <input #email type=email value=#{userEmail user} disabled>
-            <label for=phone>Phone Number
-            $if canSms 
+    <div .span8>
+        <div .row>
+            <div .span4>
+                <h3>Account Settings
+                <label for=email>Email
+                <input #email type=email value=#{userEmail user} disabled>
+                <label for=phone>Phone Number
+                $if canSms 
+                    <form method=post>
+                        ^{token}
+                        $maybe phoneNum <- settingsPhoneNum userSettings
+                            <input #phone type=tel value=#{phoneNum}>
+                        $nothing
+                            <input #phone type=tel>
+                        <br>
+                        <button type=submit .btn>Send SMS verification
+                $else
+                    <input #phone type=tel disabled>
+            <div .span4>
+                <h3>Change Password
                 <form method=post>
                     ^{token}
-                    $maybe phoneNum <- settingsPhoneNum userSettings
-                        <input #phone type=tel value=#{phoneNum}>
-                    $nothing
-                        <input #phone type=tel>
-                    <button type=submit .btn>Send SMS verification
-            $else
-                <input #phone type=tel disabled>
-        <div .span4>
-            <h3>Change Password
-            <form method=post>
-                ^{token}
-                <label for=password>New password
-                <input #password name=password type=password>
-                <label for=confirm>Confirm new password
-                <input #confirm name=confirm type=password>
-                <button type=submit .btn>Change password
+                    <label for=password>New password
+                    <input #password name=password type=password>
+                    <label for=confirm>Confirm new password
+                    <input #confirm name=confirm type=password>
+                    <br>
+                    <button type=submit .btn>Change password
         <div .row>
-            <div .row>
-                $forall Semester code name _ <- semesters
-                    <div .span4>
-                        <h3>#{name}
-                        <label for=level>User Status
-                        <input #level type=text value="#{show $ fromJust $ lookup code privMap}" disabled>
-                        <form method=post>
-                            ^{token}
-                            <input type=hidden value=#{code}>
-                            <label .checkbox>
-                                <input name=useEmail type=checkbox value=yes :not canSms:disabled :settingsUseEmail userSettings:checked>Email notifications
-                            <label .checkbox>
-                                <input name=useSms type=checkbox value=yes :not canSms:disabled :settingsUseSms userSettings:checked>SMS notifications
-                            $if canSms
-                                <button type=submit .btn>Save changes
+            $forall Semester code name _ <- semesters
+                <div .span4>
+                    <h3>#{name}
+                    <label for=level>User Status
+                    <input #level type=text value="#{show $ fromJust $ lookup code privMap}" disabled>
+                    <form method=post>
+                        ^{token}
+                        <input type=hidden value=#{code}>
+                        <label .checkbox>
+                            <input name=useEmail type=checkbox value=yes :not canSms:disabled :settingsUseEmail userSettings:checked>Email notifications
+                        <label .checkbox>
+                            <input name=useSms type=checkbox value=yes :not canSms:disabled :settingsUseSms userSettings:checked>SMS notifications
+                        $if canSms
+                            <button type=submit .btn>Save changes
