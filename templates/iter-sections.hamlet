@@ -1,21 +1,21 @@
-<table .table .table-condensed>
+<table .table .table-condensed .iter-sections>
     <tr>
         <th>CRN
-        <th>Course ID
+        <th .hidden-phone>Course ID
         <th>Title
-        <th>Instructor
-        <th>Days
-        <th>Times
+        <th .hidden-phone .hidden-tablet>Instructor
+        <th .hidden-phone .hidden-tablet>Days
+        <th .hidden-phone .hidden-tablet>Times
         <th>Status
         <th>
     $forall Section _ crn subj cId ttl inst time day stat <- sections
         <tr>
             <td>#{crn}
-            <td>#{subj} #{cId}
+            <td .hidden-phone>#{subj} #{cId}
             <td>#{ttl}
-            <td>#{inst}
-            <td>#{time}
-            <td>#{day}
+            <td .hidden-phone .hidden-tablet>#{inst}
+            <td .hidden-phone .hidden-tablet>#{time}
+            <td .hidden-phone .hidden-tablet>#{day}
             <td>
                 <div .alert :stat == Open:.alert-success :stat == Closed:.alert-error>
                     <strong>#{stat}
