@@ -14,7 +14,7 @@ getSettingsR :: Handler RepHtml
 getSettingsR = do
     Entity userId user <- fmap fromJust currentUser
     semesterEntities <- runDB $
-        selectList [SemesterActive ==. True] [Asc SemesterCode]
+        selectList [SemesterActive ==. True] [Desc SemesterCode]
     let semesterIds = map entityKey semesterEntities
         semesters = map entityVal semesterEntities
     privileges <- fmap (map entityVal) $ runDB $ 
@@ -24,7 +24,7 @@ getSettingsR = do
                   | Entity semId sem <- semesterEntities
                   , priv <- privileges
                   , semId == privilegeSemester priv ]
-    let canSms = any (\p -> privilegeLevel p > Level1) privileges
+    --let canSms = any (\p -> privilegeLevel p > Level1) privileges
     userSettings <- fmap (entityVal . fromJust) $
         runDB $ getBy $ UniqueUserSettings userId
     token <- getToken

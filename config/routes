@@ -20,7 +20,7 @@
 /admin/semesters            AdminSemestersR GET POST
 
 /search                     SearchR GET
-/settings                   SettingsR GET POST
+/account                    SettingsR GET POST
 /upgrade                    UpgradeR GET POST
 /pricing                    PricingR GET
 /about                      AboutR GET

@@ -13,7 +13,7 @@
         <li :route == UpgradeR:.active>
             <a href=@{UpgradeR}>Upgrade
         <li :route == SettingsR:.active>
-            <a href=@{SettingsR}>Settings
+            <a href=@{SettingsR}>Account
         <li>
             <a href=@{LogoutR}>Logout
     $nothing
