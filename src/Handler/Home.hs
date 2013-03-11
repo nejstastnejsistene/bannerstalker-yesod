@@ -18,15 +18,11 @@ getHomeR = do
                 setTitle "Bannerstalker"
                 $(widgetFile "home")
         Just (Entity userId user) -> do
-            -- Get the list of semesters.
-            semesters <- runDB $
-                selectList [SemesterActive ==. True] [Desc SemesterCode]
             -- Get all the request sectionIds.
-            sectIds <- fmap (map $ sectionRequestSectionId . entityVal) $
+            sectionIds <- fmap (map $ sectionRequestSectionId . entityVal) $
                 runDB $  selectList [SectionRequestUserId  ==. userId] []
-            -- Create a map of semester codes to widgets.
-            semestersMap <- fmap catMaybes $
-                mapM (getSemesterWidgetPair sectIds) semesters
+            (semesters, semestersMap) <-
+                listSectionsHelper sectionIds =<< removeCrnForm
             subjectWidget <- selectSubject
             token <- getToken
             -- Retrieve error messages from session.
@@ -38,6 +34,18 @@ getHomeR = do
             defaultLayout $ do
                 setTitle "Bannerstalker"
                 $(widgetFile "home-logged-in")
+
+listSectionsHelper :: [SectionId]
+                      -> (Int -> Widget)
+                      -> Handler ([Semester], [(Text, Widget)])
+listSectionsHelper sectionIds crnWidget = do
+    -- Get the list of semesters.
+    semesters <- runDB $
+        selectList [SemesterActive ==. True] [Desc SemesterCode]
+    -- Create a map of semester codes to widgets.
+    semestersMap <- fmap catMaybes $
+        mapM (getSemesterWidgetPair sectionIds) semesters
+    return (map entityVal semesters, semestersMap)
     where
         getSemesterWidgetPair sectIds (Entity semesterId semester) = do
             mWidget <- getSemesterWidget sectIds semesterId
@@ -50,9 +58,9 @@ getHomeR = do
                            , SectionSemester ==. semesterId ]
                            [ Asc SectionSubject
                            , Asc SectionCourseId ]
-            case sections of
-                [] -> return Nothing
-                _-> fmap Just $ iterSections sections =<< removeCrnForm
+            return $ case sections of
+                [] -> Nothing
+                _-> Just $(widgetFile "iter-sections")
 
 postHomeR :: Handler RepHtml
 postHomeR = do
@@ -72,9 +80,10 @@ postHomeR = do
 getSearchR :: Handler RepHtml
 getSearchR = do
     subject <- runInputGet $ ireq textField "subject"
-    sections <- fmap (map entityVal) $ runDB $
+    sectionIds <- fmap (map entityKey) $ runDB $
         selectList [SectionSubject ==. subject] [Asc SectionCrn]
-    sectionsWidget <- iterSections sections =<< addCrnForm
+    (semesters, semestersMap) <-
+        listSectionsHelper sectionIds =<< addCrnForm
     subjectWidget <- selectSubject
     token <- getToken
     defaultLayout $ do
@@ -118,7 +127,6 @@ addCrn userId crn = runDB $ do
                     Level2 -> 5
                     Level3 -> 10
                     Admin -> 100
-
 
 removeCrn :: UserId -> Int -> Handler ()
 removeCrn userId crn = runDB $ do
