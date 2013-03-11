@@ -18,11 +18,15 @@ getHomeR = do
                 setTitle "Bannerstalker"
                 $(widgetFile "home")
         Just (Entity userId user) -> do
+            -- Get the list of semesters.
+            semesters <- runDB $
+                selectList [SemesterActive ==. True] [Desc SemesterCode]
+            -- Get all the request sectionIds.
             sectIds <- fmap (map $ sectionRequestSectionId . entityVal) $
                 runDB $  selectList [SectionRequestUserId  ==. userId] []
-            sections <- fmap (map entityVal) $ runDB $  
-                selectList [SectionId <-. sectIds] [Asc SectionCrn]
-            sectionsWidget <- iterSections sections =<< removeCrnForm
+            -- Create a map of semester codes to widgets.
+            semestersMap <- fmap catMaybes $
+                mapM (getSemesterWidgetPair sectIds) semesters
             subjectWidget <- selectSubject
             token <- getToken
             -- Retrieve error messages from session.
@@ -34,6 +38,21 @@ getHomeR = do
             defaultLayout $ do
                 setTitle "Bannerstalker"
                 $(widgetFile "home-logged-in")
+    where
+        getSemesterWidgetPair sectIds (Entity semesterId semester) = do
+            mWidget <- getSemesterWidget sectIds semesterId
+            return $ case mWidget of
+                Nothing -> Nothing
+                Just widget -> Just (semesterCode semester, widget)
+        getSemesterWidget sectIds semesterId = do
+            sections <- fmap (map entityVal) $ runDB $
+                selectList [ SectionId <-. sectIds
+                           , SectionSemester ==. semesterId ]
+                           [ Asc SectionSubject
+                           , Asc SectionCourseId ]
+            case sections of
+                [] -> return Nothing
+                _-> fmap Just $ iterSections sections =<< removeCrnForm
 
 postHomeR :: Handler RepHtml
 postHomeR = do
@@ -111,9 +130,6 @@ removeCrn userId crn = runDB $ do
 
 iterSections :: [Section] -> (Int -> Widget) -> Handler Widget
 iterSections sections crnWidget = do
-    semesters <- runDB $ selectList [] []
-    let semestersMap =
-            [(sId, name) | Entity sId (Semester _ name _) <- semesters]
     return $(widgetFile "iter-sections")
 
 addCrnForm :: Handler (Int -> Widget)

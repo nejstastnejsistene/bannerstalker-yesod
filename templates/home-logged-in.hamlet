@@ -1,13 +1,15 @@
-<h3>Welcome to Bannerstalker!
+<h1>Welcome to Bannerstalker!
 $maybe mainError <- mMainError
     <div .alert .alert-error>
         <strong>Oops!
         #{mainError}
-$if length sections > 0
-    ^{sectionsWidget}
-$else
-    <p>You are not stalking any classes.
-<h3>Add CRN
+$forall Semester code name _ <- map entityVal semesters
+    <h3>#{name}
+    $maybe sectionsWidget <- lookup code semestersMap
+        ^{sectionsWidget}
+    $nothing
+        <p>You are not stalking any classes.
+<h2>Add CRN
 $maybe addError <- mAddError
     <div .alert .alert-error>
         <stron>Oops!
@@ -17,7 +19,7 @@ $maybe addError <- mAddError
     <input type=hidden name=method value=add>
     <input type=text name=crn>
     <button type=submit .btn>Add CRN
-<h3>Search for CRNs
+<h2>Search for CRNs
 <form .form-inline method=get action=@{SearchR}>
     ^{subjectWidget}
     <button type=submit .btn>Search

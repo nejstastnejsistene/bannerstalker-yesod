@@ -1,6 +1,5 @@
 <table .table .table-condensed>
     <tr>
-        <th>Semester
         <th>CRN
         <th>Course ID
         <th>Title
@@ -9,9 +8,8 @@
         <th>Times
         <th>Status
         <th>
-    $forall Section sem crn subj cId ttl inst time day stat <- sections
+    $forall Section _ crn subj cId ttl inst time day stat <- sections
         <tr>
-            <td>#{fromJust $ lookup sem semestersMap}
             <td>#{crn}
             <td>#{subj} #{cId}
             <td>#{ttl}
