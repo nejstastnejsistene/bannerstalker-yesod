@@ -10,9 +10,21 @@ $newline never
 
         <title>#{pageTitle pc}
         <meta name="description" content="">
-        <meta name="author" content="">
+        <meta name="author" content="Peter Johnson">
+        <meta property="og:title" content="Bannerstalker" />
+        <meta property="og:type" content="product" />
+        <meta property="og:url" content="https://bannerstalker.com" />
+        <meta property="og:image" content="" />
+        <meta property="og:site_name" content="Bannerstalker" />
+        <meta property="fb:admins" content="1356458620" />
 
         <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta property="og:title" content="Bannerstalker" />
+        <meta property="og:type" content="product" />
+        <meta property="og:url" content="https://bannerstalker.com" />
+        <meta property="og:image" content="" />
+        <meta property="og:site_name" content="Bannerstalker" />
+        <meta property="fb:admins" content="1356458620" />
 
         ^{pageHead pc}
 
