@@ -11,16 +11,22 @@
         <form method=post>
         <label for=email>Email
         <input #email type=email value=#{userEmail user} disabled>
-        <label for=phone>Phone Number
         <form method=post>
             ^{token}
             <input type=hidden name=method value=phone>
-            $maybe phoneNum <- settingsPhoneNum userSettings
+            <label for=phone>Phone Number
+            $maybe phoneNum <- userPhoneNum user
                 <input #phone type=tel name=phoneNum value=#{phoneNum}>
+                <br>
             $nothing
                 <input #phone type=tel name=phoneNum>
-            <br>
-            <button type=submit .btn>Update
+                $if canSms
+                    <p .text-error>
+                        Enter your phone number to enable SMS notifications!
+                $else
+                    <p .text-error>
+                        Upgrade to enable SMS notifications!
+            <button type=submit .btn>Update phone number
         <h3>Change Password
         $maybe passwordInfo <- mPasswordInfo
             <div .alert .alert-info>
@@ -43,43 +49,49 @@
             $with priv <- fromJust $ lookup code privMap
                 <h3>#{name}
                 <label for=level>User status
-                <input #level type=text disabled
-                    $case priv
-                        $of Level1
-                            value="Free user"
-                        $of Level2
-                            value="Limited user"
-                        $of Level3
-                            value="Premium user"
-                    >
+                <p .text-info>#{code} #{show priv}
+                $case priv
+                    $of Level1
+                        <input #level type=text value="Free User"disabled>
+                    $of Level2
+                        <input #level type=text value="Limited User" disabled>
+                    $of Level3
+                        <input #level type=text value="Premium User" disabled>
+                    $of Admin
+                        <input #level type=text value="Admin" disabled>
                 <label .checkbox>
-                    <input type=checkbox disabled
-                            :settingsUseEmail userSettings:checked>
+                    <input type=checkbox disabled checked>
                         Email notifications
                 <label .checkbox>
-                    <input type=checkbox disabled
-                            :settingsUseSms userSettings:checked>
+                    <input type=checkbox disabled :priv > Level1:checked>
                         SMS notifications
+                    $if priv > Level1
+                        $maybe _ <- userPhoneNum user
+                            <p .text-success>Enabled!
+                        $nothing
+                            <p .text-error>Enter a phone number to enable SMS notifications!
+                    $else
+                        < .text-error>Upgrade to enable SMS notifications!
                 <label for=interval>Update interval
-                <input #interval type=text disabled
-                    $case priv
-                        $of Level1
-                            value="2 hours"
-                        $of Level2
-                            value="30 minutes"
-                        $of Level3
-                            value="5 minutes"
-                    >
+                $case priv
+                    $of Level1
+                        <input #interval type=text value="2 hours" disabled>
+                    $of Level2
+                        <input #interval type=text value="30 minutes" disabled>
+                    $of Level3
+                        <input #interval type=text value="5 minutes" disabled>
+                    $of Admin
+                        <input #interval type=text value="5 minutes" disabled>
                 <label for=limit>CRN limit
-                <input #limit type=text disabled
-                    $case priv
-                        $of Level1
-                            value="1 at a time"
-                        $of Level2
-                            value="5 at a time"
-                        $of Level3
-                            value="10 at a time"
-                    >
+                $case priv
+                    $of Level1
+                        <input #limit type=text value="1 at a time" disabled>
+                    $of Level2
+                        <input #limit type=text value="5 at a time" disabled>
+                    $of Level3
+                        <input #limit type=text value="10 at a time" disabled>
+                    $of Admin
+                        <input #limit type=text value="100 at a time" disabled>
                 <br>
                 <a href=@{PricingR}>Learn more
                 \ or

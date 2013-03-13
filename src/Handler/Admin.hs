@@ -27,8 +27,6 @@ getAdminEditUserHelper userId mErrorMessage = do
     case mUser of
         Nothing -> defaultLayout [whamlet|<h1>User does not exist!|]
         Just user -> do
-            userSettings <- fmap (entityVal . fromJust) $
-                runDB $ getBy $ UniqueUserSettings userId
             s <- runDB $ selectList [SemesterActive ==. True] []
             p <- runDB $ selectList [PrivilegeUserId ==. userId] []
             let privileges = [ SemesterPriv code name level
@@ -84,7 +82,6 @@ postAdminEditUserR userId = do
                     deleteWhere [SmsVerificationUserId ==. userId]
                     deleteWhere [EmailVerificationUserId ==. userId]
                     deleteWhere [PrivilegeUserId ==. userId]
-                    deleteWhere [SettingsUserId ==. userId]
                     delete userId
                     return Nothing
                 else return $ Just "Delete user: missed some safeguards."

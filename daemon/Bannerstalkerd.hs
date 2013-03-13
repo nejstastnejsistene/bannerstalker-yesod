@@ -188,25 +188,29 @@ bannerstalkerd extra dbConf manager = do
         -- for the given section.
         sendNotification userId section new = do
             user <- fmap fromJust $ get userId
-            settings <- fmap (entityVal . fromJust) $
-                            getBy $ UniqueUserSettings (userId :: UserId)
-            -- Email notifications.
-            when (settingsUseEmail settings) $ do
-                let email = userEmail user
-                (status, err) <- liftIO $ notifyEmail email section new
-                time <- liftIO $ getCurrentTime
-                insert $ NotificationLog time
-                    EmailNotification userId email status err
-                return ()
-            -- Sms notifications.
-            when (settingsUseSms settings) $ do
-                let phoneNum = fromJust $ settingsPhoneNum settings
-                (status, err) <- liftIO $
-                    notifySms manager extra phoneNum section new
-                time <- liftIO $ getCurrentTime
-                insert $ NotificationLog time 
-                    SmsNotification userId phoneNum status err
-                return ()
+            -- Always send email notifications.
+            let email = userEmail user
+            (status, err) <- liftIO $ notifyEmail email section new
+            time <- liftIO $ getCurrentTime
+            insert $ NotificationLog time
+                EmailNotification userId email status err
+            mPriv <- getBy $
+                UniquePrivilege userId $ sectionSemester section
+            case mPriv of
+                Nothing -> return ()
+                Just (Entity _ priv) ->
+                    case (privilegeLevel priv, userPhoneNum user) of
+                        -- No Sms notifications if they are Level1.
+                        (Level1, _) -> return ()
+                        -- Send Sms notification if they are not Level1
+                        -- and have entered a phone number.
+                        (_, Just phoneNum) -> do
+                            (status, err) <- liftIO $ notifySms
+                                manager extra phoneNum section new
+                            time <- liftIO $ getCurrentTime
+                            insert $ NotificationLog time 
+                                SmsNotification userId phoneNum status err
+                            return ()
 
 mailAlert :: Text -> IO ()
 mailAlert text = do

@@ -6,10 +6,13 @@ import Data.Conduit
 import Data.Monoid
 import Data.ByteString (ByteString)
 import Data.Text (Text)
+import Data.Text.Encoding (encodeUtf8)
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Encoding (decodeUtf8)
 import Network.HTTP.Types
 import qualified Data.ByteString.UTF8 as U8
+
+import Settings
 
 data TwilioData = TwilioData {
     twilioManager :: Manager,
@@ -46,14 +49,15 @@ twilioReq p params post (TwilioData manager request) =
             req'' = if post then urlEncodedBody params req'
                     else req' { queryString = ascii }
 
-sendSms :: TwilioData
-           -> ByteString -- ^ From
-           -> ByteString -- ^ To
-           -> ByteString -- ^ Body
-           -> IO (Maybe Text)
-sendSms twilioData from to body = do
-    twilioReq "/SMS/Messages" params True twilioData
+sendSms :: Manager -> Extra -> ByteString -> ByteString -> IO (Maybe Text)
+sendSms manager extra to body = do
+    twilio <- mkTwilio manager credentials
+    twilioReq "/SMS/Messages" params True twilio
     where
+        account = (encodeUtf8 $ extraTwilioAccount extra) 
+        token = (encodeUtf8 $ extraTwilioToken extra) 
+        from = (encodeUtf8 $ extraTwilioNumber extra)
+        credentials = TwilioCredentials account token
         params = [("To",   to)
                  ,("From", from)
                  ,("Body", body)]

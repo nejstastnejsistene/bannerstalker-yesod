@@ -29,8 +29,7 @@ getSettingsR = do
                   | Entity semId sem <- semesterEntities
                   , priv <- privileges
                   , semId == privilegeSemester priv ]
-    userSettings <- fmap (entityVal . fromJust) $
-        runDB $ getBy $ UniqueUserSettings userId
+        canSms = any (\p -> privilegeLevel p > Level1) privileges
     mPhoneInfo <- getSessionWith phoneInfoKey
     mPhoneError <- getSessionWith phoneErrorKey
     mPasswordInfo <- getSessionWith passwordInfoKey
@@ -48,32 +47,13 @@ postSettingsR :: Handler RepHtml
 postSettingsR = do
     Entity userId _ <- fmap fromJust currentUser
     let comma4 a b c d = (a, b, c, d)
-    (postType, mPhoneNum, mPasswd, mConfirm) <- runInputPost $ comma4
+    (postType, mRawPhoneNum, mPasswd, mConfirm) <- runInputPost $ comma4
         <$> ireq textField "method"
         <*> iopt textField "phoneNum"
         <*> iopt textField "password"
         <*> iopt textField "confirm"
     case postType of
-        "phone" -> do
-            let validated = fmap validatePhoneNum mPhoneNum
-            case validated of
-                -- validation failed
-                Just Nothing -> do
-                    setSession phoneErrorKey
-                        "Please enter a valid phone number."
-                    redirectUltDest SettingsR
-                val -> do
-                    let newVal = case val of
-                            Nothing -> Nothing
-                            Just (Just valid) -> Just valid
-                    -- note to self, actually check if they are able to sms
-                    -- and make UpdateR work with this to make sure useSms
-                    -- is correct
-                    settingsId <- fmap (entityKey . fromJust) $
-                        runDB $ getBy $ UniqueUserSettings userId
-                    runDB $ update settingsId [SettingsPhoneNum =. newVal]
-                    setSession phoneInfoKey "Peer still needs to verify you are able to send SMS notifications..."
-                    redirectUltDest SettingsR
+        "phone" -> updatePhoneNum userId mRawPhoneNum
         "password" -> case (mPasswd, mConfirm, mPasswd == mConfirm) of
             (Just passwd, Just _, True) -> do
                 if T.length passwd < 8
@@ -89,6 +69,28 @@ postSettingsR = do
                 setSession passwordErrorKey passwordMismatch
                 redirectUltDest SettingsR
         _ -> invalidArgs []
+
+updatePhoneNum :: UserId -> Maybe Text -> Handler RepHtml
+updatePhoneNum userId mRawPhoneNum = do
+    case fmap validatePhoneNum mRawPhoneNum of
+        -- Validation failed.
+        Just Nothing -> do
+            setSession phoneErrorKey
+                "Please enter a valid phone number."
+            redirectUltDest SettingsR
+        -- Valid phone number.
+        Just (Just phoneNum) -> do
+            -- note to self, actually check if they are able to sms
+            -- and make UpdateR work with this to make sure useSms
+            -- is correct
+            runDB $ update userId [UserPhoneNum =. Just phoneNum]
+            setSession phoneInfoKey "Peter still needs to verify you are able to send SMS notifications..."
+            redirectUltDest SettingsR
+        -- Phone number was removed.
+        Nothing -> do
+            runDB $ update userId [UserPhoneNum =. Nothing]
+            setSession phoneInfoKey "Phone number removed"
+            redirectUltDest SettingsR
     where
         validatePhoneNum phoneNum = case T.take 2 phoneNum of
             "+1" -> _validatePhoneNum $ T.drop 2 phoneNum

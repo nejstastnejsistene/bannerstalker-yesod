@@ -16,15 +16,11 @@ $maybe errorMessage <- mErrorMessage
             <button type=submit .btn>Submit changes
     <div .span4>
         <h3>Settings
-        $with Settings _ mPhoneNum phoneVerified useEmail useSms <- userSettings
-            <label for=phoneNum>Phone number
-            <input #phoneNum name=phoneNum type=tel :isJust mPhoneNum:value=#{fromJust mPhoneNum} disabled>
-            <label .checkbox>
-                <input name=smsVerified type=checkbox value=yes :phoneVerified:checked disabled>Phone number is verified
-            <label .checkbox>
-                <input name=useEmail type=checkbox value=yes :useEmail:checked disabled>Use Email Notifications
-            <label .checkbox>
-                <input name=useSms type=checkbox value=yes :useSms:checked disabled>Use SMS Notifications
+        <label for=phoneNum>Phone number
+        $maybe phoneNum <- (userPhoneNum user)
+            <input #phoneNum type=tel disabled value=#{phoneNum}>
+        $nothing
+            <input #phoneNum type=tel disabled>
     <div .span4>
         <h3>Delete user
         <form method=post>

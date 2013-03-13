@@ -1,5 +1,6 @@
 User
     email       Text
+    phoneNum    Text Maybe
     verified    Bool
     password    Text
     admin       Bool
@@ -10,14 +11,6 @@ Privilege
     semester    SemesterId 
     level       PrivilegeLevel
     UniquePrivilege userId semester
-Settings
-    userId      UserId
-    phoneNum    Text Maybe
-    smsVerified Bool
-    useEmail    Bool
-    useSms      Bool
-    UniqueUserSettings userId
-    deriving    Show
 EmailVerification
     userId      UserId
     verKey      Text

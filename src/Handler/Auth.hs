@@ -82,20 +82,13 @@ registerUser email passwd = do
         -- Insert the user record.
         userId <- insert $ User
             { userEmail = email
+            , userPhoneNum = Nothing
             , userVerified = False
             , userPassword = passwdHash
             , userAdmin = False
             }
         -- Set user to Level1 for all current semesters.
         mapM_ (\x -> insert $ Privilege userId x Level1) semesters
-        -- Insert default user settings.
-        _ <- insert $ Settings
-            { settingsUserId = userId
-            , settingsPhoneNum = Nothing
-            , settingsSmsVerified = False
-            , settingsUseEmail = True
-            , settingsUseSms = False
-            }
         return ()
     sendVerificationEmail email
 
@@ -175,10 +168,10 @@ postForgotPasswordR = do
                 Nothing -> do
                     setSession forgotPasswordErrorKey "Email doesn't exist"
                     redirectUltDest ForgotPasswordR
-                Just (Entity userId (User _ _ passwd _)) -> do
+                Just (Entity userId user) -> do
                     render <- getUrlRender
                     tm <- getRouteToMaster
-                    let verKey = T.splitOn "|" passwd !! 4
+                    let verKey = T.splitOn "|" (userPassword user) !! 4
                         verUrl = render $ tm $ ResetPasswordR userId verKey
                     sendPasswordReset email verUrl
                     redirectUltDest ResetSentR
@@ -212,7 +205,7 @@ getResetPasswordR userId verKey = do
             mUser <- confirmPasswdHash userId verKey
             case mUser of
                 Nothing -> expiredResetLink
-                Just (User email _ _ _) -> do
+                Just (User email _ _ _ _) -> do
                     mErrorMessage <- getSessionWith resetPasswordErrorKey
                     deleteSession resetPasswordErrorKey
                     defaultLayout $ do
@@ -245,8 +238,8 @@ confirmPasswdHash userId verKey= do
     mUser <- runDB $ get userId
     case mUser of
         Nothing -> return Nothing
-        Just user@(User _ _ passwd _) -> 
-            if verKey == T.splitOn "|" passwd !! 4 then
+        Just user -> 
+            if verKey == T.splitOn "|" (userPassword user) !! 4 then
                 return $ Just user
             else return Nothing
 

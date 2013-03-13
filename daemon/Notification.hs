@@ -49,14 +49,9 @@ notifySms :: Manager
              -> Bool
              -> IO (RequestStatus, Maybe Text)
 notifySms manager extra recipient section newRequest = do
-    twilio <- mkTwilio manager credentials
-    err <- sendSms twilio number (encodeUtf8 recipient) message
+    err <- sendSms manager extra (encodeUtf8 recipient) message
     return (case err of Nothing -> Success; _ -> Failure, err)
     where
-        account = (encodeUtf8 $ extraTwilioAccount extra) 
-        token = (encodeUtf8 $ extraTwilioToken extra) 
-        number = (encodeUtf8 $ extraTwilioNumber extra)
-        credentials = TwilioCredentials account token
         message = encodeUtf8 $ pack $ renderHtml $ case newRequest of
             False -> $(shamletFile "templates/notifications/sms.hamlet")
             True -> $(shamletFile "templates/notifications/sms-new.hamlet")
