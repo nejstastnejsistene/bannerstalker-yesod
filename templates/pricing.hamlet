@@ -1,58 +1,47 @@
-<table .table .table-striped>
+<table .table .pricing-table>
     <thead>
         <tr>
             <th>
             <th>
-                <h3>Free User
+                <h3>Silver
                 <h1>Free!
             <th>
-                <h3>Limited User
+                <h3>Gold
                 <h1>$5
                     <small>/semester
-            <th .premium-top>
-                <h3>Premium User
+            <th>
+                <h3>Platinum
                 <h1>$10
                     <small>/semester
     <tbody>
         <tr>
             <th>Number of CRNs
-            <td>
-                <p .text-error>
-                    <strong>1 at a time
-            <td>
-                <p .text-warning>
-                    <strong>5 at a time
-            <td .premium>
-                <p .text-success>
-                    <strong>Unlimited
+            <td>1 at a time
+            <td>5 at a time
+            <td>10 at a time
         <tr>
             <th>Update Interval
-            <td>
-                <p .text-error>
-                    <strong>2 hours
-            <td>
-                <p .text-warning>
-                    <strong>30 minutes
-            <td .premium>
-                <p .text-success>
-                    <strong>ASAP
+            <td>2 hours
+            <td>30 minutes
+            <td>ASAP
         <tr>
             <th>Email Notifications
             <td>
-                <i .icon-check>
-                Check
+                <i .icon-check .icon-3x>
             <td>
-                <i .icon-check>
-                Check
-            <td .premium>
-                <i .icon-check>
-                Check
+                <i .icon-check .icon-3x>
+            <td>
+                <i .icon-check .icon-3x>
         <tr>
             <th>SMS Notifications
             <td>
+                <i .icon-check-empty .icon-3x>
             <td>
-                <i .icon-check>
-                Check
+                <i .icon-check .icon-3x>
             <td .premium-bottom>
-                <i .icon-check>
-                Check
+                <i .icon-check .icon-3x>
+        <tr>
+            <th>
+            <td colspan=3>
+                <form method=get action=@{UpgradeR}>
+                    <button type=submit .btn .btn-large .btn-primary .btn-fill>Upgrade now!

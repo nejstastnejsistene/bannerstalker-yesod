@@ -1,0 +1,11 @@
+table.pricing-table {
+    table-layout: fixed;
+    th, td {
+        height: 50px;
+        text-align: center;
+        vertical-align: middle;
+    }
+}
+.btn-fill {
+    width: 100%;
+}
