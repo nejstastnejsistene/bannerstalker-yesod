@@ -2,6 +2,7 @@
 
 /favicon.ico                FaviconR GET
 /robots.txt                 RobotsR GET
+/humans.txt                 HumansR GET
 
 /register                   RegisterR GET POST
 /login                      LoginR GET POST

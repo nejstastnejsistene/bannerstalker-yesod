@@ -9,11 +9,12 @@ $newline never
         <meta charset="UTF-8">
 
         <title>#{pageTitle pc}
+        <link type="text/plain" rel="author" href="@{HumansR}" />
         <meta name="description" content="">
         <meta name="author" content="Peter Johnson">
         <meta property="og:title" content="Bannerstalker" />
         <meta property="og:type" content="product" />
-        <meta property="og:url" content="https://bannerstalker.com" />
+        <meta property="og:url" content="@{HomeR}" />
         <meta property="og:image" content="" />
         <meta property="og:site_name" content="Bannerstalker" />
         <meta property="fb:admins" content="1356458620" />

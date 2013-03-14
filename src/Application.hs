@@ -104,3 +104,6 @@ getApplicationDev =
     loader = loadConfig (configSettings Development)
         { csParseExtra = parseExtra
         }
+
+getHumansR :: GHandler s m RepPlain
+getHumansR = sendFile "text/plain" "config/humans.txt"

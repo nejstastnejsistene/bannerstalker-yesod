@@ -91,6 +91,7 @@ instance Yesod App where
     isAuthorized (StaticR _) _ = return Authorized
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
+    isAuthorized HumansR _ = return Authorized
     isAuthorized ForgotPasswordR _ = return Authorized
     isAuthorized ResetSentR _ = return Authorized
     isAuthorized (ResetPasswordR _ _) _ = return Authorized

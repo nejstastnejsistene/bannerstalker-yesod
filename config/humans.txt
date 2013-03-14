@@ -1,0 +1,16 @@
+/* AUTHOR */
+Name: Peter Johnson
+Email: pajohnson@email.wm.edu
+School: The College of William & Mary
+
+/* THANKS */
+Mike Pozulp and Nathan Schaaf for lot of help along the way.
+Also my family and krásná holka, Petra Aschermannová for feedback and support :)
+
+/* SITE */
+Frontend: jQuery, Bootstrap
+Backend: Haskell (Yesod, http-conduit)
+Services used: Stripe, Twilio, AmazonSES
+Logo: The binoculars icon in the logo is borrowed from the Gnome Desktop icon
+      set, which is released under GPLv2. The logo is therefore also released
+      under GPLv2.
