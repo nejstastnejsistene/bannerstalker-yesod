@@ -4,9 +4,14 @@ module Handler.Upgrade where
 import Prelude (head)
 import Import
 import Data.Maybe
-import Data.Text (pack, unpack)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as LT
+import Network.Mail.Mime
+import Text.Blaze.Html.Renderer.String
+import Text.Hamlet
 import Text.Printf
 
+import Email
 import Stripe
 
 upgradeInfoKey, upgradeErrorKey :: Text
@@ -40,7 +45,7 @@ getUpgradeR code = do
 
 postUpgradeR :: Text -> Handler RepHtml
 postUpgradeR code = do
-    semesterId <- fmap (entityKey . fromJust) $
+    Entity semesterId (Semester _ name _) <- fmap fromJust $
         runDB $ getBy $ UniqueSemester code
     Entity userId user <- fmap fromJust currentUser
     Entity privId (Privilege _ _ currentLevel) <- fmap fromJust $
@@ -48,7 +53,7 @@ postUpgradeR code = do
     (level, stripeToken) <- runInputPost $ (,)
         <$> ireq textField "level"
         <*> ireq textField "stripeToken"
-    let targetLevel = read $ unpack level :: PrivilegeLevel
+    let targetLevel = read $ T.unpack level :: PrivilegeLevel
         price = getPrice currentLevel targetLevel
     if price <= 0 then
         error "upgrading must go up a level"
@@ -56,14 +61,28 @@ postUpgradeR code = do
         manager <- fmap httpManager getYesod
         extra <- getExtra
         eCharge <- liftIO $ makeCharge manager extra
-            stripeToken (pack $ show price) $ userEmail user
+            stripeToken (T.pack $ show price) $ userEmail user
         case eCharge of
             Left charge -> do
                 runDB $ update privId [PrivilegeLevel =. targetLevel]
-                setSession upgradeInfoKey "Transaction successful! (Note to self: send a confirmation email)"
+                sendConfirmation userId name targetLevel charge
+                setSession upgradeInfoKey
+                    "Transaction successful! We sent you a confirmation email."
             Right err -> do
                 setSession upgradeErrorKey $ errorMessage err
         redirect $ UpgradeR code
+
+sendConfirmation :: UserId -> Text -> PrivilegeLevel -> Charge -> Handler ()
+sendConfirmation userId semester level charge = do
+    User email _ _ _ _ <- fmap fromJust $ runDB $ get userId
+    let to = Address Nothing email
+        from = noreplyAddr
+        subject = "Bannerstalker transaction confirmation"
+        text = LT.pack $ renderHtml
+                $(shamletFile "templates/transaction-confirmation-text.hamlet")
+        html = LT.pack $ renderHtml
+                $(shamletFile "templates/transaction-confirmation-html.hamlet")
+    liftIO $ simpleMail to from subject text html [] >>= mySendmail
 
 getPrice :: PrivilegeLevel -> PrivilegeLevel -> Int
 getPrice current target = price target - price current
@@ -73,10 +92,9 @@ getPrice current target = price target - price current
         price Level3 = 1000
         price Admin = 100000
 
-getPriceF :: PrivilegeLevel -> PrivilegeLevel -> Text
-getPriceF current target = pack $ printf "%.2f" price
-    where
-        price = (/100.0) $ fromIntegral $ getPrice current target :: Float
+formatPrice :: Int -> Text
+formatPrice price =
+    T.pack $ printf "%.2f" $ (/100.0) $ (fromIntegral price :: Float)
 
 levelName :: PrivilegeLevel -> Text
 levelName Level1 = "Silver"

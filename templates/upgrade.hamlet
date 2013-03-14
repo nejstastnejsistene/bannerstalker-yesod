@@ -9,15 +9,15 @@ $maybe errMessage <- mErrorMessage
         Your card has not been charged.
 <h1>Upgrade for #{name}
     <small> currently #{levelName currentLevel} Level
-<div .alert .alert-info>
-    <strong>Want to upgrade for a different semester?
-    $forall Semester otherCode otherName _  <- otherSemesters
-        <a href=@{UpgradeR otherCode}>Upgrade for #{otherName} instead
+<strong>Want to upgrade for a different semester?
+$forall Semester otherCode otherName _  <- otherSemesters
+    <a href=@{UpgradeR otherCode}>Upgrade for #{otherName} instead
+<br>
 <p .lead>SMS notifications, more frequent update intervals, and higher class limits await you!
 <div .row>
     $if currentLevel < Level2
         <div .span6>
-            <h2>Gold &ndash; $#{getPriceF currentLevel Level2}
+            <h2>Gold &ndash; $#{formatPrice $ getPrice currentLevel Level2}
             <ul>
                 <li>
                     <p .lead>Beat the competition by having us check your classes every 30 minutes, that's 4x more frequently than you get for free!
@@ -34,7 +34,7 @@ $maybe errMessage <- mErrorMessage
                     data-description="Upgrade to Gold">
     $if currentLevel < Level3
         <div .span6>
-            <h2>Platinum &ndash; $#{getPriceF currentLevel Level3}
+            <h2>Platinum &ndash; $#{formatPrice $ getPrice currentLevel Level3}
             <ul>
                 <li>
                     <p .lead>Receive notifications as soon as your classes become available! That's over 20x more often than the free user level!

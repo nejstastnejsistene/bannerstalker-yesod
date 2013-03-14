@@ -1,0 +1,5 @@
+You have successfully upgraded to #{levelName level} Level for #{semester}!
+Paid: #{chargePaid charge}
+Amount: $#{formatPrice $ chargeAmount charge}
+$maybe desc <- chargeDescription charge
+    Description: $#{desc}
