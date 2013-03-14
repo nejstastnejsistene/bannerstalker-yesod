@@ -1,15 +1,14 @@
 <div .row>
     <div .span8>
         <div .hero-unit>
-            <h1>Bannerstalker
-            <h2>Is Pretty Awesome
-            <p .lead>Alright that's all I've got. Mike, come help me out.
-            <p .lead>Some more paragraphs go here.
-            <p .lead>And here as well.
-            <p .lead>Ahoj!
-            <p .lead>Ahoj ahoj!
+            <h2>Class registration got you stressed?
+            <p .lead>Every W&amp;M student is familiar with the chaos of class registration and the stress of trying to get into the classes you want.
+            <p .lead>Introducing Bannerstalker &mdash; we stalk Banner so you don't have to!
+            <h2>Get up to the minute notifications!
+            <p .lead>It's easy! Just add your CRNs, and we'll email or text you when any of your classes open up.
+            <a href=@{PricingR} .btn .btn-primary .btn-large>Learn more about our features
     <div .span4>
-        <h1>Login
+        <h3>Login
         <form method=post action=@{LoginR}>
             ^{token}
             <label for=email>Email
@@ -20,7 +19,7 @@
             <button type=submit class=btn>Login
         <a href=@{ForgotPasswordR}>Forget your password?
         <br>
-        <h1>Register
+        <h3>Register
         <form method=post action=@{RegisterR}>
             ^{token}
             <label for=email>Email
