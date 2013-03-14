@@ -13,9 +13,9 @@
         <form method=post action=@{LoginR}>
             ^{token}
             <label for=email>Email
-            <input #email name=email type=email>
+            <input #email name=email type=email required>
             <label for=password>Password
-            <input #password name=password type=password>
+            <input #password name=password type=password required>
             <br>
             <button type=submit class=btn>Login
         <a href=@{ForgotPasswordR}>Forget your password?
@@ -24,10 +24,10 @@
         <form method=post action=@{RegisterR}>
             ^{token}
             <label for=email>Email
-            <input #email name=email type=email>
+            <input #email name=email type=email required>
             <label for=password>Password
-            <input #password name=password type=password>
+            <input #password name=password type=password required>
             <label for=confirm>Confirm password
-            <input #confirm name=confirm type=password>
+            <input #confirm name=confirm type=password required>
             <br>
             <button type=submit class=btn>Register
