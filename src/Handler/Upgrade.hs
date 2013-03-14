@@ -18,7 +18,7 @@ getUpgradeRootR = do
     code <- fmap (semesterCode . entityVal . head) $
         runDB $ selectList [SemesterActive ==. True]
                            [Desc SemesterCode, LimitTo 1]
-    redirectUltDest $ UpgradeR code
+    redirect $ UpgradeR code
 
 getUpgradeR :: Text -> Handler RepHtml
 getUpgradeR code = do
@@ -63,7 +63,7 @@ postUpgradeR code = do
                 setSession upgradeInfoKey "Transaction successful! (Note to self: send a confirmation email)"
             Right err -> do
                 setSession upgradeErrorKey $ errorMessage err
-        redirectUltDest $ UpgradeR code
+        redirect $ UpgradeR code
 
 getPrice :: PrivilegeLevel -> PrivilegeLevel -> Int
 getPrice current target = price target - price current

@@ -59,15 +59,15 @@ postSettingsR = do
                 if T.length passwd < 8
                     then do
                         setSession passwordErrorKey passwordTooShort
-                        redirectUltDest SettingsR
+                        redirect SettingsR
                     else do
                         changePassword userId passwd
                         setSession passwordInfoKey
                             "Your password has been updated."
-                        redirectUltDest SettingsR
+                        redirect SettingsR
             _ -> do
                 setSession passwordErrorKey passwordMismatch
-                redirectUltDest SettingsR
+                redirect SettingsR
         _ -> invalidArgs []
 
 updatePhoneNum :: UserId -> Maybe Text -> Handler RepHtml
@@ -77,7 +77,7 @@ updatePhoneNum userId mRawPhoneNum = do
         Just Nothing -> do
             setSession phoneErrorKey
                 "Please enter a valid phone number."
-            redirectUltDest SettingsR
+            redirect SettingsR
         -- Valid phone number.
         Just (Just phoneNum) -> do
             -- note to self, actually check if they are able to sms
@@ -85,12 +85,12 @@ updatePhoneNum userId mRawPhoneNum = do
             -- is correct
             runDB $ update userId [UserPhoneNum =. Just phoneNum]
             setSession phoneInfoKey "Peter still needs to verify you are able to send SMS notifications..."
-            redirectUltDest SettingsR
+            redirect SettingsR
         -- Phone number was removed.
         Nothing -> do
             runDB $ update userId [UserPhoneNum =. Nothing]
             setSession phoneInfoKey "Phone number removed"
-            redirectUltDest SettingsR
+            redirect SettingsR
     where
         validatePhoneNum phoneNum = case T.take 2 phoneNum of
             "+1" -> _validatePhoneNum $ T.drop 2 phoneNum

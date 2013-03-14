@@ -66,7 +66,7 @@ postHomeR :: Handler RepHtml
 postHomeR = do
     mUser <- currentUser
     case mUser of
-        Nothing -> redirectUltDest HomeR
+        Nothing -> redirect HomeR
         Just (Entity userId _) -> do
             (postType, crn) <- runInputPost $ (,)
                 <$> ireq textField "method"
@@ -75,7 +75,7 @@ postHomeR = do
                 "add" -> addCrn userId crn >>= setSessionWith addErrorKey
                 "remove" -> removeCrn userId crn
                 _ -> setSession addErrorKey formError
-            redirectUltDest HomeR
+            redirect HomeR
 
 getSearchR :: Handler RepHtml
 getSearchR = do

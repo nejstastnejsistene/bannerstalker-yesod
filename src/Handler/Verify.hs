@@ -71,7 +71,7 @@ getVerifyR userId verKey = do
                         doLogin userId
                         return True
     if success
-        then redirectUltDest HomeR
+        then redirect HomeR
         else defaultLayout [whamlet|
 <h3>This link is expired
 <p .lead>

@@ -36,7 +36,7 @@ getRegisterR :: Handler RepHtml
 getRegisterR = do
     -- Redirect to home if already logged in.
     mUser <- currentUser
-    when (isJust mUser) $ redirectUltDest HomeR
+    when (isJust mUser) $ redirect HomeR
     -- Create form and display page.
     mErrorMessage <- getSessionWith registerErrorKey
     deleteSession registerErrorKey
@@ -71,7 +71,7 @@ postRegisterR = do
             $(widgetFile "verification-sent")
         _ -> do
             setSessionWith registerErrorKey mErrorMessage
-            redirectUltDest RegisterR
+            redirect RegisterR
 
 registerUser :: Text -> Text -> Handler ()
 registerUser email passwd = do
@@ -100,7 +100,7 @@ getLoginR :: Handler RepHtml
 getLoginR = do
     -- Redirect to home if already logged in.
     mUser <- currentUser
-    when (isJust mUser) $ redirectUltDest HomeR
+    when (isJust mUser) $ redirect HomeR
     -- Create form and display page.
     mErrorMessage <- getSessionWith loginErrorKey
     deleteSession loginErrorKey
@@ -128,10 +128,10 @@ postLoginR = do
                     else return $ Just badLoginCombo
                 else return $ Just "you're account isn't verified yet, [here] is a link..."
     case mErrorMessage of
-        Nothing -> redirectUltDest HomeR
+        Nothing -> redirect HomeR
         _ -> do
             setSessionWith loginErrorKey mErrorMessage
-            redirectUltDest LoginR
+            redirect LoginR
 
 getLogoutR :: Handler RepHtml
 getLogoutR = postLogoutR
@@ -139,7 +139,7 @@ getLogoutR = postLogoutR
 postLogoutR :: Handler RepHtml
 postLogoutR = do
     doLogout
-    redirectUltDest HomeR
+    redirect HomeR
 
 forgotPasswordErrorKey :: Text
 forgotPasswordErrorKey = "_ForgotPasswordR_mErrorMessage"
@@ -148,7 +148,7 @@ getForgotPasswordR :: Handler RepHtml
 getForgotPasswordR = do
     mUser <- currentUser
     case mUser of
-        Just _ -> redirectUltDest SettingsR
+        Just _ -> redirect SettingsR
         Nothing -> do
             mErrorMessage <- getSessionWith forgotPasswordErrorKey
             deleteSession forgotPasswordErrorKey
@@ -160,21 +160,21 @@ postForgotPasswordR :: Handler RepHtml
 postForgotPasswordR = do
     mCurrUser <- currentUser
     case mCurrUser of
-        Just _ -> redirectUltDest SettingsR
+        Just _ -> redirect SettingsR
         Nothing -> do
             email <- runInputPost $ ireq emailField "email"
             mUser <- runDB $ getBy $ UniqueEmail email
             case mUser of
                 Nothing -> do
                     setSession forgotPasswordErrorKey "Email doesn't exist"
-                    redirectUltDest ForgotPasswordR
+                    redirect ForgotPasswordR
                 Just (Entity userId user) -> do
                     render <- getUrlRender
                     tm <- getRouteToMaster
                     let verKey = T.splitOn "|" (userPassword user) !! 4
                         verUrl = render $ tm $ ResetPasswordR userId verKey
                     sendPasswordReset email verUrl
-                    redirectUltDest ResetSentR
+                    redirect ResetSentR
 
 sendPasswordReset :: Text -> Text -> Handler ()
 sendPasswordReset email verUrl =
@@ -200,7 +200,7 @@ getResetPasswordR :: UserId -> Text -> Handler RepHtml
 getResetPasswordR userId verKey = do
     mCurrUser <- currentUser
     case mCurrUser of
-        Just _ -> redirectUltDest SettingsR
+        Just _ -> redirect SettingsR
         Nothing -> do
             mUser <- confirmPasswdHash userId verKey
             case mUser of
@@ -216,7 +216,7 @@ postResetPasswordR :: UserId -> Text -> Handler RepHtml
 postResetPasswordR userId verKey = do
     mCurrUser <- currentUser
     case mCurrUser of
-        Just _ -> redirectUltDest SettingsR
+        Just _ -> redirect SettingsR
         Nothing -> do
             mUser <- confirmPasswdHash userId verKey
             case mUser of
@@ -228,10 +228,10 @@ postResetPasswordR userId verKey = do
                     if passwd == confirm then do
                         changePassword userId passwd
                         doLogin userId
-                        redirectUltDest HomeR
+                        redirect HomeR
                     else do
                         setSession resetPasswordErrorKey passwordMismatch
-                        redirectUltDest $ ResetPasswordR userId verKey
+                        redirect $ ResetPasswordR userId verKey
 
 confirmPasswdHash :: UserId -> Text -> Handler (Maybe User)
 confirmPasswdHash userId verKey= do
