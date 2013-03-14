@@ -10,8 +10,8 @@
     <li :route == PricingR:.active>
         <a href=@{PricingR}>Pricing
     $maybe _ <- mUser
-        <li :route == UpgradeR:.active>
-            <a href=@{UpgradeR}>Upgrade
+        <li :fst (splitAt 7 $ show route) == "Upgrade":.active>
+            <a href=@{UpgradeRootR}>Upgrade
         <li :route == SettingsR:.active>
             <a href=@{SettingsR}>Account
         <li>

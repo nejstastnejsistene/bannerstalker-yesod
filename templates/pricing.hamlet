@@ -43,5 +43,5 @@
         <tr>
             <th>
             <td colspan=3>
-                <form method=get action=@{UpgradeR}>
+                <form method=get action=@{UpgradeRootR}>
                     <button type=submit .btn .btn-large .btn-primary .btn-fill>Upgrade now!

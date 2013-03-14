@@ -71,7 +71,7 @@
                         $nothing
                             <p .text-error>Enter a phone number to enable SMS notifications!
                     $else
-                        < .text-error>Upgrade to enable SMS notifications!
+                        <p .text-error>Upgrade to enable SMS notifications!
                 <label for=interval>Update interval
                 $case priv
                     $of Level1
@@ -96,4 +96,4 @@
                 <a href=@{PricingR}>Learn more
                 \ or
                 <br>
-                <a href=@{UpgradeR} .btn .btn-large .btn-primary>Upgrade now
+                <a href=@{UpgradeR code} .btn .btn-large .btn-primary>Upgrade now

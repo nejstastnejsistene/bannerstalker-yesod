@@ -21,7 +21,8 @@
 
 /search                     SearchR GET
 /account                    SettingsR GET POST
-/upgrade                    UpgradeR GET POST
+/upgrade                    UpgradeRootR GET
+/upgrade/#Text              UpgradeR GET POST
 /pricing                    PricingR GET
 /about                      AboutR GET
 

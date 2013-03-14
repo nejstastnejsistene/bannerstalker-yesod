@@ -66,13 +66,20 @@ type Form x = Html -> MForm App App (FormResult x, Widget)
 instance Yesod App where
     approot = ApprootMaster $ appRoot . settings
 
+    -- Admin pages.
     isAuthorized AdminR _ = isAdmin
     isAuthorized AdminUsersR _ = isAdmin
     isAuthorized (AdminEditUserR _) _ = isAdmin
     isAuthorized AdminSemestersR _ = isAdmin
+
+    -- Must be logged in.
     isAuthorized SearchR _ = isLoggedIn
     isAuthorized SettingsR _ = isLoggedIn
-    isAuthorized UpgradeR _ = isLoggedIn
+    isAuthorized UpgradeRootR _ = isLoggedIn
+    isAuthorized (UpgradeR _) _ = isLoggedIn
+    isAuthorized HomeR True = isLoggedIn
+
+    -- Always accessable.
     isAuthorized AboutR _ = return Authorized
     isAuthorized PricingR _ = return Authorized
     isAuthorized RegisterR _ = return Authorized
@@ -80,7 +87,7 @@ instance Yesod App where
     isAuthorized (VerifyR _ _) _ = return Authorized
     isAuthorized LoginR _ = return Authorized
     isAuthorized LogoutR _ = return Authorized
-    isAuthorized HomeR _ = return Authorized
+    isAuthorized HomeR False = return Authorized
     isAuthorized (StaticR _) _ = return Authorized
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
