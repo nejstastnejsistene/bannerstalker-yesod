@@ -133,8 +133,14 @@ removeCrn userId crn = runDB $ do
     mSection <- getBy $ UniqueCrn crn
     case mSection of
         Nothing -> return ()
-        Just (Entity sectionId _) ->
-            deleteBy $ UniqueRequest sectionId userId
+        Just (Entity sectionId _) -> do
+            mSectionRequest <- getBy $ UniqueRequest sectionId userId
+            case mSectionRequest of
+                Nothing -> return ()
+                Just (Entity reqId _) -> do
+                    deleteWhere [NotificationRequestId ==. reqId]
+                    delete reqId
+                    return ()
 
 iterSections :: [Section] -> (Int -> Widget) -> Handler Widget
 iterSections sections crnWidget = do
