@@ -15,7 +15,7 @@ $newline never
         <meta property="og:title" content="Bannerstalker" />
         <meta property="og:type" content="product" />
         <meta property="og:url" content="@{HomeR}" />
-        <meta property="og:image" content="" />
+        <meta property="og:image" content="@{StaticR img_logo_square_png}" />
         <meta property="og:site_name" content="Bannerstalker" />
         <meta property="fb:admins" content="1356458620" />
 
@@ -38,6 +38,8 @@ $newline never
     <body>
         <div class="container">
             <header>
+                <a href=@{HomeR}>
+                    <img width=600 src=@{StaticR img_logo_png}>
             <div id="main" role="main">
               ^{pageBody pc}
             <footer>
