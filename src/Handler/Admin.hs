@@ -1,13 +1,20 @@
 module Handler.Admin where
 
 import Import
+import Control.Monad
 import Data.Maybe
 import qualified Data.Text as T
+
+import Admin
 
 getAdminR :: Handler RepHtml
 getAdminR = defaultLayout $ do
     setTitle "Admin"
     $(widgetFile "admin")
+
+adminUsersInfoKey, adminUsersErrorKey :: Text
+adminUsersInfoKey = "_AdminUsersR_mInfoMessage"
+adminUsersErrorKey = "_AdminUsersR_mInfoMessage"
 
 getAdminUsersR :: Handler RepHtml
 getAdminUsersR = do
@@ -16,16 +23,19 @@ getAdminUsersR = do
         setTitle "Users"
         $(widgetFile "admin-users")
 
+adminEditUserInfoKey, adminEditUserErrorKey :: Text
+adminEditUserInfoKey = "_AdminEditUserR_mInfoMessage"
+adminEditUserErrorKey = "_AdminEditUserR_mErrorMessage"
+
 data SemesterPriv = SemesterPriv Text Text PrivilegeLevel
 
 getAdminEditUserR :: UserId -> Handler RepHtml
-getAdminEditUserR userId = getAdminEditUserHelper userId Nothing
-
-getAdminEditUserHelper :: UserId -> Maybe Text -> Handler RepHtml
-getAdminEditUserHelper userId mErrorMessage = do
+getAdminEditUserR userId = do
     mUser <- runDB $ get userId
     case mUser of
-        Nothing -> defaultLayout [whamlet|<h1>User does not exist!|]
+        Nothing -> do
+            setSession adminUsersErrorKey "User does not exist!"
+            redirect AdminUsersR
         Just user -> do
             s <- runDB $ selectList [SemesterActive ==. True] []
             p <- runDB $ selectList [PrivilegeUserId ==. userId] []
@@ -33,60 +43,87 @@ getAdminEditUserHelper userId mErrorMessage = do
                              | Entity sId1 (Semester code name _) <- s
                              , Entity _ (Privilege _ sId2 level) <- p
                              , sId1 == sId2 ]           
+            requests <- runDB $ selectList
+                [SectionRequestUserId ==. userId] []
+            let reqIds = map entityKey requests :: [SectionRequestId]
+                reqVals = map entityVal requests :: [SectionRequest]
+                reqMap = [ (sectionRequestSectionId v, k)
+                         | Entity k v <- requests ]
+            sections <- runDB $ selectList
+                [SectionId <-. map sectionRequestSectionId reqVals] []
+            notifications <- runDB $ selectList
+                [NotificationRequestId <-. reqIds] []
+            let sectionsMap = [(k, v) | Entity k v <- sections]
+                notificationsMap = [ (notificationRequestId v, v)
+                                   | Entity _ v <- notifications ]
+            notificationLogs <- fmap (map entityVal) $ runDB $ selectList
+                [NotificationLogUserId ==. Just userId]
+                [Desc NotificationLogTimestamp]
+            mInfoMessage <- getSessionWith adminEditUserInfoKey
+            mErrorMessage <- getSessionWith adminEditUserErrorKey
+            deleteSession adminEditUserInfoKey
+            deleteSession adminEditUserErrorKey
             defaultLayout $ do
                 setTitle "Edit User"
                 $(widgetFile "admin-edit-user")
 
 postAdminEditUserR :: UserId -> Handler RepHtml
 postAdminEditUserR userId = do
+    user <- fmap fromJust $ runDB $ get userId
     (postData, _) <- runRequestBody
-    mErrorMessage <- case fromJust $ lookup "type" postData of
-        "basic" -> do
-            let verified = lookup "verified" postData == Just "yes"
-                admin = lookup "admin" postData == Just "yes"
-            runDB $ do
-                ver <- fmap (userVerified . fromJust) $ get userId
-                if (ver && not verified)
-                    then return $ Just "Why would you unverify someone?"
-                    else do
-                        update userId [ UserVerified =. verified
-                                      , UserAdmin =. admin]
-                        return Nothing
+    case fromJust $ lookup "type" postData of
+        "admin" -> do
+            runDB $ update userId [UserAdmin =. (not $ userAdmin user)]
+            setSession adminEditUserInfoKey $ case not $ userAdmin user of
+                True -> "Promoted to admin."
+                False -> "Admin revoked."
+            redirect $ AdminEditUserR userId
         "privileges" -> do
-            let updatePriv (key, value) = do
-                    let (priv, code) = T.splitAt 4 key
-                    case priv of
-                        "priv" -> runDB $ do
-                            semId <- fmap (entityKey . fromJust) $
-                                            getBy $ UniqueSemester code
-                            updateWhere [ PrivilegeUserId ==. userId
-                                        , PrivilegeSemester ==. semId ]
-                                [PrivilegeLevel =. (read $ T.unpack value)]
-                            return ()
-                        _ -> return ()
+            let updatePriv (code, value) =
+                    when (code /= "type") $ runDB $ do
+                        semesterId <- fmap (entityKey . fromJust) $
+                            getBy $ UniqueSemester code
+                        updateWhere [ PrivilegeUserId ==. userId
+                                    , PrivilegeSemester ==. semesterId ]
+                                    [ PrivilegeLevel =. (read $ T.unpack value)]
             mapM_ updatePriv postData
-            return Nothing
+            setSession adminEditUserInfoKey "Privileges were updated."
+            redirect $ AdminEditUserR userId
         "delete" -> do
-            email <- fmap (userEmail . fromJust) $ runDB $ get userId
             let mEmail = lookup "email" postData
                 check1 = lookup "check1" postData == Just "yes"
                 check2 = lookup "check2" postData == Just "yes" 
                 check3 = lookup "check3" postData == Just "yes"
-            if (mEmail == Just email && check1 && check2 && check3)
-                then runDB $ do
-                    reqIds <- fmap (map entityKey) $
-                        selectList [SectionRequestUserId ==. userId] []
-                    deleteWhere [NotificationRequestId <-. reqIds]
-                    mapM_ delete reqIds
-                    deleteWhere [NotificationLogUserId ==. userId]
-                    deleteWhere [SmsVerificationUserId ==. userId]
-                    deleteWhere [EmailVerificationUserId ==. userId]
-                    deleteWhere [PrivilegeUserId ==. userId]
-                    delete userId
-                    return Nothing
-                else return $ Just "Delete user: missed some safeguards."
-        _ -> return $ Just "unknown type"
-    getAdminEditUserHelper userId mErrorMessage
+            if (mEmail == Just (userEmail user) && check1 && check2 && check3)
+                then do
+                    deleteUser userId
+                    setSession adminUsersInfoKey $ T.concat
+                        ["User ", userEmail user, " was deleted successfully."]
+                    redirect AdminUsersR
+                else do
+                    setSession adminEditUserErrorKey
+                        "Delete user: missed some safeguards."
+                    redirect $ AdminEditUserR userId
+        "toggle" -> do
+            let crn = read $ T.unpack $
+                        fromJust $ lookup "crn" postData :: Int
+            Entity sectionId section <- fmap fromJust $
+                runDB $ getBy $ UniqueCrn crn
+            runDB $ updateWhere [SectionCrn ==. crn]
+                                [SectionCurrStatus =. Unavailable]
+            runDB $ updateWhere [SectionRequestUserId ==. userId
+                                ,SectionRequestSectionId ==. sectionId]
+                                [SectionRequestLastStatus =.
+                                    case sectionCurrStatus section of
+                                        Open -> Closed
+                                        Closed -> Open
+                                        Unavailable -> error "wtf"]
+            setSession adminEditUserInfoKey $ "Status toggled... Wait for the daemon's next iteration for a notification to be sent or queued."
+            redirect $ AdminEditUserR userId
+        action -> do
+            setSession adminEditUserErrorKey $ T.concat
+                ["Unknown action: ",  action]
+            redirect $ AdminEditUserR userId
 
 addSemesterForm :: FormInput App App Semester
 addSemesterForm = Semester

@@ -13,7 +13,8 @@ Flag library-only
 
 library
     hs-source-dirs:  src
-    exposed-modules: Application
+    exposed-modules: Admin
+                     Application
                      Email
                      Foundation
                      Import

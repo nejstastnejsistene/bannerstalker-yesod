@@ -1,3 +1,7 @@
+$maybe infoMessage <- mInfoMessage
+    <div .alert .alert-info>
+        <strong>Info
+        _{infoMessage}
 $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>
         <strong>Oh god...
@@ -5,37 +9,24 @@ $maybe errorMessage <- mErrorMessage
 <div .row>
     <div .span4>
         <h3>Basic Information
-        <form method=post>
-            <input type=hidden name=type value=basic>
-            <label for=email>Email
-            <input #email type=email disabled placeholder=#{userEmail user}>
-            <label .checkbox>
-                <input name=verified type=checkbox value=yes :userVerified user:checked>Verified
-            <label .checkbox>
-                <input name=admin type=checkbox value=yes :userAdmin user:checked>Admin
-            <button type=submit .btn>Submit changes
-    <div .span4>
-        <h3>Settings
-        <label for=phoneNum>Phone number
+        <label for=email>Email
+        <input #email type=email disabled placeholder=#{userEmail user}>
+        <label for=phoneNum>Phone Number
         $maybe phoneNum <- (userPhoneNum user)
             <input #phoneNum type=tel disabled value=#{phoneNum}>
         $nothing
             <input #phoneNum type=tel disabled>
-    <div .span4>
-        <h3>Delete user
+        <label .checkbox>
+            <input name=verified type=checkbox value=yes :userVerified user:checked>Verified
+        <label .checkbox>
+            <input name=admin type=checkbox value=yes :userAdmin user:checked>Admin
         <form method=post>
-            <input type=hidden name=type value=delete>
-            <div .required>
-                <label for=email>Enter their email address.
-                <input #email name=email type=email>
-            <label .checkbox>
-                <input name=check1 type=checkbox value=yes>Are you sure?
-            <label .checkbox>
-                <input name=check2 type=checkbox value=yes>This can't be undone.
-            <label .checkbox>
-                <input name=check3 type=checkbox value=yes>Don't be a dumbass.
-            <button type=submit .btn .btn-danger>Delete user
-<div .row>
+            <input type=hidden name=type value=admin>
+            <button type=submit .btn>
+                $if userAdmin user
+                    Promote to admin
+                $else
+                    Revoke admin
     <div .span8>
         <h3>Privileges
         <form #priv method=post>
@@ -48,32 +39,70 @@ $maybe errorMessage <- mErrorMessage
                     <tr>
                         <td>#{name}
                         <td>
-                            <select name=priv#{code} form=priv>
-                                <option value=Level1 :level == Level1:selected=selected>Level1
-                                <option value=Level2 :level == Level2:selected=selected>Level2
-                                <option value=Level3 :level == Level3:selected=selected>Level3
+                            <select name=#{code} form=priv>
+                                <option value=Level1 :level == Level1:selected=selected>Silver
+                                <option value=Level2 :level == Level2:selected=selected>Gold
+                                <option value=Level3 :level == Level3:selected=selected>Platinum
                                 <option value=Admin :level == Admin:selected>Admin
             <button type=submit .btn>Submit changes
-    <div .span4>
-        <h3>Requests
-        <table .table>
-            <tr>
-                <th>Semester
-                <th>CRN
 <div .row>
-    <div .span6>
-        <h3>Queued Notifications
-        <table .table>
-                <th>Time
-                <th>Semester
-                <th>CRN
-                <th>Recipient
-    <div .span6>
+    <div .span4>
+        <h3>Delete user
+        <form method=post>
+            <input type=hidden name=type value=delete>
+            <label for=email>Enter their email address.
+            <input #email name=email type=email required pattern="#{userEmail user}">
+            <label .checkbox>
+                <input name=check1 type=checkbox value=yes required>Are you sure?
+            <label .checkbox>
+                <input name=check2 type=checkbox value=yes required>This can't be undone.
+            <label .checkbox>
+                <input name=check3 type=checkbox value=yes required>Don't be a dumbass.
+            <button type=submit .btn .btn-danger>Delete user
+    <div .span8>
+        <h3>Requests
+        <div .scrollable> 
+            <table .table>
+                <tr>
+                    <th>CRN
+                    <th>Current status
+                    <th>Last status
+                    <th>Queued notification
+                    <th>
+                $forall SectionRequest sectionId _ lastStatus <- reqVals
+                    <tr>
+                        $maybe section <- lookup sectionId sectionsMap
+                            <td>#{sectionCrn section}
+                            <td>#{show $ sectionCurrStatus section}
+                            <td>#{show lastStatus}
+                            <td>
+                                $maybe reqId <- lookup sectionId reqMap
+                                    $maybe notification <- lookup reqId notificationsMap
+                                        #{show $ notificationTime notification}
+                            <td>
+                                <form method=post>
+                                    <input type=hidden name=type value=toggle>
+                                    <input type=hidden name=crn value=#{sectionCrn section}>
+                                    <button type=submit .btn>Toggle status
+<div .row>
+    <div .span12>
         <h3>Sent Notifications
-        <table .table>
-            <tr>
-                <th>Time
-                <th>CRN
-                <th>Recipient
-                <th>Status
-                <th>Error
+        <div .scrollable>
+            <table #sent-notifications .table>
+                <tr>
+                    <th>Time
+                    <th>CRN
+                    <th>Type
+                    <th>Recipient
+                    <th>Status
+                    <th>Error
+                $forall NotificationLog timestamp crn t _ recipient status mError <- notificationLogs
+                    <tr>
+                        <td>#{show timestamp}
+                        <td>#{crn}
+                        <td>#{show t}
+                        <td>#{recipient}
+                        <td>#{show status}
+                        <td>
+                            $maybe e <- mError 
+                                #{e}

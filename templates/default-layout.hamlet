@@ -22,11 +22,7 @@
         <li :route == LoginR:.active>
             <a href=@{LoginR}>Login
 $if adminRoute
-    <div .alert .alert-warning>
-        <strong>Watch your step.
-        These pages are pretty shit. But hey, the user should never see
-        \ them so what the hell.
-    <h1>Admin Pages
+    <h3>Admin Pages
     <ul .nav .nav-pills>
         <li :route == AdminR:.active>
             <a href=@{AdminR}>Home

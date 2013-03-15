@@ -16,11 +16,6 @@ EmailVerification
     verKey      Text
     UniqueUserEmailVer userId
     deriving    Show
-SmsVerification
-    userId      UserId
-    verKey      Text
-    UniqueUserSmsVer userId
-    deriving    Show
 Section
     semester    SemesterId
     crn         Int
@@ -60,8 +55,9 @@ HistoryLog
     deriving    Show
 NotificationLog
     timestamp   UTCTime
+    crn         Int
     type        NotificationType
-    userId      UserId
+    userId      UserId Maybe
     recipient   Text
     status      RequestStatus
     error       Text Maybe
