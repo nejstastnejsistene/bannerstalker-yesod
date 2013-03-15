@@ -128,7 +128,7 @@ postLoginR = do
                     else return $ Just badLoginCombo
                 else return $ Just "you're account isn't verified yet, [here] is a link..."
     case mErrorMessage of
-        Nothing -> redirect HomeR
+        Nothing -> redirectUltDest HomeR
         _ -> do
             setSessionWith loginErrorKey mErrorMessage
             redirect LoginR
