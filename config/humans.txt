@@ -8,6 +8,7 @@ Mike Pozulp and Nathan Schaaf for lot of help along the way.
 Also my family and krásná holka, Petra Aschermannová for feedback and support :)
 
 /* SITE */
+Version: v0.1.19
 Frontend: jQuery, Bootstrap
 Backend: Haskell (Yesod, http-conduit)
 Services used: Stripe, Twilio, AmazonSES
