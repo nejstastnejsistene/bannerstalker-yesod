@@ -140,20 +140,18 @@ bannerstalkerd extra dbConf manager = do
             
         -- Adds or removes notifications to keep them up to date.
         updateNotifications semester currStatus (Entity reqId req) = do
-            -- The last status the user was notified of.
-            if sectionRequestLastStatus req == currStatus
-                -- Status is unchanged, delete notification.
-                then deleteBy $ UniqueReqId reqId
-                -- Insert a new notification.
-                else do
-                    let userId = sectionRequestUserId req
-                    user <- fmap fromJust $ get userId
-                    priv <- fmap (entityVal . fromJust) $ getBy $
-                        UniquePrivilege userId semester
-                    sendTime <- liftIO $ nextNotificationTime $
-                        getNotifyInterval extra $ privilegeLevel priv
-                    insert $ Notification reqId sendTime
-                    return ()
+            -- Delete any previous notifications.
+            deleteBy $ UniqueReqId reqId
+            -- Insert a new notification if the statuses are unequal.
+            when (sectionRequestLastStatus req /= currStatus) $ do
+                let userId = sectionRequestUserId req
+                user <- fmap fromJust $ get userId
+                priv <- fmap (entityVal . fromJust) $ getBy $
+                    UniquePrivilege userId semester
+                sendTime <- liftIO $ nextNotificationTime $
+                    getNotifyInterval extra $ privilegeLevel priv
+                insert $ Notification reqId sendTime
+                return ()
 
         -- Construct an immediate notification for new requests.
         notifyNewRequests = do

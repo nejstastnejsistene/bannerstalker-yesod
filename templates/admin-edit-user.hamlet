@@ -68,7 +68,6 @@ $maybe errorMessage <- mErrorMessage
                     <th>Current status
                     <th>Last status
                     <th>Queued notification
-                    <th>
                 $forall SectionRequest sectionId _ lastStatus <- reqVals
                     <tr>
                         $maybe section <- lookup sectionId sectionsMap
@@ -79,11 +78,6 @@ $maybe errorMessage <- mErrorMessage
                                 $maybe reqId <- lookup sectionId reqMap
                                     $maybe notification <- lookup reqId notificationsMap
                                         #{show $ notificationTime notification}
-                            <td>
-                                <form method=post>
-                                    <input type=hidden name=type value=toggle>
-                                    <input type=hidden name=crn value=#{sectionCrn section}>
-                                    <button type=submit .btn>Toggle status
 <div .row>
     <div .span12>
         <h3>Sent Notifications

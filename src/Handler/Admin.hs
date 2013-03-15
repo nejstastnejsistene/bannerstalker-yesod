@@ -104,22 +104,6 @@ postAdminEditUserR userId = do
                     setSession adminEditUserErrorKey
                         "Delete user: missed some safeguards."
                     redirect $ AdminEditUserR userId
-        "toggle" -> do
-            let crn = read $ T.unpack $
-                        fromJust $ lookup "crn" postData :: Int
-            Entity sectionId section <- fmap fromJust $
-                runDB $ getBy $ UniqueCrn crn
-            runDB $ updateWhere [SectionCrn ==. crn]
-                                [SectionCurrStatus =. Unavailable]
-            runDB $ updateWhere [SectionRequestUserId ==. userId
-                                ,SectionRequestSectionId ==. sectionId]
-                                [SectionRequestLastStatus =.
-                                    case sectionCurrStatus section of
-                                        Open -> Closed
-                                        Closed -> Open
-                                        Unavailable -> error "wtf"]
-            setSession adminEditUserInfoKey $ "Status toggled... Wait for the daemon's next iteration for a notification to be sent or queued."
-            redirect $ AdminEditUserR userId
         action -> do
             setSession adminEditUserErrorKey $ T.concat
                 ["Unknown action: ",  action]
