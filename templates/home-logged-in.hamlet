@@ -1,3 +1,4 @@
+$newline never
 $maybe mainError <- mMainError
     <div .alert .alert-error>
         <i .icon-exclamation-sign>

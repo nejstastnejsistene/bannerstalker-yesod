@@ -1,3 +1,4 @@
+$newline never
 <div .row>
     <div .span8>
         <div .hero-unit>

@@ -150,6 +150,7 @@ addCrnForm :: Handler (Int -> Widget)
 addCrnForm = do
     token <- getToken
     return (\crn -> [whamlet|
+$newline never
 <form method=post action=@{HomeR}>
     ^{token}
     <input type=hidden name=method value=add>
@@ -163,6 +164,7 @@ removeCrnForm :: Handler (Int -> Widget)
 removeCrnForm = do
     token <- getToken
     return (\crn -> [whamlet|
+$newline never
 <form method=post action=@{HomeR}>
     ^{token}
     <input type=hidden name=method value=remove>

@@ -1,3 +1,4 @@
+$newline never
 $maybe infoMessage <- mInfoMessage
     <div .alert .alert-info>
         <strong>Info

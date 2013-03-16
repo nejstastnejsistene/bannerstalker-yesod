@@ -1,3 +1,4 @@
+$newline never
 <h1>Register
 $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>

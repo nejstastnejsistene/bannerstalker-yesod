@@ -1,3 +1,4 @@
+$newline never
 <h1>
     <img .logo src=@{StaticR img_binoculars_svg}>
     Bannerstalker

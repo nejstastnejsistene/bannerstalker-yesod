@@ -1,3 +1,4 @@
+$newline never
 <h2>Search for CRNs
 <form .form-inline method=get action=@{SearchR}>
     ^{subjectWidget}

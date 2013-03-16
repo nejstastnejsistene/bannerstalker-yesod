@@ -73,6 +73,7 @@ getVerifyR userId verKey = do
     if success
         then redirect HomeR
         else defaultLayout [whamlet|
+$newline never
 <h3>This link is expired
 <p .lead>
     Request another one

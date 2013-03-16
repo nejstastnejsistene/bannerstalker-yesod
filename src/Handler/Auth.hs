@@ -252,6 +252,7 @@ changePassword userId passwd = do
 
 expiredResetLink :: Handler RepHtml
 expiredResetLink = defaultLayout [whamlet|
+$newline never
 <h3>This link is expired
 <p>
     Request another one
