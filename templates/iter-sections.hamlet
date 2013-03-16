@@ -18,6 +18,7 @@
             <td .hidden-phone .hidden-tablet>#{day}
             <td>
                 <div .alert :stat == Open:.alert-success :stat == Closed:.alert-error>
+                    <i :stat == Open:.icon-ok :stat == Closed:.icon-remove>
                     <strong>#{stat}
             <td>
                 ^{crnWidget crn}

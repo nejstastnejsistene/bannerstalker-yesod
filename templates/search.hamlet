@@ -1,7 +1,9 @@
 <h2>Search for CRNs
 <form .form-inline method=get action=@{SearchR}>
     ^{subjectWidget}
-    <button type=submit .btn>Search
+    <button type=submit .btn>
+        <i .icon-search>
+        Search
 $forall Semester code name _ <- semesters
     <h3>#{name}
     $maybe sectionsWidget <- lookup code semestersMap

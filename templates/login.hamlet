@@ -1,13 +1,21 @@
 <h1>Login
 $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>
-        <strong>Uh-oh!
+        <i .icon-exclamation-sign>
         #{errorMessage}
 <form method=post action=@{LoginR}>
     <label for=email>Email
-    <input #email name=email type=email required>
+    <div .input-prepend>
+        <span .add-on>
+            <i .icon-envelope>
+        <input #email name=email type=email required>
     <label for=password>Password
-    <input #password name=password type=password required>
+    <div .input-prepend>
+        <span .add-on>
+            <i .icon-key>
+        <input #password name=password type=password required>
     <br>
-    <button type=submit class=btn>Login
-<a href=@{ForgotPasswordR}>Forget password?
+    <button type=submit class=btn>
+        <i .icon-share-alt>
+        Login
+<a href=@{ForgotPasswordR}>Forget your password?

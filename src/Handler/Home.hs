@@ -154,7 +154,9 @@ addCrnForm = do
     ^{token}
     <input type=hidden name=method value=add>
     <input type=hidden name=crn value=#{crn}>
-    <button type=submit .btn .btn-small>Add CRN
+    <button type=submit .btn .btn-small>
+        <i .icon-plus-sign>
+        Add CRN
 |])
 
 removeCrnForm :: Handler (Int -> Widget)
@@ -165,7 +167,9 @@ removeCrnForm = do
     ^{token}
     <input type=hidden name=method value=remove>
     <input type=hidden name=crn value=#{crn}>
-    <button type=submit .btn .btn-small>Remove CRN
+    <button type=submit .btn .btn-small>
+        <i .icon-remove>
+        Remove CRN
 |])
 
 selectSubject :: Handler Widget

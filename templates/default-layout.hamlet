@@ -1,29 +1,47 @@
-<div .masthead>
-    <ul .nav .nav-pills .pull-right>
-        <li :route == HomeR:.active>
-            <a href=@{HomeR}>Home
-        $maybe Entity _ user <- mUser
-            $if userAdmin user
-                <li :adminRoute:.active>
-                    <a href=@{AdminR}>Admin
-        <li :route == AboutR:.active>
-            <a href=@{AboutR}>About
-        <li :route == PricingR:.active>
-            <a href=@{PricingR}>Pricing
-        $maybe _ <- mUser
-            <li :fst (splitAt 7 $ show route) == "Upgrade":.active>
-                <a href=@{UpgradeRootR}>Upgrade
-            <li :route == SettingsR:.active>
-                <a href=@{SettingsR}>Account
-            <li>
-                <a href=@{LogoutR}>Logout
-        $nothing
-            <li :route == RegisterR:.active>
-                <a href=@{RegisterR}>Register
-            <li :route == LoginR:.active>
-                <a href=@{LoginR}>Login
-    <img .logo .pull-left src=@{StaticR img_binoculars_svg}>
-    <h2>Bannerstalker
+<h1>
+    <img .logo src=@{StaticR img_binoculars_svg}>
+    Bannerstalker
+<ul .nav .nav-pills>
+    <li :route == HomeR:.active>
+        <a href=@{HomeR}>
+            <i .icon-home>
+            Home
+    $maybe Entity _ user <- mUser
+        $if userAdmin user
+            <li :adminRoute:.active>
+                <a href=@{AdminR}>
+                    <i .icon-cogs>
+                    Admin
+    <li :route == AboutR:.active>
+        <a href=@{AboutR}>
+            <i .icon-question-sign>
+            About
+    <li :route == PricingR:.active>
+        <a href=@{PricingR}>
+            <i .icon-money>
+            Pricing
+    $maybe _ <- mUser
+        <li :fst (splitAt 7 $ show route) == "Upgrade":.active>
+            <a href=@{UpgradeRootR}>
+                <i .icon-gift>
+                Upgrade
+        <li :route == SettingsR:.active>
+            <a href=@{SettingsR}>
+                <i .icon-wrench>
+                Account
+        <li>
+            <a href=@{LogoutR}>
+                <i .icon-signout>
+                Logout
+    $nothing
+        <li :route == RegisterR:.active>
+            <a href=@{RegisterR}>
+                <i .icon-user>
+                Register
+        <li :route == LoginR:.active>
+            <a href=@{LoginR}>
+                <i .icon-signin>
+                Login
 $if adminRoute
     <h3>Admin Pages
     <ul .nav .nav-pills>

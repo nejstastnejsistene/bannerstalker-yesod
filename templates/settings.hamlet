@@ -2,63 +2,84 @@
     <div .span4>
         <h3>Account Settings
         $maybe phoneInfo <- mPhoneInfo
-            <div .alert .alert-info>
+            <div .alert .alert-success>
+                <i .icon-ok sign>
                 #{phoneInfo}
         $maybe phoneError <- mPhoneError
             <div .alert .alert-error>
-                <strong>Oops!
+                <i .icon-exclamation-sign>
                 #{phoneError}
         <form method=post>
         <label for=email>Email
-        <input #email type=email value=#{userEmail user} disabled>
+        <div .input-prepend>
+            <span .add-on>
+                <i .icon-envelope>
+            <input #email type=email value=#{userEmail user} disabled>
         <form method=post>
             ^{token}
             <input type=hidden name=method value=phone>
             <label for=phone>Phone Number
-            $maybe phoneNum <- userPhoneNum user
-                <input #phone type=tel name=phoneNum value=#{phoneNum}>
-                <br>
-            $nothing
-                <input #phone type=tel name=phoneNum>
+            <div .input-prepend>
+                <span .add-on>
+                    <i .icon-mobile-phone .icon-large>
+                $maybe phoneNum <- userPhoneNum user
+                    <input #phone type=tel name=phoneNum value=#{phoneNum}>
+                $nothing
+                    <input #phone type=tel name=phoneNum>
                 $if canSms
                     <p .text-error>
+                        <i .icon-exclamation-sign>
                         Enter your phone number to enable SMS notifications!
                 $else
                     <p .text-error>
+                        <i .icon-exclamation-sign>
                         Upgrade to enable SMS notifications!
-            <button type=submit .btn>Update phone number
+            <button type=submit .btn>
+                <i .icon-share-alt>
+                Update phone number
         <h3>Change Password
         $maybe passwordInfo <- mPasswordInfo
             <div .alert .alert-info>
+                <i .icon-exclamation-sign>
                 #{passwordInfo}
         $maybe passwordError <- mPasswordError
             <div .alert .alert-error>
-                <strong>Oops!
+                <i .icon-exclamation-sign>
                 #{passwordError}
         <form method=post>
             ^{token}
             <input type=hidden name=method value=password>
             <label for=password>New password
-            <input #password name=password type=password>
+            <div .input-prepend>
+                <span .add-on>
+                    <i .icon-key>
+                <input #password name=password type=password>
             <label for=confirm>Confirm new password
-            <input #confirm name=confirm type=password>
+            <div .input-prepend>
+                <span .add-on>
+                    <i .icon-key>
+                <input #confirm name=confirm type=password>
             <br>
-            <button type=submit .btn>Change password
+            <button type=submit .btn>
+                <i .icon-share-alt>
+                Change password
     $forall Semester code name _ <- semesters
         <div .span4>
             $with priv <- fromJust $ lookup code privMap
                 <h3>#{name}
                 <label for=level>User status
-                <p .text-info>#{code} #{show priv}
-                $case priv
-                    $of Level1
-                        <input #level type=text value="Free User"disabled>
-                    $of Level2
-                        <input #level type=text value="Limited User" disabled>
-                    $of Level3
-                        <input #level type=text value="Premium User" disabled>
-                    $of Admin
-                        <input #level type=text value="Admin" disabled>
+                <div .input-prepend>
+                    <span .add-on>
+                        <i .icon-user>
+                    $case priv
+                        $of Level1
+                            <input #level type=text value="Free User"disabled>
+                        $of Level2
+                            <input #level type=text value="Limited User" disabled>
+                        $of Level3
+                            <input #level type=text value="Premium User" disabled>
+                        $of Admin
+                            <input #level type=text value="Admin" disabled>
                 <label .checkbox>
                     <input type=checkbox disabled checked>
                         Email notifications
@@ -67,33 +88,48 @@
                         SMS notifications
                     $if priv > Level1
                         $maybe _ <- userPhoneNum user
-                            <p .text-success>Enabled!
+                            <p .text-success>
+                                <i .icon-exclamation-sign>
+                                Enabled!
                         $nothing
-                            <p .text-error>Enter a phone number to enable SMS notifications!
+                            <p .text-error>
+                                <i .icon-exclamation-sign>
+                                Enter a phone number to enable SMS notifications!
                     $else
-                        <p .text-error>Upgrade to enable SMS notifications!
+                        <p .text-error>
+                            <i .icon-exclamation-sign>
+                            Upgrade to enable SMS notifications!
                 <label for=interval>Update interval
-                $case priv
-                    $of Level1
-                        <input #interval type=text value="2 hours" disabled>
-                    $of Level2
-                        <input #interval type=text value="30 minutes" disabled>
-                    $of Level3
-                        <input #interval type=text value="5 minutes" disabled>
-                    $of Admin
-                        <input #interval type=text value="5 minutes" disabled>
-                <label for=limit>CRN limit
-                $case priv
-                    $of Level1
-                        <input #limit type=text value="1 at a time" disabled>
-                    $of Level2
-                        <input #limit type=text value="5 at a time" disabled>
-                    $of Level3
-                        <input #limit type=text value="10 at a time" disabled>
-                    $of Admin
-                        <input #limit type=text value="100 at a time" disabled>
-                <br>
-                <a href=@{PricingR}>Learn more
-                \ or
-                <br>
-                <a href=@{UpgradeR code} .btn .btn-large .btn-primary>Upgrade now
+                <div .input-prepend>
+                    <span .add-on>
+                        <i .icon-time>
+                    $case priv
+                        $of Level1
+                            <input #interval type=text value="2 hours" disabled>
+                        $of Level2
+                            <input #interval type=text value="30 minutes" disabled>
+                        $of Level3
+                            <input #interval type=text value="5 minutes" disabled>
+                        $of Admin
+                            <input #interval type=text value="5 minutes" disabled>
+                <label for=limit>Number of CRNs
+                <div .input-prepend>
+                    <span .add-on>
+                    $case priv
+                        $of Level1
+                            <input #limit type=text value="1 at a time" disabled>
+                        $of Level2
+                            <input #limit type=text value="5 at a time" disabled>
+                        $of Level3
+                            <input #limit type=text value="10 at a time" disabled>
+                        $of Admin
+                            <input #limit type=text value="100 at a time" disabled>
+                $if priv < Level3
+                    <br>
+                    <i .icon-question-sign>
+                    <a href=@{PricingR}>Learn more
+                    \ or
+                    <br>
+                    <a href=@{UpgradeR code} .btn .btn-large .btn-primary>
+                        <i .icon-gift>
+                        Upgrade now

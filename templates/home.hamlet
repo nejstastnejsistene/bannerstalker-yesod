@@ -6,27 +6,48 @@
             <p .lead>Introducing Bannerstalker &mdash; we stalk Banner so you don't have to!
             <h2>Get up to the minute notifications!
             <p .lead>It's easy! Just add your CRNs, and we'll email or text you when any of your classes open up.
-            <a href=@{PricingR} .btn .btn-primary .btn-large>Learn more about our features
+            <a href=@{PricingR} .btn .btn-primary .btn-large>
+                <i .icon-flag>
+                Learn more about our features
     <div .span4>
         <h3>Login
         <form method=post action=@{LoginR}>
             ^{token}
             <label for=email>Email
-            <input #email name=email type=email required>
+            <div .input-prepend>
+                <span .add-on>
+                    <i .icon-envelope>
+                <input #email name=email type=email required>
             <label for=password>Password
-            <input #password name=password type=password required>
+            <div .input-prepend>
+                <span .add-on>
+                    <i .icon-key>
+                <input #password name=password type=password required>
             <br>
             <button type=submit class=btn>Login
-        <a href=@{ForgotPasswordR}>Forget your password?
+        <a href=@{ForgotPasswordR}>
+            <i .icon-share-alt>
+            Forget your password?
         <br>
         <h3>Register
         <form method=post action=@{RegisterR}>
             ^{token}
             <label for=email>Email
-            <input #email name=email type=email required>
+            <div .input-prepend>
+                <span .add-on>
+                    <i .icon-envelope>
+                <input #email name=email type=email required>
             <label for=password>Password
-            <input #password name=password type=password required>
+            <div .input-prepend>
+                <span .add-on>
+                    <i .icon-key>
+                <input #password name=password type=password required>
             <label for=confirm>Confirm password
-            <input #confirm name=confirm type=password required>
+            <div .input-prepend>
+                <span .add-on>
+                    <i .icon-key>
+                <input #confirm name=confirm type=password required>
             <br>
-            <button type=submit class=btn>Register
+            <button type=submit class=btn>
+                <i .icon-share-alt>
+                Register

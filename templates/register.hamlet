@@ -1,15 +1,26 @@
 <h1>Register
 $maybe errorMessage <- mErrorMessage
     <div .alert .alert-error>
-        <strong>Oops
+        <i .icon-exclamation-sign>
         #{errorMessage}
 <form method=post action=@{RegisterR}>
     ^{token}
     <label for=email>Email
-    <input #email name=email type=email required>
+    <div .input-prepend>
+        <span .add-on>
+            <i .icon-envelope>
+        <input #email name=email type=email required>
     <label for=password>Password
-    <input #password name=password type=password required>
+    <div .input-prepend>
+        <span .add-on>
+            <i .icon-key>
+        <input #password name=password type=password required>
     <label for=confirm>Confirm Password
-    <input #confirm name=confirm type=password required>
+    <div .input-prepend>
+        <span .add-on>
+            <i .icon-key>
+        <input #confirm name=confirm type=password required>
     <br>
-    <button type=submit class=btn>Register
+    <button type=submit class=btn>
+        <i .icon-share-alt>
+        Register

@@ -47,22 +47,25 @@
                 <i .icon-envelope .icon-large>
                 Email Notifications
             <td>
-                <i .icon-check .icon-3x>
+                <i .icon-ok .icon-2x>
             <td>
-                <i .icon-check .icon-3x>
+                <i .icon-ok .icon-2x>
             <td>
-                <i .icon-check .icon-3x>
+                <i .icon-ok .icon-2x>
         <tr>
             <th .col1>
                 <i .icon-mobile-phone .icon-2x>
                 SMS Notifications
             <td>
+                <i .icon-remove .icon-2x>
             <td>
-                <i .icon-check .icon-3x>
+                <i .icon-ok .icon-2x>
             <td>
-                <i .icon-check .icon-3x>
+                <i .icon-ok .icon-2x>
         <tr>
             <th>
             <td colspan=3>
                 <form method=get action=@{UpgradeRootR}>
-                    <button type=submit .btn .btn-large .btn-primary .btn-fill>Upgrade now!
+                    <button type=submit .btn .btn-large .btn-primary .btn-fill>
+                        <i .icon-gift>
+                        Upgrade now!

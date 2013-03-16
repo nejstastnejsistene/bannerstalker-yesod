@@ -1,7 +1,6 @@
-<h1>Welcome to Bannerstalker!
 $maybe mainError <- mMainError
     <div .alert .alert-error>
-        <strong>Oops!
+        <i .icon-exclamation-sign>
         #{mainError}
 <br>
 $forall Semester code name _ <- semesters
@@ -13,14 +12,18 @@ $forall Semester code name _ <- semesters
 <h2>Add CRN
 $maybe addError <- mAddError
     <div .alert .alert-error>
-        <stron>Oops!
+        <i .icon-exclamation-sign>
         #{addError}
 <form .form-inline method=post>
     ^{token}
     <input type=hidden name=method value=add>
     <input type=text name=crn required>
-    <button type=submit .btn>Add CRN
+    <button type=submit .btn>
+        <i .icon-plus-sign>
+        Add CRN
 <h2>Search for CRNs
 <form .form-inline method=get action=@{SearchR}>
     ^{subjectWidget}
-    <button type=submit .btn>Search
+    <button type=submit .btn>
+        <i .icon-search>
+        Search
