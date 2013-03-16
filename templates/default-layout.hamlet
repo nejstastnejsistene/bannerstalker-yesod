@@ -1,26 +1,29 @@
-<ul .nav .nav-tabs>
-    <li :route == HomeR:.active>
-        <a href=@{HomeR}>Home
-    $maybe Entity _ user <- mUser
-        $if userAdmin user
-            <li :adminRoute:.active>
-                <a href=@{AdminR}>Admin
-    <li :route == AboutR:.active>
-        <a href=@{AboutR}>About
-    <li :route == PricingR:.active>
-        <a href=@{PricingR}>Pricing
-    $maybe _ <- mUser
-        <li :fst (splitAt 7 $ show route) == "Upgrade":.active>
-            <a href=@{UpgradeRootR}>Upgrade
-        <li :route == SettingsR:.active>
-            <a href=@{SettingsR}>Account
-        <li>
-            <a href=@{LogoutR}>Logout
-    $nothing
-        <li :route == RegisterR:.active>
-            <a href=@{RegisterR}>Register
-        <li :route == LoginR:.active>
-            <a href=@{LoginR}>Login
+<div .masthead>
+    <ul .nav .nav-pills .pull-right>
+        <li :route == HomeR:.active>
+            <a href=@{HomeR}>Home
+        $maybe Entity _ user <- mUser
+            $if userAdmin user
+                <li :adminRoute:.active>
+                    <a href=@{AdminR}>Admin
+        <li :route == AboutR:.active>
+            <a href=@{AboutR}>About
+        <li :route == PricingR:.active>
+            <a href=@{PricingR}>Pricing
+        $maybe _ <- mUser
+            <li :fst (splitAt 7 $ show route) == "Upgrade":.active>
+                <a href=@{UpgradeRootR}>Upgrade
+            <li :route == SettingsR:.active>
+                <a href=@{SettingsR}>Account
+            <li>
+                <a href=@{LogoutR}>Logout
+        $nothing
+            <li :route == RegisterR:.active>
+                <a href=@{RegisterR}>Register
+            <li :route == LoginR:.active>
+                <a href=@{LoginR}>Login
+    <img .logo .pull-left src=@{StaticR img_binoculars_svg}>
+    <h2>Bannerstalker
 $if adminRoute
     <h3>Admin Pages
     <ul .nav .nav-pills>
@@ -30,4 +33,5 @@ $if adminRoute
             <a href=@{AdminUsersR}>Users
         <li :route == AdminSemestersR:.active>
             <a href=@{AdminSemestersR}>Semesters
+<hr>
 ^{widget}
