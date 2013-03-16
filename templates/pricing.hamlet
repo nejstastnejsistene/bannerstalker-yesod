@@ -15,17 +15,37 @@
                     <small>/semester
     <tbody>
         <tr>
-            <th>Number of CRNs
-            <td>1 at a time
-            <td>5 at a time
-            <td>10 at a time
+            <th .col1>
+                <i .icon-plus .icon-large>
+                Number of CRNs
+            <td>
+                <p .text-error>
+                    <strong>1 at a time
+            <td>
+                <p .text-warning>
+                    <strong>5 at a time
+            <td>
+                <p .text-success>
+                    <strong>10 at a time
         <tr>
-            <th>Update Interval
-            <td>2 hours
-            <td>30 minutes
-            <td>ASAP
+            <th .col1>
+                <i .icon-time .icon-large>
+                Update Interval
+                <br>
+                <small>(How often we check the status of your classes)
+            <td>
+                <p .text-error>
+                    <strong>2 hours
+            <td>
+                <p .text-warning>
+                    <strong>30 minutes
+            <td>
+                <p .text-success>
+                    <strong>ASAP
         <tr>
-            <th>Email Notifications
+            <th .col1>
+                <i .icon-envelope .icon-large>
+                Email Notifications
             <td>
                 <i .icon-check .icon-3x>
             <td>
@@ -33,12 +53,13 @@
             <td>
                 <i .icon-check .icon-3x>
         <tr>
-            <th>SMS Notifications
+            <th .col1>
+                <i .icon-mobile-phone .icon-2x>
+                SMS Notifications
             <td>
-                <i .icon-check-empty .icon-3x>
             <td>
                 <i .icon-check .icon-3x>
-            <td .premium-bottom>
+            <td>
                 <i .icon-check .icon-3x>
         <tr>
             <th>

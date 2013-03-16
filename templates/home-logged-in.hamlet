@@ -3,6 +3,7 @@ $maybe mainError <- mMainError
     <div .alert .alert-error>
         <strong>Oops!
         #{mainError}
+<br>
 $forall Semester code name _ <- semesters
     <h3>#{name}
     $maybe sectionsWidget <- lookup code semestersMap

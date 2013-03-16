@@ -4,8 +4,15 @@ table.pricing-table {
         height: 50px;
         text-align: center;
         vertical-align: middle;
+        font-size: 18px;
+    }
+    th.col1 {
+        text-align: center;
     }
 }
 .btn-fill {
     width: 100%;
+}
+small {
+    font-weight: normal;
 }
