@@ -4,6 +4,7 @@ import Import
 import Data.Char
 import Data.Maybe
 import qualified Data.Text as T
+import Database.Persist.GenericSql
 
 import Handler.Auth
 
@@ -18,18 +19,15 @@ passwordErrorKey = "_SettingsR_passwordError"
 getSettingsR :: Handler RepHtml
 getSettingsR = do
     Entity userId user <- fmap fromJust currentUser
-    semesterEntities <- runDB $
-        selectList [SemesterActive ==. True] [Desc SemesterCode]
-    let semesterIds = map entityKey semesterEntities
-        semesters = map entityVal semesterEntities
-    privileges <- fmap (map entityVal) $ runDB $ 
-        selectList [ PrivilegeUserId ==. userId
-                   , PrivilegeSemester <-. semesterIds ] []
-    let privMap = [ (semesterCode sem, privilegeLevel priv)
-                  | Entity semId sem <- semesterEntities
-                  , priv <- privileges
-                  , semId == privilegeSemester priv ]
-        canSms = any (\p -> privilegeLevel p > Level1) privileges
+    let sql = "SELECT ??, ?? \
+              \FROM semester, privilege \
+              \WHERE semester.active = true \
+                \AND semester.id = privilege.semester \
+                \AND privilege.user_id = ? \
+              \ORDER BY semester.code DESC"
+    sqlResult <- runDB $ rawSql sql [toPersistValue userId]
+    let semesterPrivs = [(s, p) | (Entity _ s, Entity _ p) <- sqlResult]
+        canSms = any (\(_, p)-> privilegeLevel p > Level1) semesterPrivs
     mPhoneSuccess <- consumeSession phoneErrorKey
     mPhoneError <- consumeSession phoneErrorKey
     mPasswordSuccess <- consumeSession passwordSuccessKey
@@ -42,8 +40,7 @@ getSettingsR = do
 postSettingsR :: Handler RepHtml
 postSettingsR = do
     Entity userId _ <- fmap fromJust currentUser
-    let comma4 a b c d = (a, b, c, d)
-    (postType, mRawPhoneNum, mPasswd, mConfirm) <- runInputPost $ comma4
+    (postType, mRawPhoneNum, mPasswd, mConfirm) <- runInputPost $ (,,,)
         <$> ireq textField "method"
         <*> iopt textField "phoneNum"
         <*> iopt textField "password"
@@ -68,6 +65,11 @@ postSettingsR = do
 
 updatePhoneNum :: UserId -> Maybe Text -> Handler RepHtml
 updatePhoneNum userId mRawPhoneNum = do
+    --
+    --
+    -- Check here if they canSms
+    --
+    --
     case fmap validatePhoneNum mRawPhoneNum of
         -- Validation failed.
         Just Nothing -> do
