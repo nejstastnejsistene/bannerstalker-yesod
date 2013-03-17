@@ -164,9 +164,9 @@ $newline never
     ^{token}
     <input type=hidden name=method value=add>
     <input type=hidden name=crn value=#{crn}>
-    <button type=submit .btn .btn-small>
+    <button type=submit .btn .btn>
         <i .icon-plus-sign>
-        Add CRN
+        \ Add CRN
 |])
 
 removeCrnForm :: Handler (Int -> Widget)
@@ -178,9 +178,9 @@ $newline never
     ^{token}
     <input type=hidden name=method value=remove>
     <input type=hidden name=crn value=#{crn}>
-    <button type=submit .btn .btn-small>
+    <button type=submit .btn .btn>
         <i .icon-remove>
-        Remove CRN
+        \ Remove CRN
 |])
 
 selectSubject :: Handler Widget

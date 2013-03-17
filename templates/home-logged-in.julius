@@ -1,0 +1,3 @@
+if (#{isJust mAddError}) {
+    window.location.hash = '#addForm';
+}
