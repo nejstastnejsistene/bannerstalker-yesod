@@ -7,13 +7,13 @@ import qualified Data.Text as T
 
 import Handler.Auth
 
-phoneInfoKey, phoneErrorKey :: Text
-phoneInfoKey = "_SettingsR_mPhoneInfo"
-phoneErrorKey = "_SettingsR_mPhoneError"
+phoneSuccessKey, phoneErrorKey :: Text
+phoneSuccessKey = "_SettingsR_phoneSuccess"
+phoneErrorKey = "_SettingsR_phoneError"
 
-passwordInfoKey, passwordErrorKey :: Text
-passwordInfoKey = "_SettingsR_mPasswordInfo"
-passwordErrorKey = "_SettingsR_mPasswordError"
+passwordSuccessKey, passwordErrorKey :: Text
+passwordSuccessKey = "_SettingsR_passwordSuccess"
+passwordErrorKey = "_SettingsR_passwordError"
 
 getSettingsR :: Handler RepHtml
 getSettingsR = do
@@ -30,14 +30,10 @@ getSettingsR = do
                   , priv <- privileges
                   , semId == privilegeSemester priv ]
         canSms = any (\p -> privilegeLevel p > Level1) privileges
-    mPhoneInfo <- getSessionWith phoneInfoKey
-    mPhoneError <- getSessionWith phoneErrorKey
-    mPasswordInfo <- getSessionWith passwordInfoKey
-    mPasswordError <- getSessionWith passwordErrorKey
-    deleteSession phoneInfoKey
-    deleteSession phoneErrorKey
-    deleteSession passwordInfoKey
-    deleteSession passwordErrorKey
+    mPhoneSuccess <- consumeSession phoneErrorKey
+    mPhoneError <- consumeSession phoneErrorKey
+    mPasswordSuccess <- consumeSession passwordSuccessKey
+    mPasswordError <- consumeSession passwordErrorKey
     token <- getToken
     defaultLayout $ do
         setTitle "Settings"
@@ -62,7 +58,7 @@ postSettingsR = do
                         redirect SettingsR
                     else do
                         changePassword userId passwd
-                        setSession passwordInfoKey
+                        setSession passwordSuccessKey
                             "Your password has been updated."
                         redirect SettingsR
             _ -> do
@@ -80,16 +76,13 @@ updatePhoneNum userId mRawPhoneNum = do
             redirect SettingsR
         -- Valid phone number.
         Just (Just phoneNum) -> do
-            -- note to self, actually check if they are able to sms
-            -- and make UpdateR work with this to make sure useSms
-            -- is correct
             runDB $ update userId [UserPhoneNum =. Just phoneNum]
-            setSession phoneInfoKey "Peter still needs to verify you are able to send SMS notifications..."
+            setSession phoneSuccessKey "Phone number set"
             redirect SettingsR
         -- Phone number was removed.
         Nothing -> do
             runDB $ update userId [UserPhoneNum =. Nothing]
-            setSession phoneInfoKey "Phone number removed"
+            setSession phoneSuccessKey "Phone number removed"
             redirect SettingsR
     where
         validatePhoneNum phoneNum = case T.take 2 phoneNum of

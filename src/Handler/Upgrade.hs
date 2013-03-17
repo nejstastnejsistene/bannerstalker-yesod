@@ -14,9 +14,9 @@ import Text.Printf
 import Email
 import Stripe
 
-upgradeInfoKey, upgradeErrorKey :: Text
-upgradeInfoKey = "_UpgradeR_mInfoMessage"
-upgradeErrorKey = "_UpgradeR_mErrorMessage"
+upgradeSuccessKey, upgradeErrorKey :: Text
+upgradeSuccessKey = "_UpgradeR_upgradeSuccess"
+upgradeErrorKey = "_UpgradeR_upgradeError"
 
 getUpgradeRootR :: Handler RepHtml
 getUpgradeRootR = do
@@ -35,10 +35,8 @@ getUpgradeR code = do
     otherSemesters <- fmap (map entityVal) $ runDB $ selectList
         [SemesterCode !=. code, SemesterActive ==. True]
         [Asc SemesterCode]
-    mInfoMessage <- getSessionWith upgradeInfoKey
-    mErrorMessage <- getSessionWith upgradeErrorKey
-    deleteSession upgradeInfoKey
-    deleteSession upgradeErrorKey
+    mSuccessMessage <- consumeSession upgradeSuccessKey
+    mErrorMessage <- consumeSession upgradeErrorKey
     defaultLayout $ do
         setTitle "Upgrade"
         $(widgetFile "upgrade")
@@ -66,10 +64,12 @@ postUpgradeR code = do
             Left charge -> do
                 runDB $ update privId [PrivilegeLevel =. targetLevel]
                 sendConfirmation userId name targetLevel charge
-                setSession upgradeInfoKey
-                    "Transaction successful! We sent you a confirmation email."
+                setSession upgradeSuccessKey $ T.concat
+                    [ "Transaction successful!"
+                    , " We sent you a confirmation email." ]
             Right err -> do
-                setSession upgradeErrorKey $ errorMessage err
+                setSession upgradeErrorKey $ T.concat
+                    [errorMessage err, " Your card has not been charged."]
         redirect $ UpgradeR code
 
 sendConfirmation :: UserId -> Text -> PrivilegeLevel -> Charge -> Handler ()

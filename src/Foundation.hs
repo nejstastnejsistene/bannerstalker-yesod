@@ -245,9 +245,38 @@ $maybe token <- reqToken req
     <input type=hidden name=_token value=#{token}>
 |]
 
-getSessionWith :: Text -> Handler (Maybe Text)
-getSessionWith key = do
+data MessageType = InfoMessage | SuccessMessage | ErrorMessage
+    deriving Eq
+
+showMessage :: MessageType -> Maybe Text -> Maybe Widget -> Widget
+showMessage messageType mMessage mAdditional = [whamlet|
+$newline never
+$maybe message <- mMessage
+    $case messageType
+        $of InfoMessage
+            <div .alert .alert-info>
+                <i .icon-exclamation-sign>
+                    \ #{message}
+                    $maybe additional <- mAdditional
+                        \ ^{additional}
+        $of SuccessMessage
+            <div .alert .alert-success>
+                <i .icon-ok>
+                    \ #{message}
+                    $maybe additional <- mAdditional
+                        \ ^{additional}
+        $of ErrorMessage
+            <div .alert .alert-error>
+                <i .icon-exclamation-sign>
+                    \ #{message}
+                    $maybe additional <- mAdditional
+                        \ ^{additional}
+|]
+
+consumeSession :: Text -> Handler (Maybe Text)
+consumeSession key = do
     session <- getSession
+    deleteSession key
     return $ fmap decodeUtf8 $ Map.lookup key session
 
 setSessionWith :: Text -> Maybe Text -> Handler ()

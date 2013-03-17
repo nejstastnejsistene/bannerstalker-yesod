@@ -59,10 +59,8 @@ getAdminEditUserR userId = do
             notificationLogs <- fmap (map entityVal) $ runDB $ selectList
                 [NotificationLogUserId ==. Just userId]
                 [Desc NotificationLogTimestamp]
-            mInfoMessage <- getSessionWith adminEditUserInfoKey
-            mErrorMessage <- getSessionWith adminEditUserErrorKey
-            deleteSession adminEditUserInfoKey
-            deleteSession adminEditUserErrorKey
+            mInfoMessage <- consumeSession adminEditUserInfoKey
+            mErrorMessage <- consumeSession adminEditUserErrorKey
             defaultLayout $ do
                 setTitle "Edit User"
                 $(widgetFile "admin-edit-user")

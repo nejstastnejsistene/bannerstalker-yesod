@@ -25,9 +25,10 @@ $newline never
                     <i .icon-key>
                 <input #password name=password type=password required>
             <br>
-            <button type=submit class=btn>Login
+            <button type=submit class=btn>
+                <i .icon-share-alt>
+                Login
         <a href=@{ForgotPasswordR}>
-            <i .icon-share-alt>
             Forget your password?
         <br>
         <h3>Register

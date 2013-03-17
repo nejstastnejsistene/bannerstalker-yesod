@@ -30,7 +30,7 @@ registerForm = RegisterCreds
     <*> ireq passwordField "confirm"
 
 registerErrorKey :: Text
-registerErrorKey = "_RegisterR_mErrorMessage"
+registerErrorKey = "_RegisterR_registerError"
 
 getRegisterR :: Handler RepHtml
 getRegisterR = do
@@ -38,8 +38,7 @@ getRegisterR = do
     mUser <- currentUser
     when (isJust mUser) $ redirect HomeR
     -- Create form and display page.
-    mErrorMessage <- getSessionWith registerErrorKey
-    deleteSession registerErrorKey
+    mErrorMessage <- consumeSession registerErrorKey
     token <- getToken
     defaultLayout $ do
         setTitle "Register"
@@ -93,7 +92,7 @@ registerUser email passwd = do
     sendVerificationEmail email
 
 loginErrorKey, badLoginCombo :: Text
-loginErrorKey = "_LoginR_mErrorMessage"
+loginErrorKey = "_LoginR_loginError"
 badLoginCombo = "That is not a valid username/password combination."
 
 getLoginR :: Handler RepHtml
@@ -102,8 +101,7 @@ getLoginR = do
     mUser <- currentUser
     when (isJust mUser) $ redirect HomeR
     -- Create form and display page.
-    mErrorMessage <- getSessionWith loginErrorKey
-    deleteSession loginErrorKey
+    mErrorMessage <- consumeSession loginErrorKey
     defaultLayout $ do
         setTitle "Login"
         $(widgetFile "login")
@@ -142,7 +140,7 @@ postLogoutR = do
     redirect HomeR
 
 forgotPasswordErrorKey :: Text
-forgotPasswordErrorKey = "_ForgotPasswordR_mErrorMessage"
+forgotPasswordErrorKey = "_ForgotPasswordR_forgotError"
 
 getForgotPasswordR :: Handler RepHtml
 getForgotPasswordR = do
@@ -150,8 +148,7 @@ getForgotPasswordR = do
     case mUser of
         Just _ -> redirect SettingsR
         Nothing -> do
-            mErrorMessage <- getSessionWith forgotPasswordErrorKey
-            deleteSession forgotPasswordErrorKey
+            mErrorMessage <- consumeSession forgotPasswordErrorKey
             defaultLayout $ do
                 setTitle "Forgot Password"
                 $(widgetFile "forgot-password")
@@ -194,7 +191,7 @@ getResetSentR = defaultLayout $ do
     $(widgetFile "reset-sent")
            
 resetPasswordErrorKey :: Text
-resetPasswordErrorKey = "_ResetPasswordR_mErrorMessage"
+resetPasswordErrorKey = "_ResetPasswordR_resetError"
 
 getResetPasswordR :: UserId -> Text -> Handler RepHtml
 getResetPasswordR userId verKey = do
@@ -206,8 +203,7 @@ getResetPasswordR userId verKey = do
             case mUser of
                 Nothing -> expiredResetLink
                 Just (User email _ _ _ _) -> do
-                    mErrorMessage <- getSessionWith resetPasswordErrorKey
-                    deleteSession resetPasswordErrorKey
+                    mErrorMessage <- consumeSession resetPasswordErrorKey
                     defaultLayout $ do
                         setTitle "Reset Password"
                         $(widgetFile "reset-password")

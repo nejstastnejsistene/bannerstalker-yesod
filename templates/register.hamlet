@@ -1,9 +1,6 @@
 $newline never
 <h1>Register
-$maybe errorMessage <- mErrorMessage
-    <div .alert .alert-error>
-        <i .icon-exclamation-sign>
-        #{errorMessage}
+^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post action=@{RegisterR}>
     ^{token}
     <label for=email>Email

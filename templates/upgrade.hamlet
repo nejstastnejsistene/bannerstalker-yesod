@@ -1,13 +1,5 @@
 $newline never
-$maybe infoMessage <- mInfoMessage
-    <div .alert .alert-info>
-        <i .icon-ok>
-        #{infoMessage}
-$maybe errMessage <- mErrorMessage
-    <div .alert .alert-error>
-        <i .icon-exclamation-sign>
-        #{errMessage}
-        Your card has not been charged.
+^{showMessage SuccessMessage mSuccessMessage Nothing}
 <h1>Upgrade for #{name}
     <small> currently #{levelName currentLevel} Level
 <i .icon-question-sign>

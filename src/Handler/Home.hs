@@ -3,10 +3,12 @@ module Handler.Home where
 
 import Import
 import Data.Maybe
+import qualified Data.Text as T
 
-mainErrorKey, addErrorKey :: Text
-mainErrorKey = "_HomeR_mMainError"
-addErrorKey = "_HomeR_mAddError"
+topInfoKey, topErrorKey, addErrorKey :: Text
+topInfoKey = "_HomeR_topInfo"
+topErrorKey = "_HomeR_topError"
+addErrorKey = "_HomeR_addError"
 
 getHomeR :: Handler RepHtml
 getHomeR = do
@@ -25,12 +27,9 @@ getHomeR = do
                 listSectionsHelper sectionIds =<< removeCrnForm
             subjectWidget <- selectSubject
             token <- getToken
-            -- Retrieve error messages from session.
-            mMainError <- getSessionWith mainErrorKey
-            mAddError <- getSessionWith addErrorKey
-            -- Reset error messages.
-            deleteSession mainErrorKey
-            deleteSession addErrorKey
+            mTopInfo <- consumeSession topInfoKey
+            mTopError <- consumeSession topErrorKey
+            mAddError <- consumeSession addErrorKey
             defaultLayout $ do
                 setTitle "Bannerstalker"
                 $(widgetFile "home-logged-in")
@@ -72,8 +71,14 @@ postHomeR = do
                 <$> ireq textField "method"
                 <*> ireq intField "crn"
             case postType of
-                "add" -> addCrn userId crn >>= setSessionWith addErrorKey
-                "remove" -> removeCrn userId crn
+                "add" -> do
+                    mErr <- addCrn userId crn
+                    case mErr of
+                        Just err -> setSession addErrorKey err
+                        Nothing -> setSession topInfoKey $ T.concat
+                            ["CRN ", T.pack $ show crn, " added."]
+                "remove" -> do
+                    removeCrn userId crn >>= setSessionWith topInfoKey
                 _ -> setSession addErrorKey formError
             redirect HomeR
 
@@ -92,9 +97,11 @@ getSearchR = do
 
 addCrn :: UserId -> Int -> Handler (Maybe Text)
 addCrn userId crn = runDB $ do
+    let textCrn = T.concat ["CRN ", T.pack $ show crn, "."]
     mSection <- getBy $ UniqueCrn crn
     case mSection of
-        Nothing -> return $ Just "Invalid Crn"
+        Nothing -> return $ Just $ T.concat
+            ["There are no classes with ", textCrn]
         Just (Entity sectionId section) -> do
             let semester = sectionSemester section
             numCrns <- countCrns semester
@@ -104,7 +111,8 @@ addCrn userId crn = runDB $ do
                     result <- insertBy $
                         SectionRequest sectionId userId Unavailable
                     case result of
-                        Left _ -> return $ Just "Already stalking"
+                        Left _ -> return $ Just $ T.concat
+                             ["You are already stalking ", textCrn]
                         Right _ -> return Nothing
                 else return $ Just "Crn limit reached"
     where
@@ -128,19 +136,20 @@ addCrn userId crn = runDB $ do
                     Level3 -> 10
                     Admin -> 100
 
-removeCrn :: UserId -> Int -> Handler ()
+removeCrn :: UserId -> Int -> Handler (Maybe Text)
 removeCrn userId crn = runDB $ do
     mSection <- getBy $ UniqueCrn crn
     case mSection of
-        Nothing -> return ()
+        Nothing -> return Nothing
         Just (Entity sectionId _) -> do
             mSectionRequest <- getBy $ UniqueRequest sectionId userId
             case mSectionRequest of
-                Nothing -> return ()
+                Nothing -> return Nothing
                 Just (Entity reqId _) -> do
                     deleteWhere [NotificationRequestId ==. reqId]
                     delete reqId
-                    return ()
+                    return $ Just $ T.concat
+                        ["CRN ", T.pack $ show crn, " removed."]
 
 iterSections :: [Section] -> (Int -> Widget) -> Handler Widget
 iterSections sections crnWidget = do

@@ -1,9 +1,6 @@
 $newline never
-$maybe mainError <- mMainError
-    <div .alert .alert-error>
-        <i .icon-exclamation-sign>
-        #{mainError}
-<br>
+^{showMessage InfoMessage mTopInfo Nothing}
+^{showMessage ErrorMessage mTopError Nothing}
 $forall Semester code name _ <- semesters
     <h3>#{name}
     $maybe sectionsWidget <- lookup code semestersMap
@@ -11,13 +8,10 @@ $forall Semester code name _ <- semesters
     $nothing
         <p>You are not stalking any classes.
 <h2>Add CRN
-$maybe addError <- mAddError
-    <div .alert .alert-error>
-        <i .icon-exclamation-sign>
-        #{addError}
+^{showMessage ErrorMessage mAddError Nothing}
 <form .form-inline method=post>
     ^{token}
-    <input type=hidden name=method value=add>
+    <input type=hidden name=method value=add :isNothing mAddError:autofocus>
     <input type=text name=crn required>
     <button type=submit .btn>
         <i .icon-plus-sign>

@@ -1,15 +1,8 @@
 <div .row>
     <div .span4>
         <h3>Account Settings
-        $maybe phoneInfo <- mPhoneInfo
-            <div .alert .alert-success>
-                <i .icon-ok sign>
-                #{phoneInfo}
-        $maybe phoneError <- mPhoneError
-            <div .alert .alert-error>
-                <i .icon-exclamation-sign>
-                #{phoneError}
-        <form method=post>
+        ^{showMessage SuccessMessage mPhoneSuccess Nothing}
+        ^{showMessage ErrorMessage mPhoneError Nothing}
         <label for=email>Email
         <div .input-prepend>
             <span .add-on>
@@ -38,14 +31,8 @@
                 <i .icon-share-alt>
                 Update phone number
         <h3>Change Password
-        $maybe passwordInfo <- mPasswordInfo
-            <div .alert .alert-info>
-                <i .icon-exclamation-sign>
-                #{passwordInfo}
-        $maybe passwordError <- mPasswordError
-            <div .alert .alert-error>
-                <i .icon-exclamation-sign>
-                #{passwordError}
+        ^{showMessage SuccessMessage mPasswordSuccess Nothing}
+        ^{showMessage ErrorMessage mPasswordError Nothing}
         <form method=post>
             ^{token}
             <input type=hidden name=method value=password>
