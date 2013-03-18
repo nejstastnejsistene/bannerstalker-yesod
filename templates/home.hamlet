@@ -9,7 +9,7 @@ $newline never
             <p .lead>It's easy! Just add your CRNs, and we'll email or text you when any of your classes open up.
             <a href=@{PricingR} .btn .btn-primary .btn-large>
                 <i .icon-flag>
-                Learn more about our features
+                \ Learn more about our features
     <div .span4>
         <h3>Login
         <form method=post action=@{LoginR}>
@@ -27,7 +27,7 @@ $newline never
             <br>
             <button type=submit class=btn>
                 <i .icon-share-alt>
-                Login
+                \ Login
         <a href=@{ForgotPasswordR}>
             Forget your password?
         <br>
@@ -52,4 +52,4 @@ $newline never
             <br>
             <button type=submit class=btn>
                 <i .icon-share-alt>
-                Register
+                \ Register

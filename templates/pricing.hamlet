@@ -18,7 +18,7 @@ $newline never
         <tr>
             <th .col1>
                 <i .icon-plus .icon-large>
-                Number of CRNs
+                \ Number of CRNs
             <td>
                 <p .text-error>
                     <strong>1 at a time
@@ -31,7 +31,7 @@ $newline never
         <tr>
             <th .col1>
                 <i .icon-time .icon-large>
-                Update Interval
+                \ Update Interval
                 <br>
                 <small>(How often we check the status of your classes)
             <td>
@@ -56,7 +56,7 @@ $newline never
         <tr>
             <th .col1>
                 <i .icon-mobile-phone .icon-2x>
-                SMS Notifications
+                \ SMS Notifications
             <td>
                 <i .icon-remove .icon-2x>
             <td>
@@ -69,4 +69,4 @@ $newline never
                 <form method=get action=@{UpgradeRootR}>
                     <button type=submit .btn .btn-large .btn-primary .btn-fill>
                         <i .icon-gift>
-                        Upgrade now!
+                        \ Upgrade now!

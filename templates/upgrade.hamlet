@@ -3,7 +3,8 @@ $newline never
 <h1>Upgrade for #{name}
     <small> currently #{levelName currentLevel} Level
 <i .icon-question-sign>
-<strong>Want to upgrade for a different semester?
+<strong>
+    \ Want to upgrade for a different semester?
 $forall Semester otherCode otherName _  <- otherSemesters
     <a href=@{UpgradeR otherCode}>Upgrade for #{otherName} instead
 <br>

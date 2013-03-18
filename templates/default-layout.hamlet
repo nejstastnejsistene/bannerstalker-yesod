@@ -6,43 +6,43 @@ $newline never
     <li :route == HomeR:.active>
         <a href=@{HomeR}>
             <i .icon-home>
-            Home
+            \ Home
     $maybe Entity _ user <- mUser
         $if userAdmin user
             <li :adminRoute:.active>
                 <a href=@{AdminR}>
                     <i .icon-cogs>
-                    Admin
+                    \ Admin
     <li :route == AboutR:.active>
         <a href=@{AboutR}>
             <i .icon-question-sign>
-            About
+            \ About
     <li :route == PricingR:.active>
         <a href=@{PricingR}>
             <i .icon-money>
-            Pricing
+            \ Pricing
     $maybe _ <- mUser
         <li :fst (splitAt 7 $ show route) == "Upgrade":.active>
             <a href=@{UpgradeRootR}>
                 <i .icon-gift>
-                Upgrade
+                \ Upgrade
         <li :route == SettingsR:.active>
             <a href=@{SettingsR}>
                 <i .icon-wrench>
-                Account
+                \ Account
         <li>
             <a href=@{LogoutR}>
                 <i .icon-signout>
-                Logout
+                \ Logout
     $nothing
         <li :route == RegisterR:.active>
             <a href=@{RegisterR}>
                 <i .icon-user>
-                Register
+                \ Register
         <li :route == LoginR:.active>
             <a href=@{LoginR}>
                 <i .icon-signin>
-                Login
+                \ Login
 $if adminRoute
     <h3>Admin Pages
     <ul .nav .nav-pills>

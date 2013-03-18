@@ -4,7 +4,7 @@ $newline never
     ^{subjectWidget}
     <button type=submit .btn>
         <i .icon-search>
-        Search
+        \ Search
 $forall Semester code name _ <- semesters
     <h3>#{name}
     $maybe sectionsWidget <- lookup code semestersMap
