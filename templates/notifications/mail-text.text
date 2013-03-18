@@ -1,0 +1,1 @@
+#{show $ sectionTitle section} is now #{show $ sectionCurrStatus section}

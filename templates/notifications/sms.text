@@ -1,0 +1,1 @@
+Bannerstalker notification: #{sectionTitle section} (CRN #{show $ sectionCrn section})is now #{show $ sectionCurrStatus section}

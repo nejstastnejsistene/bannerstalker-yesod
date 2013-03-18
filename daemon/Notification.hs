@@ -4,9 +4,11 @@ import Prelude
 import Control.Exception
 import Data.Text
 import Data.Text.Encoding
+import Data.Text.Lazy.Builder
 import qualified Data.Text.Lazy as LT
 import Text.Hamlet
 import Text.Blaze.Html.Renderer.String
+import Text.Shakespeare.Text
 import Network.HTTP.Conduit
 import Network.Mail.Mime
 
@@ -26,16 +28,14 @@ notifyEmail email section newRequest = do
     where
         toAddr = Address Nothing email
         fromAddr = noreplyAddr
-        subject = pack $ renderHtml $ case newRequest of
-            False -> $(shamletFile
-                        "templates/notifications/mail-subj.hamlet")
-            True -> $(shamletFile
-                        "templates/notifications/mail-subj-new.hamlet")
-        text = LT.pack $ renderHtml $ case newRequest of
-            False -> $(shamletFile
-                        "templates/notifications/mail-text.hamlet")
-            True -> $(shamletFile
-                        "templates/notifications/mail-text-new.hamlet")
+        subject = LT.toStrict $ toLazyText $ (case newRequest of
+            False -> $(textFile "templates/notifications/mail-subj.text")
+            True -> $(textFile "templates/notifications/mail-subj-new.text")
+            ) ()
+        text = toLazyText $ (case newRequest of
+            False -> $(textFile "templates/notifications/mail-text.text")
+            True -> $(textFile "templates/notifications/mail-text-new.text")
+            ) ()
         html = LT.pack $ renderHtml $ case newRequest of
             False -> $(shamletFile
                         "templates/notifications/mail-html.hamlet")
@@ -52,6 +52,8 @@ notifySms manager extra recipient section newRequest = do
     err <- sendSms manager extra (encodeUtf8 recipient) message
     return (case err of Nothing -> Success; _ -> Failure, err)
     where
-        message = encodeUtf8 $ pack $ renderHtml $ case newRequest of
-            False -> $(shamletFile "templates/notifications/sms.hamlet")
-            True -> $(shamletFile "templates/notifications/sms-new.hamlet")
+        message = encodeUtf8 $ LT.toStrict $ toLazyText $ 
+            (case newRequest of
+                False-> $(textFile "templates/notifications/sms.text")
+                True -> $(textFile "templates/notifications/sms-new.text")
+            ) ()

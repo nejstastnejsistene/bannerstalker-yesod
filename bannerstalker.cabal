@@ -145,6 +145,7 @@ executable         bannerstalkerd
                      , persistent-postgresql
                      , regex-pcre
                      , resourcet
+                     , shakespeare-text
                      , tagsoup
                      , text
                      , time
