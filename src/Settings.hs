@@ -68,8 +68,7 @@ widgetFile = (if development then widgetFileReload
               widgetFileSettings
 
 data Extra = Extra
-    { extraCopyright :: Text
-    , extraAnalytics :: Maybe Text -- ^ Google Analytics
+    { extraAnalytics :: Maybe Text -- ^ Google Analytics
     , extraTwilioAccount :: Text
     , extraTwilioToken :: Text
     , extraTwilioNumber :: Text
@@ -82,8 +81,7 @@ data Extra = Extra
 
 parseExtra :: DefaultEnv -> Object -> Parser Extra
 parseExtra _ o = Extra
-    <$> o .:  "copyright"
-    <*> o .:? "analytics"
+    <$> o .:? "analytics"
     <*> o .:  "twilioAccount"
     <*> o .:  "twilioToken"
     <*> o .:  "twilioNumber"

@@ -81,6 +81,7 @@ library
                  , monad-logger                  >= 0.3
                  , fast-logger                   >= 0.3
                  , aeson
+                 , base64-bytestring
                  , blaze-html
                  , blaze-markup
                  , conduit

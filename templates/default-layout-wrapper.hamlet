@@ -40,16 +40,29 @@ $newline never
         <script>
           document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/,'js');
     <body>
+        <div id="fb-root">
+        <script>
+            (function(d, s, id) {
+              var js, fjs = d.getElementsByTagName(s)[0];
+              if (d.getElementById(id)) return;
+              js = d.createElement(s); js.id = id;
+              js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+              fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
         <div .container>
             <header>
             <div id="main" role="main">
               ^{pageBody pc}
             <footer>
                 <hr>
-                #{extraCopyright $ appExtra $ settings master}
-
+                <div class="fb-like" data-href="https://www.facebook.com/bannerstalker" data-send="true" data-width="450" data-show-faces="true">
+                <div style=margin-top:20px>
+                    &copy; 2013 <span id=contact>Peter Johnson</span>. All rights reserved.
         <script src=@{StaticR js_jquery_1_7_2_min_js}>
         <script src=@{StaticR js_jquery_backstretch_min_js}>
+        <script>
+            $with contactMe <- "<a href=\"mailto:pajohnson@email.wm.edu?subject=Bannerstalker\">"
+                \$('#contact').wrap(atob('#{decodeUtf8 $ B64.encode contactMe}'));
         $maybe analytics <- extraAnalytics $ appExtra $ settings master
             <script>
               var _gaq = _gaq || [];

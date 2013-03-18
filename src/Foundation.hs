@@ -19,6 +19,7 @@ import Text.Hamlet
 import System.Log.FastLogger (Logger)
 import qualified Data.Map as Map
 import Data.Text (Text)
+import qualified Data.ByteString.Base64 as B64
 import Data.Text.Encoding
 import Model
 
