@@ -54,3 +54,4 @@ $if adminRoute
             <a href=@{AdminSemestersR}>Semesters
 <hr>
 ^{widget}
+<hr>

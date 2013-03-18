@@ -11,6 +11,15 @@ img.logo {
     padding-right: 10px;
 }
 
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding 0;
+}
+
 body {
     background: url(@{StaticR img_cream_dust_png}) repeat 0 0;
 }
