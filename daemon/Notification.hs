@@ -29,18 +29,18 @@ notifyEmail email section newRequest = do
         toAddr = Address Nothing email
         fromAddr = noreplyAddr
         subject = LT.toStrict $ toLazyText $ (case newRequest of
-            False -> $(textFile "templates/notifications/mail-subj.text")
-            True -> $(textFile "templates/notifications/mail-subj-new.text")
+            False -> $(textFile "templates/notifications/subject.text")
+            True -> $(textFile "templates/notifications/subject-new.text")
             ) ()
         text = toLazyText $ (case newRequest of
-            False -> $(textFile "templates/notifications/mail-text.text")
-            True -> $(textFile "templates/notifications/mail-text-new.text")
+            False -> $(textFile "templates/notifications/mail.text")
+            True -> $(textFile "templates/notifications/mail-new.text")
             ) ()
         html = LT.pack $ renderHtml $ case newRequest of
             False -> $(shamletFile
-                        "templates/notifications/mail-html.hamlet")
+                        "templates/notifications/mail.hamlet")
             True -> $(shamletFile
-                        "templates/notifications/mail-html-new.hamlet")
+                        "templates/notifications/mail-new.hamlet")
 
 notifySms :: Manager
              -> Extra

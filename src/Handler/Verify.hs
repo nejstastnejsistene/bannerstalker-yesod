@@ -4,10 +4,12 @@ import Import
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
+import Data.Text.Lazy.Builder
 import Network.Mail.Mime
 import System.Random (newStdGen)
 import Text.Blaze.Html.Renderer.String
 import Text.Hamlet
+import Text.Shakespeare.Text
 import Email
 
 getResendVerificationR :: Handler RepHtml
@@ -43,10 +45,9 @@ sendVerificationEmail email = do
         to = Address Nothing email
         from = noreplyAddr
         subject = "Bannerstalker verification email"
-        text = LT.pack $ renderHtml
-                $(shamletFile "templates/verification/mail-text.hamlet")
+        text = toLazyText $ $(textFile "templates/verification.text") ()
         html = LT.pack $ renderHtml
-                $(shamletFile "templates/verification/mail-html.hamlet")
+            $(shamletFile "templates/verification.hamlet")
     liftIO $ simpleMail to from subject text html [] >>= mySendmail
 
 getVerifyR :: UserId -> Text -> Handler RepHtml

@@ -7,10 +7,12 @@ import Crypto.Scrypt
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
+import Data.Text.Lazy.Builder
 import Data.Text.Encoding
 import Network.Mail.Mime
 import Text.Blaze.Html.Renderer.String
 import Text.Hamlet
+import Text.Shakespeare.Text
 
 import Email
 import Handler.Verify
@@ -180,10 +182,9 @@ sendPasswordReset email verUrl =
         to = Address Nothing email
         from = noreplyAddr
         subject = "Bannerstalker password reset"
-        text = LT.pack $ renderHtml
-                $(shamletFile "templates/password-reset/mail-text.hamlet")
+        text = toLazyText $ $(textFile "templates/password-reset.text") ()
         html = LT.pack $ renderHtml
-                $(shamletFile "templates/password-reset/mail-html.hamlet")
+                $(shamletFile "templates/password-reset.hamlet")
 
 getResetSentR :: Handler RepHtml
 getResetSentR = defaultLayout $ do
