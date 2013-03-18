@@ -12,7 +12,7 @@ import Data.Text.Encoding
 import Network.Mail.Mime
 import Text.Blaze.Html.Renderer.String
 import Text.Hamlet
-import Text.Shakespeare.Text
+import Text.Shakespeare.Text (textFile)
 
 import Email
 import Handler.Verify

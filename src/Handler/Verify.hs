@@ -9,7 +9,7 @@ import Network.Mail.Mime
 import System.Random (newStdGen)
 import Text.Blaze.Html.Renderer.String
 import Text.Hamlet
-import Text.Shakespeare.Text
+import Text.Shakespeare.Text (textFile)
 import Email
 
 getResendVerificationR :: Handler RepHtml
