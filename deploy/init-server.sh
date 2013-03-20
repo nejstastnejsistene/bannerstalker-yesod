@@ -6,26 +6,25 @@ DAEMON=/home/ubuntu/bannerstalker/bannerstalker
 DAEMON_OPTS="--chdir /home/ubuntu/bannerstalker"
 
 start() {
-    start-stop-daemon --start --quiet --pidfile $PIDFILE \
+    echo "Starting $NAME"
+    start-stop-daemon --start --pidfile $PIDFILE \
         --make-pidfile --background --exec $DAEMON $DAEMON_OPTS
 }
 
 stop() {
-    start-stop-daemon --stop --quiet --pidfile $PIDFILE --exec $DAEMON
+    echo "Stopping $NAME"
+    start-stop-daemon --stop --pidfile $PIDFILE --exec $DAEMON
 }
 
 case "$1" in
     start)
-        echo "Starting $NAME"
         start
         ;;
     stop)
-        echo "Stopping $NAME"
         stop
         rm $PIDFILE
         ;;
     restart)
-        echo "Restart $NAME"
         stop
         start
         ;;

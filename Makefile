@@ -4,18 +4,17 @@ default:
 devel:
 	dist/build/bannerstalker/bannerstalker Development
 
-deploy-daemon:
-	# Stop daemon
-	service bannerstalkerd stop
-	# Remove previous init.d script
-	rm -f /etc/init.d/bannerstalkerd
-	update-rc.d bannerstalkerd remove
-	# Install init.d script
-	cp config/init-script /etc/init.d/bannerstalkerd
-	chmod 555 /etc/init.d/bannerstalkerd
-	update-rc.d bannerstalkerd defaults
-	# Copy the executable to /usr/sbin
-	cp dist/build/bannerstalkerd/bannerstalkerd /usr/sbin/
-	chmod 555 /usr/sbin/bannerstalkerd
-	# Restart daemon
-	service bannerstalkerd start
+define copy-init
+rm -f /etc/init.d/$2
+update-rc.d $2 remove
+cp $1 /etc/init.d/$2
+chmod 555 /etc/init.d/$2
+update-rc.d $2 defaults
+endef
+
+server-copy-init:
+	$(call copy-init,deploy/init-server.sh,bannerstalker)
+	$(call copy-init,deploy/add-to-elb.py,add-to-elb)
+
+daemon-copy-init:
+	$(call copy-init,deploy/init-daemon.sh,bannerstalkerd)
