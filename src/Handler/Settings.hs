@@ -2,11 +2,11 @@ module Handler.Settings where
 
 import Import
 import Data.Char
-import Data.Maybe
+--import Data.Maybe
 import qualified Data.Text as T
 import Database.Persist.GenericSql
 
-import Handler.Auth
+--import Handler.Auth
 
 phoneSuccessKey, phoneErrorKey :: Text
 phoneSuccessKey = "_SettingsR_phoneSuccess"
@@ -18,6 +18,7 @@ passwordErrorKey = "_SettingsR_passwordError"
 
 getSettingsR :: Handler RepHtml
 getSettingsR = do
+    {-
     Entity userId user <- fmap fromJust currentUser
     let sql = "SELECT ??, ?? \
               \FROM semester, privilege \
@@ -33,12 +34,15 @@ getSettingsR = do
     mPasswordSuccess <- consumeSession passwordSuccessKey
     mPasswordError <- consumeSession passwordErrorKey
     token <- getToken
+    -}
     defaultLayout $ do
         setTitle "Settings"
-        $(widgetFile "settings")
+        -- $(widgetFile "settings")
+        [whamlet|ASDFASDF|]
 
 postSettingsR :: Handler RepHtml
 postSettingsR = do
+    {-
     Entity userId _ <- fmap fromJust currentUser
     (postType, mRawPhoneNum, mPasswd, mConfirm) <- runInputPost $ (,,,)
         <$> ireq textField "method"
@@ -62,6 +66,8 @@ postSettingsR = do
                 setSession passwordErrorKey passwordMismatch
                 redirect SettingsR
         _ -> invalidArgs []
+    -}
+    redirect SettingsR
 
 updatePhoneNum :: UserId -> Maybe Text -> Handler RepHtml
 updatePhoneNum userId mRawPhoneNum = do

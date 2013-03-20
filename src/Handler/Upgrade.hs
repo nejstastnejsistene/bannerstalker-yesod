@@ -27,6 +27,7 @@ getUpgradeRootR = do
 
 getUpgradeR :: Text -> Handler RepHtml
 getUpgradeR code = do
+    {-
     Entity semesterId (Semester _ name _) <- fmap fromJust $
         runDB $ getBy $ UniqueSemester code
     Entity userId user <- fmap fromJust currentUser
@@ -37,12 +38,15 @@ getUpgradeR code = do
         [Asc SemesterCode]
     mSuccessMessage <- consumeSession upgradeSuccessKey
     mErrorMessage <- consumeSession upgradeErrorKey
+    -}
     defaultLayout $ do
         setTitle "Upgrade"
-        $(widgetFile "upgrade")
+        -- $(widgetFile "upgrade")
+        [whamlet|<h1>Fucking piviting!|]
 
 postUpgradeR :: Text -> Handler RepHtml
 postUpgradeR code = do
+    {-
     Entity semesterId (Semester _ name _) <- fmap fromJust $
         runDB $ getBy $ UniqueSemester code
     Entity userId user <- fmap fromJust currentUser
@@ -70,6 +74,7 @@ postUpgradeR code = do
             Right err -> do
                 setSession upgradeErrorKey $ T.concat
                     [errorMessage err, " Your card has not been charged."]
+    -}
         redirect $ UpgradeR code
 
 sendConfirmation :: UserId -> Text -> PrivilegeLevel -> Charge -> Handler ()

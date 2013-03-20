@@ -103,38 +103,11 @@ addCrn userId crn = runDB $ do
         Nothing -> return $ Just $ T.concat
             ["There are no classes with ", textCrn]
         Just (Entity sectionId section) -> do
-            let semester = sectionSemester section
-            numCrns <- countCrns semester
-            crnLimit <- getCrnLimit semester
-            if numCrns < crnLimit
-                then do
-                    result <- insertBy $
-                        SectionRequest sectionId userId Unavailable
-                    case result of
-                        Left _ -> return $ Just $ T.concat
-                             ["You are already stalking ", textCrn]
-                        Right _ -> return Nothing
-                else return $ Just "Crn limit reached"
-    where
-        countCrns semester = do
-            sections <- fmap (map entityVal) $
-                selectList [SectionRequestUserId ==. userId] []
-            count
-                 [ SectionId <-. (map sectionRequestSectionId sections)
-                 , SectionSemester ==. semester ]
-        getCrnLimit semester = do
-            mPrivilege <- getBy $ UniquePrivilege userId semester
-            level <- case mPrivilege of
-                Nothing -> do 
-                    _ <- insert $ Privilege userId semester Level1
-                    return Level1
-                Just (Entity _ privilege) ->
-                    return $ privilegeLevel privilege
-            return $ case level of
-                    Level1 -> 1
-                    Level2 -> 5
-                    Level3 -> 10
-                    Admin -> 100
+            result <- insertBy $ SectionRequest sectionId userId
+            case result of
+                Left _ -> return $ Just $ T.concat
+                     ["You are already stalking ", textCrn]
+                Right _ -> return Nothing
 
 removeCrn :: UserId -> Int -> Handler (Maybe Text)
 removeCrn userId crn = runDB $ do
@@ -146,7 +119,6 @@ removeCrn userId crn = runDB $ do
             case mSectionRequest of
                 Nothing -> return Nothing
                 Just (Entity reqId _) -> do
-                    deleteWhere [NotificationRequestId ==. reqId]
                     delete reqId
                     return $ Just $ T.concat
                         ["CRN ", T.pack $ show crn, " removed."]

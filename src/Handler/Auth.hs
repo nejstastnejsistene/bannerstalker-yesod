@@ -78,19 +78,7 @@ registerUser :: Text -> Text -> Handler ()
 registerUser email passwd = do
     passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
         liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
-    semesters <- fmap (map entityKey) $ runDB $ selectList [] []
-    runDB $ do
-        -- Insert the user record.
-        userId <- insert $ User
-            { userEmail = email
-            , userPhoneNum = Nothing
-            , userVerified = False
-            , userPassword = passwdHash
-            , userAdmin = False
-            }
-        -- Set user to Level1 for all current semesters.
-        mapM_ (\x -> insert $ Privilege userId x Level1) semesters
-        return ()
+    runDB $ insert $ User email Nothing False passwdHash False
     sendVerificationEmail email
 
 loginErrorKey, badLoginCombo :: Text
