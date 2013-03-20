@@ -12,6 +12,10 @@ addErrorKey = "_HomeR_addError"
 
 getHomeR :: Handler RepHtml
 getHomeR = do
+    defaultLayout $ do
+        setTitle "Bannerstalker"
+        $(widgetFile "home")
+    {-
     mUser <- currentUser
     case mUser of
         Nothing -> do
@@ -33,6 +37,8 @@ getHomeR = do
             defaultLayout $ do
                 setTitle "Bannerstalker"
                 $(widgetFile "home-logged-in")
+
+-}
 
 listSectionsHelper :: [SectionId]
                       -> (Int -> Widget)

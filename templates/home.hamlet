@@ -1,55 +1,28 @@
 $newline never
+<div .jumbotron>
+    <h1>Super awesome marketing speak!
+    <div .marketing>
+        <img .img-rounded .screenshot src=http://placehold.it/1136x640&text=Screenshot>
+        <h3>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        <h3>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        <h3>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    <a .btn .btn-large .btn-success href=#>
+        <i .icon-flag>
+        \ Sign up now
+<hr>
 <div .row>
-    <div .span8>
-        <div .hero-unit>
-            <h2>Class registration got you stressed?
-            <p .lead>Every W&amp;M student is familiar with the chaos of class registration and the stress of trying to get into the classes you want.
-            <p .lead>Introducing Bannerstalker &mdash; we stalk Banner so you don't have to!
-            <h2>Get up to the minute notifications!
-            <p .lead>It's easy! Just add your CRNs, and we'll email or text you when any of your classes open up.
-            <a href=@{PricingR} .btn .btn-primary .btn-large>
-                <i .icon-flag>
-                \ Learn more about our features
-    <div .span4>
-        <h3>Login
-        <form method=post action=@{LoginR}>
-            ^{token}
-            <label for=email>Email
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-envelope>
-                <input #email name=email type=email required>
-            <label for=password>Password
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-key>
-                <input #password name=password type=password required>
-            <br>
-            <button type=submit class=btn>
-                <i .icon-share-alt>
-                \ Login
-        <a href=@{ForgotPasswordR}>
-            Forget your password?
-        <br>
-        <h3>Register
-        <form method=post action=@{RegisterR}>
-            ^{token}
-            <label for=email>Email
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-envelope>
-                <input #email name=email type=email required>
-            <label for=password>Password
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-key>
-                <input #password name=password type=password required>
-            <label for=confirm>Confirm password
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-key>
-                <input #confirm name=confirm type=password required>
-            <br>
-            <button type=submit class=btn>
-                <i .icon-share-alt>
-                \ Register
+    <div .span3>
+        <h4>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    <div .span3>
+        <h4>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    <div .span3>
+        <h4>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    <div .span3>
+        <h4>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.

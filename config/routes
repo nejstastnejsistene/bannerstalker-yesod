@@ -29,4 +29,4 @@
 
 /invalid                    InvalidR GET
 
-/                           HomeR GET POST
+/                           HomeR GET

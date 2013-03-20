@@ -74,11 +74,11 @@ instance Yesod App where
     isAuthorized AdminSemestersR _ = isAdmin
 
     -- Must be logged in.
-    isAuthorized SearchR _ = isLoggedIn
+    --isAuthorized SearchR _ = isLoggedIn
     isAuthorized SettingsR _ = isLoggedIn
     isAuthorized UpgradeRootR _ = isLoggedIn
     isAuthorized (UpgradeR _) _ = isLoggedIn
-    isAuthorized HomeR True = isLoggedIn
+    --isAuthorized HomeR True = isLoggedIn
 
     -- Always accessable.
     isAuthorized AboutR _ = return Authorized
@@ -88,7 +88,7 @@ instance Yesod App where
     isAuthorized (VerifyR _ _) _ = return Authorized
     isAuthorized LoginR _ = return Authorized
     isAuthorized LogoutR _ = return Authorized
-    isAuthorized HomeR False = return Authorized
+    isAuthorized HomeR _ = return Authorized
     isAuthorized (StaticR _) _ = return Authorized
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
