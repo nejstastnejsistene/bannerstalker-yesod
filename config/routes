@@ -20,12 +20,10 @@
 /admin/users/edit/#UserId   AdminEditUserR GET POST
 /admin/semesters            AdminSemestersR GET POST
 
-/search                     SearchR GET
 /account                    SettingsR GET POST
-/upgrade                    UpgradeRootR GET
-/upgrade/#Text              UpgradeR GET POST
-/pricing                    PricingR GET
 /about                      AboutR GET
+
+/order/review               ReviewOrderR GET
 
 /invalid                    InvalidR GET
 

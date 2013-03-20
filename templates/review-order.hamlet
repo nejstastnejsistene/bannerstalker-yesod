@@ -1,0 +1,35 @@
+<table .table .table-bordered>
+    <thead>
+        <tr>
+            <th>Item
+            <th>Price
+    <tbody>
+        $with section <- head sections
+            <tr>
+                <td>CRN #{sectionCrn section}
+                <td>$5.00
+        $forall section <- tail sections
+            <tr>
+                <td>CRN #{sectionCrn section}
+                <td>$1.00
+        $if phoneCall
+            <tr>
+                <td>Notification: #{phoneNum} (phone)
+                <td>$3.00
+        <tr>
+            <td>Notification: #{phoneNum} (sms)
+            <td>$0.00
+        <tr>
+            <td>Notification: #{email} (email)
+            <td>$0.00
+    <tfoot>
+        <tr>
+            <th>Total
+            <td>$#{formatPrice price}
+<script
+    src="https://checkout.stripe.com/v2/checkout.js"
+    class="stripe-button"
+    data-key="pk_test_1582eqSGcx11JyaPMcegLmnP"
+    data-amount="#{price}"
+    data-name="Bannerstalker"
+    data-description="Bannerstalk #{courseId}">

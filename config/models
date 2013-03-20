@@ -14,7 +14,6 @@ EmailVerification
 Section
     semester    SemesterId
     crn         Int
-    subject     Text
     courseId    Text
     title       Text
     instructor  Text

@@ -61,8 +61,7 @@ listSectionsHelper sectionIds crnWidget = do
             sections <- fmap (map entityVal) $ runDB $
                 selectList [ SectionId <-. sectIds
                            , SectionSemester ==. semesterId ]
-                           [ Asc SectionSubject
-                           , Asc SectionCourseId ]
+                           [ Asc SectionCourseId ]
             return $ case sections of
                 [] -> Nothing
                 _-> Just $(widgetFile "iter-sections")
@@ -88,6 +87,7 @@ postHomeR = do
                 _ -> setSession addErrorKey formError
             redirect HomeR
 
+{-
 getSearchR :: Handler RepHtml
 getSearchR = do
     subject <- runInputGet $ ireq textField "subject"
@@ -100,7 +100,7 @@ getSearchR = do
     defaultLayout $ do
         setTitle "Search"
         $(widgetFile "search")
-
+-}
 addCrn :: UserId -> Int -> Handler (Maybe Text)
 addCrn userId crn = runDB $ do
     let textCrn = T.concat ["CRN ", T.pack $ show crn, "."]

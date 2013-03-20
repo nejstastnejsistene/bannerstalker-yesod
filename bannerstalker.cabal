@@ -28,6 +28,7 @@ library
                      Handler.Auth
                      Handler.Home
                      Handler.Info
+                     Handler.Order
                      Handler.Settings
                      Handler.Upgrade
                      Handler.Verify

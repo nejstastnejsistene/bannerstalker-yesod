@@ -14,6 +14,7 @@ import Text.Printf
 import Email
 import Stripe
 
+    {-
 upgradeSuccessKey, upgradeErrorKey :: Text
 upgradeSuccessKey = "_UpgradeR_upgradeSuccess"
 upgradeErrorKey = "_UpgradeR_upgradeError"
@@ -27,7 +28,6 @@ getUpgradeRootR = do
 
 getUpgradeR :: Text -> Handler RepHtml
 getUpgradeR code = do
-    {-
     Entity semesterId (Semester _ name _) <- fmap fromJust $
         runDB $ getBy $ UniqueSemester code
     Entity userId user <- fmap fromJust currentUser
@@ -38,7 +38,6 @@ getUpgradeR code = do
         [Asc SemesterCode]
     mSuccessMessage <- consumeSession upgradeSuccessKey
     mErrorMessage <- consumeSession upgradeErrorKey
-    -}
     defaultLayout $ do
         setTitle "Upgrade"
         -- $(widgetFile "upgrade")
@@ -106,3 +105,4 @@ levelName Level1 = "Silver"
 levelName Level2 = "Gold"
 levelName Level3 = "Platinum"
 levelName Admin = "Admin"
+    -}

@@ -74,14 +74,14 @@ makeSection :: SemesterId -> [B.ByteString] -> Either T.Text Section
 makeSection semester args = case args' of
     [crn, courseId, _, title, instr,  _, days, times, _, _, _, status] ->
         let crn' = read $ T.unpack crn
-            subject:courseId':_ = T.words courseId
+            courseId'= T.unwords $ take 2 $ T.words courseId
             status' = case status of
                         "OPEN"   -> Just Open
                         "CLOSED" -> Just Closed
                         _        -> Nothing
         in if isNothing status'
             then Left $ T.concat ["Unkown status: ", status]
-            else Right $ Section semester crn' subject courseId'
+            else Right $ Section semester crn' courseId'
                             title instr days times $ fromJust status'
     _ -> Left "Wrong number of arguments to makeSection"
     where

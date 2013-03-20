@@ -74,15 +74,10 @@ instance Yesod App where
     isAuthorized AdminSemestersR _ = isAdmin
 
     -- Must be logged in.
-    --isAuthorized SearchR _ = isLoggedIn
     isAuthorized SettingsR _ = isLoggedIn
-    isAuthorized UpgradeRootR _ = isLoggedIn
-    isAuthorized (UpgradeR _) _ = isLoggedIn
-    --isAuthorized HomeR True = isLoggedIn
 
     -- Always accessable.
     isAuthorized AboutR _ = return Authorized
-    isAuthorized PricingR _ = return Authorized
     isAuthorized RegisterR _ = return Authorized
     isAuthorized ResendVerificationR _ = return Authorized
     isAuthorized (VerifyR _ _) _ = return Authorized
@@ -97,6 +92,7 @@ instance Yesod App where
     isAuthorized ResetSentR _ = return Authorized
     isAuthorized (ResetPasswordR _ _) _ = return Authorized
     isAuthorized InvalidR _ = return Authorized
+    isAuthorized _ _ = return Authorized
 
     errorHandler NotFound = fmap chooseRep $ defaultLayout $ do
         setTitle "Not Found"

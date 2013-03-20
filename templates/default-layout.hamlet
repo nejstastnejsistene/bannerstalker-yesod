@@ -15,15 +15,15 @@ $newline never
             <a href=@{AboutR}>
                 <i .icon-question-sign>
                 \ About
-        <li :route == PricingR:.active>
-            <a href=@{PricingR}>
-                <i .icon-money>
-                \ Pricing
+        <li>
+            <a href=>
+                <i .icon-envelope>
+                \ Contact Us
+        <li>
+            <a href=>
+                <i .icon-plus-sign>
+                \ Add CRN
         $maybe _ <- mUser
-            <li :fst (splitAt 7 $ show route) == "Upgrade":.active>
-                <a href=@{UpgradeRootR}>
-                    <i .icon-gift>
-                    \ Upgrade
             <li :route == SettingsR:.active>
                 <a href=@{SettingsR}>
                     <i .icon-wrench>
@@ -32,15 +32,6 @@ $newline never
                 <a href=@{LogoutR}>
                     <i .icon-signout>
                     \ Logout
-        $nothing
-            <li :route == RegisterR:.active>
-                <a href=@{RegisterR}>
-                    <i .icon-user>
-                    \ Register
-            <li :route == LoginR:.active>
-                <a href=@{LoginR}>
-                    <i .icon-signin>
-                    \ Login
     <h3>
         <img .logo src=@{StaticR img_binoculars_svg}>
         \ Bannerstalker
