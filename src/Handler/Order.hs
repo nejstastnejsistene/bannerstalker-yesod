@@ -4,8 +4,13 @@ import Prelude
 import Import
 import Data.Maybe
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as LT
+import Network.Mail.Mime
+import Text.Blaze.Html.Renderer.String
+import Text.Hamlet
 import Text.Printf (printf)
 
+import Email
 import Stripe
 
 data Order = Order { orderCourseId :: Text
@@ -15,13 +20,15 @@ data Order = Order { orderCourseId :: Text
                    , orderPhoneCall :: Bool
                    } deriving (Show, Read)
 
-orderKey, errorKey :: Text
+orderKey, errorKey, successKey :: Text
 orderKey = "_order"
 errorKey = "_orderError"
+successKey = "_orderSuccess"
 
 getStartOrderR :: Handler RepHtml
 getStartOrderR = do
     mErrorMessage <- consumeSession errorKey
+    mSuccessMessage <- consumeSession successKey
     defaultLayout $ do
         setTitle "Stalk a CRN"
         $(widgetFile "start-order")
@@ -137,7 +144,7 @@ postReviewOrderR = do
             manager <- fmap httpManager getYesod
             extra <- getExtra
             eCharge <- liftIO $ makeCharge manager extra stripeToken
-                (T.pack $ show price) $ userEmail user
+                (T.pack $ show (price :: Int)) $ userEmail user
             case eCharge of
                 Left charge -> do
                     deleteSession orderKey
@@ -145,11 +152,11 @@ postReviewOrderR = do
                     let sectionIds = map entityKey $ catMaybes mSections
                         req = SectionRequest userId email phoneNum phoneCall
                     runDB $ mapM_ (insert . req) sectionIds
-                    --sendConfirmation userId name targetLevel charge
-                    --setSession upgradeSuccessKey $ T.concat
-                    --    [ "Transaction successful!"
-                    --    , " We sent you a confirmation email." ]
-                    defaultLayout [whamlet|success $#{formatPrice price} #{show charge}|]
+                    sendConfirmation email charge
+                    setSession successKey $ T.concat
+                        [ "Transaction successful!"
+                        , " We sent you a confirmation email." ]
+                    redirect StartOrderR
                 Right err -> do
                     setSession errorKey $ T.concat
                         [ errorMessage err
@@ -157,6 +164,16 @@ postReviewOrderR = do
                     redirect ReviewOrderR
         _ -> deleteSession orderKey >> redirect StartOrderR
      
+sendConfirmation :: Text -> Charge -> Handler ()
+sendConfirmation email charge = do
+    let to = Address Nothing email
+        from = noreplyAddr
+        subject = "Bannerstalker transaction confirmation"
+        text = LT.pack $ renderHtml
+            $(shamletFile "templates/transaction-confirmation-text.hamlet")
+        html = LT.pack $ renderHtml
+            $(shamletFile "templates/transaction-confirmation-html.hamlet")
+    liftIO $ simpleMail to from subject text html [] >>= mySendmail
 
 formatPrice :: Int -> Text
 formatPrice price =

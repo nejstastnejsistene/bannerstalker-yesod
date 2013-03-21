@@ -1,5 +1,3 @@
-<p>You have successfully upgraded to #{levelName level} Level for #{semester}!
-<p>Paid: #{chargePaid charge}
 <p>Amount: $#{formatPrice $ chargeAmount charge}
 $maybe desc <- chargeDescription charge
     <p>Description: #{desc}
