@@ -2,11 +2,22 @@ $newline never
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 ^{showMessage SuccessMessage mSuccessMessage Nothing}
 <div .row>
-    <div .span9>
-        $if (length sections) == 0
-            <p>empty
+    <div .span4>
+        <div .well>
+            <h2>Add a CRN
+            <p>Simply enter a CRN to get started with Bannerstalker!
+            <form method=post action=@{StartOrderR}>
+                <label for=crn>
+                <input #crn name=crn type=number placeholder="Enter a CRN here" required autofocus>
+                <br>
+                <button .btn .btn-large .btn-success type=submit>Add CRN
+    <div .span8>
+        $if (length sectionResults) == 0
+            <div .well>
+            <strong>You aren't stalking any CRNs!
+            <p>To get started, do this and this and this
         $else
-            <h3>Your CRNs
+            <h2>Your CRNs
             <table .table .iter-sections>
                 <tr>
                     <th>CRN
@@ -17,35 +28,36 @@ $newline never
                     <th .hidden-phone .hidden-tablet>Times
                     <th>Status
                     <th>
-                $forall Section _ crn cId ttl inst time day stat <- sections
+                $forall (section, reqId) <- sectionResults
                     <tr>
-                        <td>#{crn}
-                        <td .hidden-phone>#{cId}
-                        <td>#{ttl}
-                        <td .hidden-phone .hidden-tablet>#{inst}
-                        <td .hidden-phone .hidden-tablet>#{time}
-                        <td .hidden-phone .hidden-tablet>#{day}
-                        <td>#{stat}
+                        <td>#{sectionCrn section}
+                        <td .hidden-phone>#{sectionCourseId section}
+                        <td>#{sectionTitle section}
+                        <td .hidden-phone .hidden-tablet>#{sectionInstructor section}
+                        <td .hidden-phone .hidden-tablet>#{sectionDays section}
+                        <td .hidden-phone .hidden-tablet>#{sectionTime section}
+                        <td>#{sectionCurrStatus section}
                         <td>
-                            <a .btn .btn-small .btn-danger>
-                                <i .icon-trash>
-                                \ Remove
-    <div .span3>
-        <h3>Add a CRN
-        <form method=post action=@{StartOrderR}>
-            <label for=crn>
-            <input #crn name=crn type=text required>
-            <br>
-            <button .btn .btn-success type=submit>Add CRN
-        <hr>
-        <h3>Contact info
+                            <a href=@{ViewRequestR reqId} .btn .btn-small>
+                                <i .icon-cog>
+                                \ Info
+<hr>
+<div .row>
+    <div .span6>
+        <h3>Default contact info
         <form method=post>
             <label for=email>Email
-            <input #email name=email type=email required>
+            <input #email name=email type=email value=#{userEmail user} required>
             <label for=phoneNum>Phone number
-            <input #phoneNum name=phoneNum type=tel required>
-            <br>
+            <div .input-prepend>
+                <span .add-on>+1
+                <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel required>
+            <div .alert>
+                <strong>
+                    <i .icon-exclamation-sign>
+                    \ This will not affect CRNs you are already stalking!
             <button .btn type=submit>Update
+    <div .span6>
         <h3>Password
         <form method=post>
             <label for=password>New password

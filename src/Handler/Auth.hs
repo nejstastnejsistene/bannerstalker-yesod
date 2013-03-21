@@ -18,7 +18,7 @@ import Email
 import Handler.Verify
 
 data LoginCreds = LoginCreds Text Text
-data RegisterCreds = RegisterCreds Text Text Text
+data RegisterCreds = RegisterCreds Text Text Text Text
 
 loginForm :: FormInput App App LoginCreds
 loginForm = LoginCreds
@@ -28,6 +28,7 @@ loginForm = LoginCreds
 registerForm :: FormInput App App RegisterCreds
 registerForm = RegisterCreds
     <$> ireq emailField "email"
+    <*> ireq textField "phoneNum"
     <*> ireq passwordField "password"
     <*> ireq passwordField "confirm"
 
@@ -48,14 +49,11 @@ getRegisterR = do
 
 postRegisterR :: Handler RepHtml
 postRegisterR = do
-    RegisterCreds email passwd confirm <- runInputPost registerForm
+    RegisterCreds email phoneNum passwd confirm <- runInputPost registerForm
     mErrorMessage <- do
         mUser <- runDB $ getBy $ UniqueEmail email
-        -- Only @email.wm.edu students may register.
-        if (snd $ T.breakOn "@" email) /= "@email.wm.edu" then
-            return $ Just "W&M students only"
         -- Already registered.
-        else if (isJust mUser) then
+        if (isJust mUser) then
             return $ Just "Already registered"
         -- Password mismatch.
         else if passwd /= confirm then
@@ -64,7 +62,7 @@ postRegisterR = do
         else if T.length passwd < 8 then
             return $ Just passwordTooShort
         -- Success!
-        else registerUser email passwd >> return Nothing
+        else registerUser email phoneNum passwd >> return Nothing
     token <- getToken
     case mErrorMessage of
         Nothing -> defaultLayout $ do
@@ -74,11 +72,11 @@ postRegisterR = do
             setSessionWith registerErrorKey mErrorMessage
             redirect RegisterR
 
-registerUser :: Text -> Text -> Handler ()
-registerUser email passwd = do
+registerUser :: Text -> Text -> Text -> Handler ()
+registerUser email phoneNum passwd = do
     passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
         liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
-    _ <- runDB $ insert $ User email Nothing False passwdHash False
+    _ <- runDB $ insert $ User email phoneNum False passwdHash False
     sendVerificationEmail email
 
 loginErrorKey, badLoginCombo :: Text

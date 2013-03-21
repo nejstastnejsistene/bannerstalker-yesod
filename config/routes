@@ -21,7 +21,9 @@
 /admin/semesters            AdminSemestersR GET POST
 
 /about                      AboutR GET
-/account                    AccountR GET POST
+/account                    AccountR GET
+/account/view/#SectionRequestId ViewRequestR GET
+/account/remove/#SectionRequestId RemoveRequestR POST
 
 /order                      StartOrderR POST
 /order/crns                 ChooseCrnsR GET POST

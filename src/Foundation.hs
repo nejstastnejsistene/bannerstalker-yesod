@@ -78,6 +78,9 @@ instance Yesod App where
     isAuthorized ChooseCrnsR _ = isLoggedIn
     isAuthorized ContactInfoR _ = isLoggedIn
     isAuthorized ReviewOrderR _ = isLoggedIn
+    isAuthorized AccountR _ = isLoggedIn
+    isAuthorized (ViewRequestR _) _ = isLoggedIn
+    isAuthorized (RemoveRequestR _) _ = isLoggedIn
 
     -- Always accessable.
     isAuthorized _ _ = return Authorized
@@ -92,7 +95,7 @@ instance Yesod App where
     -- default session idle timeout is 120 minutes
     makeSessionBackend _ = do
         key <- getKey "config/client_session_key.aes"
-        let timeout = 120 * 60 -- 120 minutes
+        let timeout = 365 * 24 * 60 * 60 -- 1 year
         (getCachedDate, _closeDateCache) <- clientSessionDateCacher timeout
         return . Just $ clientSessionBackend2 key getCachedDate
 

@@ -6,10 +6,7 @@
     <label for=phoneNum>Phone number
     <div .input-prepend>
         <span .add-on>+1
-        $maybe phoneNum <- userPhoneNum user
-            <input #phoneNum name=phoneNum value=#{phoneNum} type=tel required>
-        $nothing
-            <input #phoneNum name=phoneNum type=tel required>
+        <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel required>
     <label .checkbox>
         Phone call?
         <input name=phoneCall value=yes type=checkbox>

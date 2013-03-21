@@ -11,7 +11,7 @@ $newline never
         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
     <a .btn .btn-large .btn-success href=@{AccountR}>
         <i .icon-flag>
-        \ Sign up now
+        \ Get started
 <hr>
 <div .row>
     <div .span3>

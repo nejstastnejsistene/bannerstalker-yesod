@@ -1,6 +1,6 @@
 User
     email       Text
-    phoneNum    Text Maybe
+    phoneNum    Text
     verified    Bool
     password    Text
     admin       Bool
@@ -56,3 +56,6 @@ Semester
     name        Text
     active      Bool
     UniqueSemester code
+Feedback
+    gotIn       Bool
+    feedback    Text Maybe

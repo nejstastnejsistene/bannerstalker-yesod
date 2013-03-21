@@ -28,22 +28,50 @@ successKey = "_orderSuccess"
 
 getAccountR :: Handler RepHtml
 getAccountR = do
-    let sql = "SELECT ?? \
+    let sql = "SELECT ??, ?? \
               \FROM \"user\", section, section_request, semester  \
               \WHERE section_request.user_id = ? \
                 \AND section_request.section_id  = section.id \
               \ORDER BY section.course_id ASC"
-    userId <- fmap (entityKey .fromJust) currentUser
+    Entity userId user <- fmap fromJust currentUser
     sqlResult <- runDB $ rawSql sql [toPersistValue userId]
-    let sections = map entityVal sqlResult
+    let sectionResults = [(s, r) | (Entity _ s, Entity r _) <- sqlResult]
     mErrorMessage <- consumeSession errorKey
     mSuccessMessage <- consumeSession successKey
     defaultLayout $ do
         setTitle "Account"
         $(widgetFile "account")
 
-postAccountR :: Handler RepHtml
-postAccountR = redirect AccountR
+getViewRequestR :: SectionRequestId -> Handler RepHtml
+getViewRequestR reqId = do
+    userId <- fmap (entityKey . fromJust) currentUser
+    reqs <- runDB $ selectList [ SectionRequestId ==. reqId
+                               , SectionRequestUserId ==. userId] []
+    case reqs of
+        [Entity _ req] -> do
+            section <- fmap fromJust $
+                runDB $ get $ sectionRequestSectionId req
+            defaultLayout $ do
+                setTitle "View request"
+                $(widgetFile "view-request")
+        _ -> redirect AccountR
+
+postRemoveRequestR :: SectionRequestId -> Handler RepHtml
+postRemoveRequestR reqId = do
+    (feedback, gotIn, _) <- runInputPost $ (,,)
+        <$> iopt textField "feedback"
+        <*> iopt boolField "gotIn"
+        <*> ireq boolField "confirm"
+    _ <- runDB $ insert $ Feedback (isJust gotIn) feedback
+    userId <- fmap (entityKey . fromJust) currentUser
+    reqs <- runDB $ selectList [ SectionRequestId ==. reqId
+                               , SectionRequestUserId ==. userId] []
+    case reqs of
+        [_] -> do
+            runDB $ delete reqId
+            setSession successKey "Your CRN was successfully deleted."
+            redirect AccountR
+        _ -> redirect AccountR
 
 postStartOrderR :: Handler RepHtml
 postStartOrderR = do
