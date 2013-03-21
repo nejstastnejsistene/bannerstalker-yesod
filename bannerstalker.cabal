@@ -1,5 +1,5 @@
 name:              bannerstalker
-version:           0.1.21
+version:           0.1.22
 cabal-version:     >= 1.8
 build-type:        Simple
 
