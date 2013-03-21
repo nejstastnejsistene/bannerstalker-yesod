@@ -1,4 +1,5 @@
 <h3>Select the courses that you want to stalk
+^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post>
     <table .table .table-bordered>
         <tr>

@@ -2,8 +2,8 @@ module Handler.Order where
 
 import Prelude
 import Import
-import Data.Maybe (isJust, fromJust, catMaybes)
-import Data.Text (pack, unpack)
+import Data.Maybe
+import qualified Data.Text as T
 import Text.Printf (printf)
 
 import Stripe
@@ -15,11 +15,13 @@ data Order = Order { orderCourseId :: Text
                    , orderPhoneCall :: Bool
                    } deriving (Show, Read)
 
-orderKey :: Text
+orderKey, errorKey :: Text
 orderKey = "_order"
+errorKey = "_orderError"
 
 getStartOrderR :: Handler RepHtml
 getStartOrderR = do
+    mErrorMessage <- consumeSession errorKey
     defaultLayout $ do
         setTitle "Stalk a CRN"
         $(widgetFile "start-order")
@@ -34,16 +36,17 @@ postStartOrderR = do
         Just (Entity _ section) -> do
             let order =  Order (sectionCourseId section)
                             (Just [crn]) Nothing Nothing False
-            setSession orderKey $ pack $ show order
+            setSession orderKey $ T.pack $ show order
             redirect ChooseCrnsR
 
 getChooseCrnsR :: Handler RepHtml
 getChooseCrnsR = do
     mOrder <- getSessionWith orderKey
-    case fmap (read . unpack) mOrder of
+    case fmap (read . T.unpack) mOrder of
         Just (Order courseId (Just crns) _ _ _) -> do
             sections <- fmap (map entityVal) $ runDB $
                 selectList [SectionCourseId ==. courseId] [Asc SectionCrn]
+            mErrorMessage <- consumeSession errorKey
             defaultLayout $ do
                 setTitle "Choose related sections"
                 $(widgetFile "choose-crns")
@@ -52,13 +55,15 @@ getChooseCrnsR = do
 postChooseCrnsR :: Handler RepHtml
 postChooseCrnsR = do
     (postData, _) <- runRequestBody
-    let crns = map (read . unpack . snd) postData
+    let crns = map (read . T.unpack . snd) postData
     mOrder <- getSessionWith orderKey
-    case fmap (read . unpack) mOrder of
+    case fmap (read . T.unpack) mOrder of
         Just order -> case crns of
-            [] -> defaultLayout [whamlet|must choose at least 1 crn|]
+            [] -> do
+                setSession errorKey "You must select at least 1 CRN."
+                redirect ChooseCrnsR
             _ -> do
-                setSession orderKey $ pack $ show $
+                setSession orderKey $ T.pack $ show $
                     order { orderCrns = Just crns }
                 redirect ContactInfoR
         Nothing -> deleteSession orderKey >> redirect StartOrderR
@@ -66,9 +71,10 @@ postChooseCrnsR = do
 getContactInfoR :: Handler RepHtml
 getContactInfoR = do
     mOrder <- getSessionWith orderKey
-    case fmap (read . unpack) mOrder of
+    case fmap (read . T.unpack) mOrder of
         Just (Order _ (Just _) _ _ _) -> do
             user <- fmap (entityVal . fromJust) currentUser
+            mErrorMessage <- consumeSession errorKey
             defaultLayout $ do
                 setTitle "Contact information"
                 $(widgetFile "contact-info")
@@ -81,9 +87,9 @@ postContactInfoR = do
         <*> ireq textField "phoneNum"
         <*> iopt boolField "phoneCall"
     mOrder <- getSessionWith orderKey
-    case fmap (read . unpack) mOrder of
+    case fmap (read . T.unpack) mOrder of
         Just order -> do
-            setSession orderKey $ pack $ show $
+            setSession orderKey $ T.pack $ show $
                 order { orderEmail = Just email
                       , orderPhoneNum = Just phoneNum
                       , orderPhoneCall = isJust phoneCall }
@@ -93,7 +99,7 @@ postContactInfoR = do
 getReviewOrderR :: Handler RepHtml
 getReviewOrderR = do
     mOrder <- getSessionWith orderKey
-    case fmap (read . unpack) mOrder of
+    case fmap (read . T.unpack) mOrder of
         Just (Order courseId
                     (Just crns)
                     (Just email)
@@ -105,10 +111,15 @@ getReviewOrderR = do
                 additionalPrice = if phoneCall then 300 else 0
                 price = sectionsPrice + additionalPrice
             case dropWhile (==courseId) $ map sectionCourseId sections of
-                [] -> defaultLayout $ do
-                    setTitle "Review Order"
-                    $(widgetFile "review-order")
-                _ -> defaultLayout [whamlet|not same course id|]
+                [] -> do
+                    mErrorMessage <- consumeSession errorKey
+                    defaultLayout $ do
+                        setTitle "Review Order"
+                        $(widgetFile "review-order")
+                _ -> do
+                    setSession errorKey 
+                        "You can purchase at most one course ID per order."
+                    redirect ChooseCrnsR
         _ -> deleteSession orderKey >> redirect StartOrderR
 
 postReviewOrderR :: Handler RepHtml
@@ -117,7 +128,7 @@ postReviewOrderR = do
         <$> ireq intField "price"
         <*> ireq textField "stripeToken"
     mOrder <- getSessionWith orderKey
-    case fmap (read . unpack) mOrder of
+    case fmap (read . T.unpack) mOrder of
         Just (Order _ (Just crns)
                       (Just email)
                       (Just phoneNum)
@@ -126,7 +137,7 @@ postReviewOrderR = do
             manager <- fmap httpManager getYesod
             extra <- getExtra
             eCharge <- liftIO $ makeCharge manager extra stripeToken
-                (pack $ show price) $ userEmail user
+                (T.pack $ show price) $ userEmail user
             case eCharge of
                 Left charge -> do
                     deleteSession orderKey
@@ -140,14 +151,13 @@ postReviewOrderR = do
                     --    , " We sent you a confirmation email." ]
                     defaultLayout [whamlet|success $#{formatPrice price} #{show charge}|]
                 Right err -> do
-                    --setSession upgradeErrorKey $ T.concat
-                    --    [ errorMessage err
-                    --    , " Your card has not been charged."]
-                    --redirect ReviewOrderR
-                    defaultLayout [whamlet|#{show err}, your card has not been charged, redirect to review payment page|]
+                    setSession errorKey $ T.concat
+                        [ errorMessage err
+                        , ". Your card has not been charged."]
+                    redirect ReviewOrderR
         _ -> deleteSession orderKey >> redirect StartOrderR
      
 
 formatPrice :: Int -> Text
 formatPrice price =
-    pack $ printf "%.2f" $ (/100.0) $ (fromIntegral price :: Float)
+    T.pack $ printf "%.2f" $ (/100.0) $ (fromIntegral price :: Float)

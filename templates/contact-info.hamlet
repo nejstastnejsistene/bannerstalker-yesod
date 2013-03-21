@@ -1,4 +1,5 @@
 <h3>Contact information
+^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post>
     <label for=email>Email
     <input #email name=email value=#{userEmail user} type=email required>

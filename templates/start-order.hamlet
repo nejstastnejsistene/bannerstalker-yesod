@@ -1,4 +1,5 @@
 <h3>Choose a CRN
+^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post>
     <label for=crn>CRN
     <input #crn name=crn type=text required>
