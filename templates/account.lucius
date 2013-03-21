@@ -1,0 +1,6 @@
+table.iter-sections {
+    table-layout: fixed;
+    th, td {
+        overflow: hidden;
+    }
+}

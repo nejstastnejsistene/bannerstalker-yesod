@@ -23,7 +23,7 @@
 /about                      AboutR GET
 /account                    AccountR GET POST
 
-/order                      StartOrderR GET POST
+/order                      StartOrderR POST
 /order/crns                 ChooseCrnsR GET POST
 /order/contact              ContactInfoR GET POST
 /order/review               ReviewOrderR GET POST

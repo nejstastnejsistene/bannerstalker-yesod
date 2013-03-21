@@ -5,6 +5,7 @@ import Import
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
+import Database.Persist.GenericSql
 import Network.Mail.Mime
 import Text.Blaze.Html.Renderer.String
 import Text.Hamlet
@@ -25,13 +26,24 @@ orderKey = "_order"
 errorKey = "_orderError"
 successKey = "_orderSuccess"
 
-getStartOrderR :: Handler RepHtml
-getStartOrderR = do
+getAccountR :: Handler RepHtml
+getAccountR = do
+    let sql = "SELECT ?? \
+              \FROM \"user\", section, section_request, semester  \
+              \WHERE section_request.user_id = ? \
+                \AND section_request.section_id  = section.id \
+              \ORDER BY section.course_id ASC"
+    userId <- fmap (entityKey .fromJust) currentUser
+    sqlResult <- runDB $ rawSql sql [toPersistValue userId]
+    let sections = map entityVal sqlResult
     mErrorMessage <- consumeSession errorKey
     mSuccessMessage <- consumeSession successKey
     defaultLayout $ do
-        setTitle "Stalk a CRN"
-        $(widgetFile "start-order")
+        setTitle "Account"
+        $(widgetFile "account")
+
+postAccountR :: Handler RepHtml
+postAccountR = redirect AccountR
 
 postStartOrderR :: Handler RepHtml
 postStartOrderR = do
@@ -40,7 +52,7 @@ postStartOrderR = do
     case mSection of
         Nothing -> do
             setSession errorKey "That CRN doesn't exist!"
-            redirect StartOrderR
+            redirect AccountR
         Just (Entity _ section) -> do
             let order =  Order (sectionCourseId section)
                             (Just [crn]) Nothing Nothing False
@@ -58,7 +70,7 @@ getChooseCrnsR = do
             defaultLayout $ do
                 setTitle "Choose related sections"
                 $(widgetFile "choose-crns")
-        _ -> deleteSession orderKey >> redirect StartOrderR
+        _ -> deleteSession orderKey >> redirect AccountR
 
 postChooseCrnsR :: Handler RepHtml
 postChooseCrnsR = do
@@ -74,7 +86,7 @@ postChooseCrnsR = do
                 setSession orderKey $ T.pack $ show $
                     order { orderCrns = Just crns }
                 redirect ContactInfoR
-        Nothing -> deleteSession orderKey >> redirect StartOrderR
+        Nothing -> deleteSession orderKey >> redirect AccountR
 
 getContactInfoR :: Handler RepHtml
 getContactInfoR = do
@@ -128,7 +140,7 @@ getReviewOrderR = do
                     setSession errorKey 
                         "You can purchase at most one course ID per order."
                     redirect ChooseCrnsR
-        _ -> deleteSession orderKey >> redirect StartOrderR
+        _ -> deleteSession orderKey >> redirect AccountR
 
 postReviewOrderR :: Handler RepHtml
 postReviewOrderR = do
@@ -157,13 +169,13 @@ postReviewOrderR = do
                     setSession successKey $ T.concat
                         [ "Transaction successful!"
                         , " We sent you a confirmation email." ]
-                    redirect StartOrderR
+                    redirect AccountR
                 Right err -> do
                     setSession errorKey $ T.concat
                         [ errorMessage err
                         , ". Your card has not been charged."]
                     redirect ReviewOrderR
-        _ -> deleteSession orderKey >> redirect StartOrderR
+        _ -> deleteSession orderKey >> redirect AccountR
      
 sendConfirmation :: Text -> Order -> Charge -> Handler ()
 sendConfirmation email order charge = do

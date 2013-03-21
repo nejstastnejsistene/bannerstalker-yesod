@@ -1,28 +1,56 @@
 $newline never
+^{showMessage ErrorMessage mErrorMessage Nothing}
+^{showMessage SuccessMessage mSuccessMessage Nothing}
 <div .row>
-    <div .span3>
-        <a href=@{StartOrderR} .btn .btn-large .btn-success>Add a CRN
     <div .span9>
-        <h3>Your CRNs
-        <table .table .iter-sections>
-            <tr>
-                <th>CRN
-                <th>Course ID
-                <th .hidden-phone .hidden-tablet>Title
-                <th>Status
-                <th .hidden-phone>Email
-                <th .hidden-phone>Phone number
-                <th .hidden-phone .hidden-tablet>Phone call
-                <th>
-            $forall (request, section) <- requestSections
+        $if (length sections) == 0
+            <p>empty
+        $else
+            <h3>Your CRNs
+            <table .table .iter-sections>
                 <tr>
-                    <td>#{sectionCrn section}
-                    <td>#{sectionCourseId section}
-                    <td .hidden-phone .hidden-tablet>#{sectionTitle section}
-                    <td>#{show $ sectionCurrStatus section}
-                    <td .hidden-phone>#{sectionRequestEmail request}
-                    <td .hidden-phone>#{sectionRequestPhoneNum request}
-                    <td .hidden-phone .hidden-tablet>#{sectionRequestPhoneCall request}
-                    <td>
-                        <a .btn .btn-small .btn-danger>
-                            <i .icon-trash>
+                    <th>CRN
+                    <th .hidden-phone>Course ID
+                    <th>Title
+                    <th .hidden-phone .hidden-tablet>Instructor
+                    <th .hidden-phone .hidden-tablet>Days
+                    <th .hidden-phone .hidden-tablet>Times
+                    <th>Status
+                    <th>
+                $forall Section _ crn cId ttl inst time day stat <- sections
+                    <tr>
+                        <td>#{crn}
+                        <td .hidden-phone>#{cId}
+                        <td>#{ttl}
+                        <td .hidden-phone .hidden-tablet>#{inst}
+                        <td .hidden-phone .hidden-tablet>#{time}
+                        <td .hidden-phone .hidden-tablet>#{day}
+                        <td>#{stat}
+                        <td>
+                            <a .btn .btn-small .btn-danger>
+                                <i .icon-trash>
+                                \ Remove
+    <div .span3>
+        <h3>Add a CRN
+        <form method=post action=@{StartOrderR}>
+            <label for=crn>
+            <input #crn name=crn type=text required>
+            <br>
+            <button .btn .btn-success type=submit>Add CRN
+        <hr>
+        <h3>Contact info
+        <form method=post>
+            <label for=email>Email
+            <input #email name=email type=email required>
+            <label for=phoneNum>Phone number
+            <input #phoneNum name=phoneNum type=tel required>
+            <br>
+            <button .btn type=submit>Update
+        <h3>Password
+        <form method=post>
+            <label for=password>New password
+            <input #password name=password type=password required>
+            <label for=phoneNum>Confirm new password
+            <input #confirm name=confirm type=password required>
+            <br>
+            <button .btn type=submit>Update
