@@ -7,8 +7,5 @@
     <div .input-prepend>
         <span .add-on>+1
         <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel required>
-    <label .checkbox>
-        Phone call?
-        <input name=phoneCall value=yes type=checkbox>
     <br>
     <button .btn type=submit>Continue

@@ -14,8 +14,8 @@ $newline never
     <div .span8>
         $if (length sectionResults) == 0
             <div .well>
-            <strong>You aren't stalking any CRNs!
-            <p>To get started, do this and this and this
+                <strong>You aren't stalking any CRNs!
+                <p>To get started, do this and this and this
         $else
             <h2>Your CRNs
             <table .table .iter-sections>
