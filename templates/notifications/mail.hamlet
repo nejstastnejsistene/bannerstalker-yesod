@@ -1,3 +1,7 @@
 <html>
   <body>
-    <p>#{sectionTitle section} is now #{sectionCurrStatus section}
+    <p>#{sectionTitle section} (CRN #{show $ sectionCrn section}) is now #{show $ sectionCurrStatus section}
+    <p> 
+        Sign in to
+        <a href="https://bannerstalker.com/account"> Bannerstalker
+        \ to view your courses.

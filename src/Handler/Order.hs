@@ -29,7 +29,7 @@ successKey = "_orderSuccess"
 getAccountR :: Handler RepHtml
 getAccountR = do
     let sql = "SELECT ??, ?? \
-              \FROM \"user\", section, section_request, semester  \
+              \FROM \"user\", section, section_request \
               \WHERE section_request.user_id = ? \
                 \AND section_request.section_id  = section.id \
               \ORDER BY section.course_id ASC"
