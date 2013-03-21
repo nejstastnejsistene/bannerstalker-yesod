@@ -19,7 +19,7 @@ daemon = simpleDaemon { privilegedAction = readConfig
 
 readConfig :: IO ConfigFiles
 readConfig = do
-    conf <- getAppConfig Development
+    conf <- getAppConfig Production
     dbConf <- getPersistConfig conf
     return (conf, dbConf)
 
@@ -29,5 +29,4 @@ startDaemon (conf, dbConf) = do
     bannerstalkerdLoop (appExtra conf) dbConf manager
 
 main :: IO ()
---main = serviced daemon
-main = readConfig >>= startDaemon
+main = serviced daemon

@@ -4,3 +4,7 @@ table.iter-sections {
         overflow: hidden;
     }
 }
+
+input {
+    max-width: 100%;
+}

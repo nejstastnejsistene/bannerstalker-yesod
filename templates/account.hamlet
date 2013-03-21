@@ -8,7 +8,7 @@ $newline never
             <p>Simply enter a CRN to get started with Bannerstalker!
             <form method=post action=@{StartOrderR}>
                 <label for=crn>
-                <input #crn name=crn type=number placeholder="Enter a CRN here" required autofocus>
+                <input #crn name=crn type=text pattern=\d* placeholder="Enter a CRN here" required autofocus>
                 <br>
                 <button .btn .btn-large .btn-success type=submit>Add CRN
     <div .span8>
