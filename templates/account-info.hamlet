@@ -1,0 +1,25 @@
+<h2>Account Information
+<div .alert>
+    <i .icon-exclamation-sign>
+    \ The information here is only for logging in and for default contact information when purchasing CRNs. Changing your contact information here will not affect any CRNs you are already stalking.
+^{showMessage ErrorMessage mErrorMessage Nothing}
+^{showMessage SuccessMessage mSuccessMessage Nothing}
+<div .row>
+    <div .span6>
+        <h3>Default contact info
+        <form method=post>
+            <label for=email>Email
+            <input #email name=email type=email value=#{userEmail user} required>
+            <label for=phoneNum>Phone number
+            <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel required>
+            <br>
+            <button .btn type=submit>Update
+    <div .span6>
+        <h3>Password
+        <form method=post>
+            <label for=password>New password
+            <input #password name=password type=password required>
+            <label for=phoneNum>Confirm new password
+            <input #confirm name=confirm type=password required>
+            <br>
+            <button .btn type=submit>Update

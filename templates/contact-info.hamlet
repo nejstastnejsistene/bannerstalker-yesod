@@ -4,8 +4,6 @@
     <label for=email>Email
     <input #email name=email value=#{userEmail user} type=email required>
     <label for=phoneNum>Phone number
-    <div .input-prepend>
-        <span .add-on>+1
-        <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel required>
+    <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel required>
     <br>
     <button .btn type=submit>Continue

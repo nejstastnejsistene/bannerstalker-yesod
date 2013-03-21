@@ -9,9 +9,7 @@ $newline never
     <label for=email>Email
     <input #email name=email type=email required>
     <label for=phoneNum>Phone number (for SMS notifications)
-    <div .input-prepend>
-        <span .add-on>+1
-        <input #phoneNum name=phoneNum type=tel required>
+    <input #phoneNum name=phoneNum type=tel required>
     <label for=password>Password
     <input #password name=password type=password required>
     <label for=confirm>Confirm Password

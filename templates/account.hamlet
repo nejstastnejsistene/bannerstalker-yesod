@@ -11,6 +11,8 @@ $newline never
                 <input #crn name=crn type=text pattern=\d* placeholder="Enter a CRN here" required autofocus>
                 <br>
                 <button .btn .btn-large .btn-success type=submit>Add CRN
+        <hr>
+        <a href=@{AccountInfoR} .btn .btn-large>Update account information
     <div .span8>
         $if (length sectionResults) == 0
             <div .well>
@@ -41,28 +43,3 @@ $newline never
                             <a href=@{ViewRequestR reqId} .btn .btn-small>
                                 <i .icon-cog>
                                 \ Info
-<hr>
-<div .row>
-    <div .span6>
-        <h3>Default contact info
-        <form method=post>
-            <label for=email>Email
-            <input #email name=email type=email value=#{userEmail user} required>
-            <label for=phoneNum>Phone number
-            <div .input-prepend>
-                <span .add-on>+1
-                <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel required>
-            <div .alert>
-                <strong>
-                    <i .icon-exclamation-sign>
-                    \ This will not affect CRNs you are already stalking!
-            <button .btn type=submit>Update
-    <div .span6>
-        <h3>Password
-        <form method=post>
-            <label for=password>New password
-            <input #password name=password type=password required>
-            <label for=phoneNum>Confirm new password
-            <input #confirm name=confirm type=password required>
-            <br>
-            <button .btn type=submit>Update

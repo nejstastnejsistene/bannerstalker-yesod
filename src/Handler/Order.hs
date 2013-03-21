@@ -13,6 +13,7 @@ import Text.Printf (printf)
 
 import Email
 import Stripe
+import Handler.Auth
 
 data Order = Order { orderCourseId :: Text
                    , orderCrns :: Maybe [Int]
@@ -33,7 +34,7 @@ getAccountR = do
               \WHERE section_request.user_id = ? \
                 \AND section_request.section_id  = section.id \
               \ORDER BY section.course_id ASC"
-    Entity userId user <- fmap fromJust currentUser
+    Entity userId _ <- fmap fromJust currentUser
     sqlResult <- runDB $ rawSql sql [toPersistValue userId]
     let sectionResults = [(s, r) | (Entity _ s, Entity r _) <- sqlResult]
     mErrorMessage <- consumeSession errorKey
@@ -41,6 +42,62 @@ getAccountR = do
     defaultLayout $ do
         setTitle "Account"
         $(widgetFile "account")
+
+getAccountInfoR :: Handler RepHtml
+getAccountInfoR = do
+    Entity _ user <- fmap fromJust currentUser
+    mErrorMessage <- consumeSession errorKey
+    mSuccessMessage <- consumeSession successKey
+    defaultLayout $ do
+        setTitle "Account info"
+        $(widgetFile "account-info")
+
+postAccountInfoR :: Handler RepHtml
+postAccountInfoR = do
+    result <- runInputPost $ (,,,)
+        <$> iopt emailField "email"
+        <*> iopt textField "phoneNum"
+        <*> iopt passwordField "password"
+        <*> iopt passwordField "confirm"
+    Entity userId user <- fmap fromJust currentUser
+    case result of
+        (Just email, Just phoneNum, _, _) -> do
+            mUser <- runDB $ getBy $ UniqueEmail email
+            case (mUser, email ==  userEmail user) of
+                (Just _, False) -> do
+                    setSession errorKey
+                        "That email address is already in use."
+                    redirect AccountInfoR
+                _ -> case validatePhoneNum phoneNum of
+                    Nothing -> do
+                        setSession errorKey
+                            "Please enter a valid phone number."
+                        redirect AccountInfoR
+                    Just validPhoneNum -> do
+                        runDB $ update userId
+                            [ UserEmail =. email
+                            , UserPhoneNum =. validPhoneNum ]
+                        setSession successKey "Your account \
+                            \information was updated."
+                        redirect AccountInfoR
+        (_, _, Just passwd, Just confirm) -> if passwd == confirm
+            then
+                if T.length passwd < 8
+                    then do
+                        setSession errorKey passwordTooShort
+                        redirect AccountInfoR
+                    else do
+                        changePassword userId passwd
+                        setSession successKey
+                            "Your password has been updated."
+                        redirect AccountInfoR
+            else do
+                setSession errorKey passwordMismatch
+                redirect AccountInfoR
+        _ -> do
+            setSession errorKey "Form error. Please try again."
+            redirect AccountInfoR
+    
 
 getViewRequestR :: SectionRequestId -> Handler RepHtml
 getViewRequestR reqId = do
@@ -136,12 +193,17 @@ postContactInfoR = do
         <*> iopt boolField "phoneCall"
     mOrder <- getSessionWith orderKey
     case fmap (read . T.unpack) mOrder of
-        Just order -> do
-            setSession orderKey $ T.pack $ show $
-                order { orderEmail = Just email
-                      , orderPhoneNum = Just $ T.concat ["+1", phoneNum]
-                      , orderPhoneCall = isJust phoneCall }
-            redirect ReviewOrderR
+        Just order -> case validatePhoneNum phoneNum of
+            Nothing -> do
+                setSession errorKey
+                    "Please enter a valid US phone number."
+                redirect ContactInfoR
+            mPhoneNum -> do
+                setSession orderKey $ T.pack $ show $
+                    order { orderEmail = Just email
+                          , orderPhoneNum = mPhoneNum
+                          , orderPhoneCall = isJust phoneCall }
+                redirect ReviewOrderR
         _ -> deleteSession orderKey >> redirect StartOrderR
 
 getReviewOrderR :: Handler RepHtml

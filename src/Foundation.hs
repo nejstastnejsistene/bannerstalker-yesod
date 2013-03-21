@@ -17,8 +17,10 @@ import Text.Jasmine (minifym)
 import Web.ClientSession (getKey)
 import Text.Hamlet
 import System.Log.FastLogger (Logger)
+import Data.Char (isDigit)
 import qualified Data.Map as Map
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.ByteString.Base64 as B64
 import Data.Text.Encoding
 import Model
@@ -281,3 +283,14 @@ formError, passwordMismatch, passwordTooShort :: Text
 formError = "Form error. Please try again."
 passwordMismatch = "The passwords do not match."
 passwordTooShort = "Passwords must be at least 8 characters long."
+
+validatePhoneNum :: Text -> Maybe Text
+validatePhoneNum phoneNum = case T.take 2 phoneNum of
+    "+1" -> _validatePhoneNum $ T.drop 2 phoneNum
+    _ -> _validatePhoneNum phoneNum
+    where
+        _validatePhoneNum rawPhoneNum =
+            let phoneNum = T.filter isDigit rawPhoneNum
+            in case T.length phoneNum of
+                10 -> Just $ T.concat ["+1", phoneNum]
+                _ -> Nothing

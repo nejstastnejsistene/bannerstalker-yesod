@@ -22,6 +22,7 @@
 
 /about                      AboutR GET
 /account                    AccountR GET
+/account/info               AccountInfoR GET POST
 /account/view/#SectionRequestId ViewRequestR GET
 /account/remove/#SectionRequestId RemoveRequestR POST
 
