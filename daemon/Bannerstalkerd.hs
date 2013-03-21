@@ -115,8 +115,9 @@ bannerstalkerd extra dbConf manager = do
                         (Section _ _ _ _  _ _ _ newStatus) =
                             fromJust $ Map.lookup crn newSections
                     when (newStatus /= oldStatus) $ do
-                        sendAllNotifications semester sectionId newStatus
                         update sectionId [SectionCurrStatus =. newStatus]
+                        commit
+                        sendAllNotifications semester sectionId
                     insert $ HistoryLog t crn newStatus
                 -- Partition sections into added, removed, and existing.
                 oldCrns = Set.fromList $ Map.keys oldSections
@@ -134,7 +135,7 @@ bannerstalkerd extra dbConf manager = do
             mapM_ handleExistingCrn $ Set.toList existingCrns
 
         -- Schedules notifications for the given section and its status.
-        sendAllNotifications semester sectionId currStatus = do
+        sendAllNotifications semester sectionId = do
             requests <- fmap (map entityVal) $ selectList
                 [SectionRequestSectionId ==. sectionId] []
             mapM_ sendNotification requests
