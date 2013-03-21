@@ -39,6 +39,7 @@ postStartOrderR = do
     mSection <- runDB $ getBy $ UniqueCrn crn
     case mSection of
         Nothing -> do
+            setSession errorKey "That CRN doesn't exist!"
             redirect StartOrderR
         Just (Entity _ section) -> do
             let order =  Order (sectionCourseId section)
@@ -98,7 +99,7 @@ postContactInfoR = do
         Just order -> do
             setSession orderKey $ T.pack $ show $
                 order { orderEmail = Just email
-                      , orderPhoneNum = Just phoneNum
+                      , orderPhoneNum = Just $ T.concat ["+1", phoneNum]
                       , orderPhoneCall = isJust phoneCall }
             redirect ReviewOrderR
         _ -> deleteSession orderKey >> redirect StartOrderR
@@ -136,10 +137,10 @@ postReviewOrderR = do
         <*> ireq textField "stripeToken"
     mOrder <- getSessionWith orderKey
     case fmap (read . T.unpack) mOrder of
-        Just (Order _ (Just crns)
-                      (Just email)
-                      (Just phoneNum)
-                      phoneCall) -> do
+        Just order@(Order _ (Just crns)
+                            (Just email)
+                            (Just phoneNum)
+                            phoneCall) -> do
             Entity userId user <- fmap fromJust currentUser
             manager <- fmap httpManager getYesod
             extra <- getExtra
@@ -152,7 +153,7 @@ postReviewOrderR = do
                     let sectionIds = map entityKey $ catMaybes mSections
                         req = SectionRequest userId email phoneNum phoneCall
                     runDB $ mapM_ (insert . req) sectionIds
-                    sendConfirmation email charge
+                    sendConfirmation email order charge
                     setSession successKey $ T.concat
                         [ "Transaction successful!"
                         , " We sent you a confirmation email." ]
@@ -164,9 +165,12 @@ postReviewOrderR = do
                     redirect ReviewOrderR
         _ -> deleteSession orderKey >> redirect StartOrderR
      
-sendConfirmation :: Text -> Charge -> Handler ()
-sendConfirmation email charge = do
-    let to = Address Nothing email
+sendConfirmation :: Text -> Order -> Charge -> Handler ()
+sendConfirmation email order charge = do
+    mSections <- runDB $ mapM (getBy . UniqueCrn) $
+        fromJust $ orderCrns order
+    let sections = map entityVal $ catMaybes mSections
+        to = Address Nothing email
         from = noreplyAddr
         subject = "Bannerstalker transaction confirmation"
         text = LT.pack $ renderHtml

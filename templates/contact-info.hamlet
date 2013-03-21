@@ -4,10 +4,12 @@
     <label for=email>Email
     <input #email name=email value=#{userEmail user} type=email required>
     <label for=phoneNum>Phone number
-    $maybe phoneNum <- userPhoneNum user
-        <input #phoneNum name=phoneNum value=#{phoneNum} type=tel required>
-    $nothing
-        <input #phoneNum name=phoneNum type=tel required>
+    <div .input-prepend>
+        <span .add-on>+1
+        $maybe phoneNum <- userPhoneNum user
+            <input #phoneNum name=phoneNum value=#{phoneNum} type=tel required>
+        $nothing
+            <input #phoneNum name=phoneNum type=tel required>
     <label .checkbox>
         Phone call?
         <input name=phoneCall value=yes type=checkbox>

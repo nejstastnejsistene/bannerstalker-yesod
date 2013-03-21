@@ -1,3 +1,27 @@
-<p>Amount: $#{formatPrice $ chargeAmount charge}
+<table>
+    <thead>
+    <tbody>
+        $with section <- head sections
+            <tr>
+                <td>CRN #{sectionCrn section}
+                <td>$5.00
+        $forall section <- tail sections
+            <tr>
+                <td>CRN #{sectionCrn section}
+                <td>$1.00
+        $if orderPhoneCall order
+            <tr>
+                <td>Notification: #{fromJust $ orderPhoneNum order} (phone)
+                <td>$3.00
+        <tr>
+            <td>Notification: #{fromJust $ orderPhoneNum order} (sms)
+            <td>$0.00
+        <tr>
+            <td>Notification: #{fromJust $ orderEmail order} (email)
+            <td>$0.00
+    <tfoot>
+        <tr>
+            <td>Total
+            <td>$#{formatPrice $ chargeAmount charge}
 $maybe desc <- chargeDescription charge
     <p>Description: #{desc}
