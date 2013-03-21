@@ -15,14 +15,6 @@ $newline never
             <a href=@{AboutR}>
                 <i .icon-question-sign>
                 \ About
-        <li>
-            <a href=>
-                <i .icon-envelope>
-                \ Contact Us
-        <li>
-            <a href=>
-                <i .icon-plus-sign>
-                \ Add CRN
         $maybe _ <- mUser
             <li>
                 <a href=>
