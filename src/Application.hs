@@ -27,8 +27,6 @@ import Handler.Auth
 import Handler.Home
 import Handler.Info
 import Handler.Order
-import Handler.Settings
-import Handler.Upgrade
 import Handler.Verify
 
 -- This line actually creates our YesodDispatch instance. It is the second half

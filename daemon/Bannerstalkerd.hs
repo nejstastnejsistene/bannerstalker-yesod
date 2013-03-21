@@ -135,33 +135,29 @@ bannerstalkerd extra dbConf manager = do
 
         -- Schedules notifications for the given section and its status.
         sendAllNotifications semester sectionId currStatus = do
-            requests <- fmap (map entityKey) $ selectList
+            requests <- fmap (map entityVal) $ selectList
                 [SectionRequestSectionId ==. sectionId] []
             mapM_ sendNotification requests
             
-        sendNotification reqId = do
-            let sql = "SELECT ??, ?? \
-                      \FROM \"user\", section, section_request \
-                      \WHERE section_request.id = ? \
-                        \AND section_request.user_id = \"user\".id \
-                        \AND section_request.section_id section.id"
-            (Entity userId user, Entity sectionId section):_ <-
-                rawSql sql [toPersistValue reqId]
-            let email = userEmail user
+        sendNotification (SectionRequest
+                userId email phoneNum phoneCall sectionId) = do
+            section <- fmap fromJust $ get sectionId
+            -- Send email.
             (status, err) <- liftIO $ notifyEmail email section
             time <- liftIO $ getCurrentTime
             insert $ NotificationLog time (sectionCrn section)
                 EmailNotification (Just userId) email status err
-            case userPhoneNum user of
-                Nothing -> return ()
-                Just phoneNum -> do
-                    (status, err) <- liftIO $ notifySms
-                        manager extra phoneNum section
-                    time <- liftIO $ getCurrentTime
-                    insert $ NotificationLog time
-                        (sectionCrn section) SmsNotification
-                        (Just userId) phoneNum status err
-                    return ()
+            -- Send SMS.
+            (status, err) <- liftIO $ notifySms
+                manager extra phoneNum section
+            time <- liftIO $ getCurrentTime
+            insert $ NotificationLog time (sectionCrn section)
+                SmsNotification (Just userId) phoneNum status err
+            -- Send phone call.
+            if phoneCall
+                then return ()
+                else return ()
+            
 
 mailAlert :: Text -> IO ()
 mailAlert text = do

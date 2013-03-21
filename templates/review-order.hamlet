@@ -25,11 +25,14 @@
     <tfoot>
         <tr>
             <th>Total
-            <td>$#{formatPrice price}
-<script
-    src="https://checkout.stripe.com/v2/checkout.js"
-    class="stripe-button"
-    data-key="pk_test_1582eqSGcx11JyaPMcegLmnP"
-    data-amount="#{price}"
-    data-name="Bannerstalker"
-    data-description="Bannerstalk #{courseId}">
+            <td>
+                <strong>$#{formatPrice price}
+<form method=post>
+    <input name=price value=#{price} type=hidden>
+    <script
+        src="https://checkout.stripe.com/v2/checkout.js"
+        class="stripe-button"
+        data-key="pk_test_1582eqSGcx11JyaPMcegLmnP"
+        data-amount="#{price}"
+        data-name="Bannerstalker"
+        data-description="Notifications for #{courseId}">

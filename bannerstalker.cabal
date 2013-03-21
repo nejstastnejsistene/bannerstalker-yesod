@@ -29,8 +29,6 @@ library
                      Handler.Home
                      Handler.Info
                      Handler.Order
-                     Handler.Settings
-                     Handler.Upgrade
                      Handler.Verify
 
     if flag(dev) || flag(library-only)

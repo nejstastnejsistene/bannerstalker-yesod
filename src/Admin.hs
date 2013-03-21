@@ -10,13 +10,9 @@ deleteUser userId = runDB $ do
     -- Get list of requests.
     reqIds <- fmap (map entityKey) $
         selectList [SectionRequestUserId ==. userId] []
-    -- Delete notifications.
-    --deleteWhere [NotificationRequestId <-. reqIds]
     -- Delete requests.
     mapM_ delete reqIds
     -- Delete email verifications.
     deleteWhere [EmailVerificationUserId ==. userId]
-    -- Delete privileges.
-    --deleteWhere [PrivilegeUserId ==. userId]
     -- Delete the user.
     delete userId

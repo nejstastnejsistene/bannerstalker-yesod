@@ -1,11 +1,11 @@
 module Handler.Admin where
 
 import Import
-import Control.Monad
-import Data.Maybe
-import qualified Data.Text as T
+--import Control.Monad
+--import Data.Maybe
+--import qualified Data.Text as T
 
-import Admin
+--import Admin
 
 getAdminR :: Handler RepHtml
 getAdminR = defaultLayout $ do
@@ -30,7 +30,7 @@ adminEditUserErrorKey = "_AdminEditUserR_mErrorMessage"
 --data SemesterPriv = SemesterPriv Text Text PrivilegeLevel
 
 getAdminEditUserR :: UserId -> Handler RepHtml
-getAdminEditUserR userId = do
+getAdminEditUserR _ = do
     {-
     mUser <- runDB $ get userId
     case mUser of

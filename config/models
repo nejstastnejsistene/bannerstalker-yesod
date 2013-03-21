@@ -23,10 +23,11 @@ Section
     UniqueCrn   crn
     deriving    Show
 SectionRequest
-    sectionId   SectionId
     userId      UserId
-    UniqueRequest sectionId userId
-    deriving    Show
+    email       Text
+    phoneNum    Text
+    phoneCall   Bool
+    sectionId   SectionId
 CourseListLog
     timestamp   UTCTime
     semester    SemesterId
@@ -55,4 +56,3 @@ Semester
     name        Text
     active      Bool
     UniqueSemester code
-    deriving Show

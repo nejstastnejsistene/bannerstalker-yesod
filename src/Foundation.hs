@@ -74,24 +74,12 @@ instance Yesod App where
     isAuthorized AdminSemestersR _ = isAdmin
 
     -- Must be logged in.
-    isAuthorized SettingsR _ = isLoggedIn
+    isAuthorized StartOrderR _ = isLoggedIn
+    isAuthorized ChooseCrnsR _ = isLoggedIn
+    isAuthorized ContactInfoR _ = isLoggedIn
+    isAuthorized ReviewOrderR _ = isLoggedIn
 
     -- Always accessable.
-    isAuthorized AboutR _ = return Authorized
-    isAuthorized RegisterR _ = return Authorized
-    isAuthorized ResendVerificationR _ = return Authorized
-    isAuthorized (VerifyR _ _) _ = return Authorized
-    isAuthorized LoginR _ = return Authorized
-    isAuthorized LogoutR _ = return Authorized
-    isAuthorized HomeR _ = return Authorized
-    isAuthorized (StaticR _) _ = return Authorized
-    isAuthorized FaviconR _ = return Authorized
-    isAuthorized RobotsR _ = return Authorized
-    isAuthorized HumansR _ = return Authorized
-    isAuthorized ForgotPasswordR _ = return Authorized
-    isAuthorized ResetSentR _ = return Authorized
-    isAuthorized (ResetPasswordR _ _) _ = return Authorized
-    isAuthorized InvalidR _ = return Authorized
     isAuthorized _ _ = return Authorized
 
     errorHandler NotFound = fmap chooseRep $ defaultLayout $ do
@@ -269,6 +257,11 @@ $maybe message <- mMessage
                     $maybe additional <- mAdditional
                         \ ^{additional}
 |]
+
+getSessionWith :: Text -> Handler (Maybe Text)
+getSessionWith key = do
+    session <- getSession
+    return $ fmap decodeUtf8 $ Map.lookup key session
 
 consumeSession :: Text -> Handler (Maybe Text)
 consumeSession key = do

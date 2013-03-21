@@ -78,7 +78,7 @@ registerUser :: Text -> Text -> Handler ()
 registerUser email passwd = do
     passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
         liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
-    runDB $ insert $ User email Nothing False passwdHash False
+    _ <- runDB $ insert $ User email Nothing False passwdHash False
     sendVerificationEmail email
 
 loginErrorKey, badLoginCombo :: Text
@@ -136,7 +136,7 @@ getForgotPasswordR :: Handler RepHtml
 getForgotPasswordR = do
     mUser <- currentUser
     case mUser of
-        Just _ -> redirect SettingsR
+        Just _ -> redirect HomeR
         Nothing -> do
             mErrorMessage <- consumeSession forgotPasswordErrorKey
             defaultLayout $ do
@@ -147,7 +147,7 @@ postForgotPasswordR :: Handler RepHtml
 postForgotPasswordR = do
     mCurrUser <- currentUser
     case mCurrUser of
-        Just _ -> redirect SettingsR
+        Just _ -> redirect HomeR
         Nothing -> do
             email <- runInputPost $ ireq emailField "email"
             mUser <- runDB $ getBy $ UniqueEmail email
@@ -186,7 +186,7 @@ getResetPasswordR :: UserId -> Text -> Handler RepHtml
 getResetPasswordR userId verKey = do
     mCurrUser <- currentUser
     case mCurrUser of
-        Just _ -> redirect SettingsR
+        Just _ -> redirect HomeR
         Nothing -> do
             mUser <- confirmPasswdHash userId verKey
             case mUser of
@@ -201,7 +201,7 @@ postResetPasswordR :: UserId -> Text -> Handler RepHtml
 postResetPasswordR userId verKey = do
     mCurrUser <- currentUser
     case mCurrUser of
-        Just _ -> redirect SettingsR
+        Just _ -> redirect HomeR
         Nothing -> do
             mUser <- confirmPasswdHash userId verKey
             case mUser of

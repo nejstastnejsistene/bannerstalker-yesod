@@ -1,0 +1,6 @@
+<h3>Choose a CRN
+<form method=post>
+    <label for=crn>CRN
+    <input #crn name=crn type=text required>
+    <br>
+    <button .btn type=submit>Next

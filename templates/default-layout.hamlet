@@ -24,8 +24,8 @@ $newline never
                 <i .icon-plus-sign>
                 \ Add CRN
         $maybe _ <- mUser
-            <li :route == SettingsR:.active>
-                <a href=@{SettingsR}>
+            <li>
+                <a href=>
                     <i .icon-wrench>
                     \ Account
             <li>
