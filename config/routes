@@ -21,6 +21,7 @@
 /admin/semesters            AdminSemestersR GET POST
 
 /about                      AboutR GET
+/account                    AccountR GET POST
 
 /order                      StartOrderR GET POST
 /order/crns                 ChooseCrnsR GET POST

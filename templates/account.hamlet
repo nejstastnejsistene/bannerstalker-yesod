@@ -1,0 +1,28 @@
+$newline never
+<div .row>
+    <div .span3>
+        <a href=@{StartOrderR} .btn .btn-large .btn-success>Add a CRN
+    <div .span9>
+        <h3>Your CRNs
+        <table .table .iter-sections>
+            <tr>
+                <th>CRN
+                <th>Course ID
+                <th .hidden-phone .hidden-tablet>Title
+                <th>Status
+                <th .hidden-phone>Email
+                <th .hidden-phone>Phone number
+                <th .hidden-phone .hidden-tablet>Phone call
+                <th>
+            $forall (request, section) <- requestSections
+                <tr>
+                    <td>#{sectionCrn section}
+                    <td>#{sectionCourseId section}
+                    <td .hidden-phone .hidden-tablet>#{sectionTitle section}
+                    <td>#{show $ sectionCurrStatus section}
+                    <td .hidden-phone>#{sectionRequestEmail request}
+                    <td .hidden-phone>#{sectionRequestPhoneNum request}
+                    <td .hidden-phone .hidden-tablet>#{sectionRequestPhoneCall request}
+                    <td>
+                        <a .btn .btn-small .btn-danger>
+                            <i .icon-trash>

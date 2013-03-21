@@ -16,8 +16,8 @@ $newline never
                 <i .icon-question-sign>
                 \ About
         $maybe _ <- mUser
-            <li>
-                <a href=>
+            <li :route == AccountR:.active>
+                <a href=@{AccountR}>
                     <i .icon-wrench>
                     \ Account
             <li>
@@ -25,8 +25,9 @@ $newline never
                     <i .icon-signout>
                     \ Logout
     <h3>
-        <img .logo src=@{StaticR img_binoculars_svg}>
-        \ Bannerstalker
+        <a .logo href=@{HomeR}>
+            <img .logo src=@{StaticR img_binoculars_svg}>
+            \ Bannerstalker
 $if adminRoute
     <h3>Admin Pages
     <ul .nav .nav-pills>
