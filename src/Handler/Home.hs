@@ -4,6 +4,7 @@ import Import
 
 getHomeR :: Handler RepHtml
 getHomeR = do
+    mUser <- currentUser
     defaultLayout $ do
         setTitle "Bannerstalker"
         $(widgetFile "home")

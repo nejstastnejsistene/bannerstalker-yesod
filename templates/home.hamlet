@@ -1,17 +1,30 @@
 $newline never
 <div .jumbotron>
-    <h1>Super awesome marketing speak!
+    <h1>We stalk Banner so you don't have to!
     <div .marketing>
-        <img .img-rounded .screenshot src=http://placehold.it/1136x640&text=Screenshot>
-        <h3>Subheading
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-        <h3>Subheading
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-        <h3>Subheading
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-    <a .btn .btn-large .btn-success href=@{AccountR}>
-        <i .icon-flag>
-        \ Get started
+        <img .img-rounded .screenshot src=@{StaticR img_screenshot_png}>
+        <h3>
+            <strong>1.
+            \ Choose your CRNs
+        <p>
+            <a href="http://www.urbandictionary.com/define.php?term=Bannerfucked">Having trouble registering for classes?
+            \ Select the courses you're interested in and order notifications for when your classes become available.
+        <h3>
+            <strong>2.
+            \ Relax!
+        <p>That's all you need to do! Stop worrying about registration, and go play frisbee in the Sunken Garden or read a book instead.
+        <h3>
+            <strong>3.
+            \ Your classes are available!
+        <p>We'll send you an email and a text message as soon as your classes become available! All that's left is to hurry to a computer and register for your class like normal.
+    $maybe _ <- mUser
+        <a .btn .btn-large .btn-success href=@{AccountR}>
+            <i .icon-flag>
+            \ Get started
+    $nothing
+        <a .btn .btn-large .btn-success href=@{RegisterR}>
+            <i .icon-flag>
+            \ Get started
 <hr>
 <div .row>
     <div .span3>

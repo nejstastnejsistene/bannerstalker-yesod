@@ -40,6 +40,6 @@ $newline never
                         <td .hidden-phone .hidden-tablet>#{sectionTime section}
                         <td>#{sectionCurrStatus section}
                         <td>
-                            <a href=@{ViewRequestR reqId} .btn .btn-small>
+                            <a href=@{ViewRequestR reqId} .btn>
                                 <i .icon-cog>
                                 \ Info

@@ -290,7 +290,7 @@ validatePhoneNum phoneNum = case T.take 2 phoneNum of
     _ -> _validatePhoneNum phoneNum
     where
         _validatePhoneNum rawPhoneNum =
-            let phoneNum = T.filter isDigit rawPhoneNum
-            in case T.length phoneNum of
-                10 -> Just $ T.concat ["+1", phoneNum]
+            let digits = T.filter isDigit rawPhoneNum
+            in case T.length digits of
+                10 -> Just $ T.concat ["+1", digits]
                 _ -> Nothing

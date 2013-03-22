@@ -24,10 +24,15 @@ $newline never
                 <a href=@{LogoutR}>
                     <i .icon-signout>
                     \ Logout
+        $nothing
+            <li :route == LoginR:.active>
+                <a href=@{LoginR}>
+                    <i .icon-signin>
+                    \ Login
     <h3>
         <a .logo href=@{HomeR}>
             <img .logo src=@{StaticR img_binoculars_svg}>
-            \ Bannerstalker
+            \ bannerstalker.com
 $if adminRoute
     <h3>Admin Pages
     <ul .nav .nav-pills>
