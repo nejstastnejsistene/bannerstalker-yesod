@@ -7,8 +7,10 @@ getAboutR = defaultLayout $ do
     setTitle "About"
     $(widgetFile "about")
 
+{-
 getPricingR :: Handler RepHtml
 getPricingR = defaultLayout $ do
     setTitle "Pricing"
     $(widgetFile "pricing")
         
+-}

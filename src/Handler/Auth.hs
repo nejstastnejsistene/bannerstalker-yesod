@@ -18,7 +18,7 @@ import Email
 import Handler.Verify
 
 data LoginCreds = LoginCreds Text Text
-data RegisterCreds = RegisterCreds Text Text Text
+data RegisterCreds = RegisterCreds Text Text Text Text
 
 loginForm :: FormInput App App LoginCreds
 loginForm = LoginCreds
@@ -28,6 +28,7 @@ loginForm = LoginCreds
 registerForm :: FormInput App App RegisterCreds
 registerForm = RegisterCreds
     <$> ireq emailField "email"
+    <*> ireq textField "phoneNum"
     <*> ireq passwordField "password"
     <*> ireq passwordField "confirm"
 
@@ -38,7 +39,7 @@ getRegisterR :: Handler RepHtml
 getRegisterR = do
     -- Redirect to home if already logged in.
     mUser <- currentUser
-    when (isJust mUser) $ redirect HomeR
+    when (isJust mUser) $ redirect AccountR
     -- Create form and display page.
     mErrorMessage <- consumeSession registerErrorKey
     token <- getToken
@@ -48,15 +49,14 @@ getRegisterR = do
 
 postRegisterR :: Handler RepHtml
 postRegisterR = do
-    RegisterCreds email passwd confirm <- runInputPost registerForm
+    RegisterCreds email phoneNum passwd confirm <- runInputPost registerForm
     mErrorMessage <- do
         mUser <- runDB $ getBy $ UniqueEmail email
-        -- Only @email.wm.edu students may register.
-        if (snd $ T.breakOn "@" email) /= "@email.wm.edu" then
-            return $ Just "W&M students only"
         -- Already registered.
-        else if (isJust mUser) then
-            return $ Just "Already registered"
+        if (isJust mUser) then
+            return $ Just $ T.concat [ "There is already someone "
+                                     , "registered with that email "
+                                     , "address." ]
         -- Password mismatch.
         else if passwd /= confirm then
             return $ Just passwordMismatch
@@ -64,7 +64,12 @@ postRegisterR = do
         else if T.length passwd < 8 then
             return $ Just passwordTooShort
         -- Success!
-        else registerUser email passwd >> return Nothing
+        else case validatePhoneNum phoneNum of
+            Nothing -> return $
+                Just "Please enter a valid US phone number."
+            Just validPhoneNum -> do
+                registerUser email validPhoneNum passwd
+                return Nothing
     token <- getToken
     case mErrorMessage of
         Nothing -> defaultLayout $ do
@@ -74,23 +79,11 @@ postRegisterR = do
             setSessionWith registerErrorKey mErrorMessage
             redirect RegisterR
 
-registerUser :: Text -> Text -> Handler ()
-registerUser email passwd = do
+registerUser :: Text -> Text -> Text -> Handler ()
+registerUser email phoneNum passwd = do
     passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
         liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
-    semesters <- fmap (map entityKey) $ runDB $ selectList [] []
-    runDB $ do
-        -- Insert the user record.
-        userId <- insert $ User
-            { userEmail = email
-            , userPhoneNum = Nothing
-            , userVerified = False
-            , userPassword = passwdHash
-            , userAdmin = False
-            }
-        -- Set user to Level1 for all current semesters.
-        mapM_ (\x -> insert $ Privilege userId x Level1) semesters
-        return ()
+    _ <- runDB $ insert $ User email phoneNum False passwdHash False
     sendVerificationEmail email
 
 loginErrorKey, badLoginCombo :: Text
@@ -101,7 +94,7 @@ getLoginR :: Handler RepHtml
 getLoginR = do
     -- Redirect to home if already logged in.
     mUser <- currentUser
-    when (isJust mUser) $ redirect HomeR
+    when (isJust mUser) $ redirect AccountR
     -- Create form and display page.
     mErrorMessage <- consumeSession loginErrorKey
     defaultLayout $ do
@@ -128,7 +121,7 @@ postLoginR = do
                     else return $ Just badLoginCombo
                 else return $ Just "you're account isn't verified yet, [here] is a link..."
     case mErrorMessage of
-        Nothing -> redirectUltDest HomeR
+        Nothing -> redirectUltDest AccountR
         _ -> do
             setSessionWith loginErrorKey mErrorMessage
             redirect LoginR
@@ -148,7 +141,7 @@ getForgotPasswordR :: Handler RepHtml
 getForgotPasswordR = do
     mUser <- currentUser
     case mUser of
-        Just _ -> redirect SettingsR
+        Just _ -> redirect AccountR
         Nothing -> do
             mErrorMessage <- consumeSession forgotPasswordErrorKey
             defaultLayout $ do
@@ -159,7 +152,7 @@ postForgotPasswordR :: Handler RepHtml
 postForgotPasswordR = do
     mCurrUser <- currentUser
     case mCurrUser of
-        Just _ -> redirect SettingsR
+        Just _ -> redirect AccountR
         Nothing -> do
             email <- runInputPost $ ireq emailField "email"
             mUser <- runDB $ getBy $ UniqueEmail email
@@ -198,7 +191,7 @@ getResetPasswordR :: UserId -> Text -> Handler RepHtml
 getResetPasswordR userId verKey = do
     mCurrUser <- currentUser
     case mCurrUser of
-        Just _ -> redirect SettingsR
+        Just _ -> redirect AccountR
         Nothing -> do
             mUser <- confirmPasswdHash userId verKey
             case mUser of
@@ -213,7 +206,7 @@ postResetPasswordR :: UserId -> Text -> Handler RepHtml
 postResetPasswordR userId verKey = do
     mCurrUser <- currentUser
     case mCurrUser of
-        Just _ -> redirect SettingsR
+        Just _ -> redirect AccountR
         Nothing -> do
             mUser <- confirmPasswdHash userId verKey
             case mUser of
@@ -225,7 +218,7 @@ postResetPasswordR userId verKey = do
                     if passwd == confirm then do
                         changePassword userId passwd
                         doLogin userId
-                        redirect HomeR
+                        redirect AccountR
                     else do
                         setSession resetPasswordErrorKey passwordMismatch
                         redirect $ ResetPasswordR userId verKey

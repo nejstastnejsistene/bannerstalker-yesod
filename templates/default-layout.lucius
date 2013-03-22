@@ -1,25 +1,13 @@
+/* Web fonts */
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Corben', Georgia, Times, serif;
+  font-family: 'Corben', Georgia, Times, serif;
 }
-
 p, div {
-    font-family: 'Cabin', Helvetica, Arial, sans-serif;
+  font-family: 'Nobile', Helvetica, Arial, sans-serif;
 }
 
-img.logo {
-    width: 72px;
-    padding-right: 10px;
-}
-
-hr {
-    display: block;
-    height: 1px;
-    border: 0;
-    border-top: 1px solid #ccc;
-    margin: 1em 0;
-    padding 0;
-}
-
-.container > hr {
-    margin: 30px 0;
-}
+a.logo {text-decoration:none}
+a.logo:link {text-decoration:none;}
+a.logo:visited {text-decoration:none;}
+a.logo:hover {text-decoration:underline;}
+a.logo:active {text-decoration:underline;}

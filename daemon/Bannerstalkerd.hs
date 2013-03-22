@@ -8,6 +8,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Logger (runNoLoggingT)
 import Control.Monad.Trans.Resource
 import Database.Persist
+import Database.Persist.GenericSql
 import Database.Persist.GenericSql.Raw
 import Database.Persist.Postgresql
 import Data.Text (Text, pack, unpack)
@@ -43,6 +44,8 @@ bannerstalkerdLoop extra conf manager = do
             time  <- getPOSIXTime
             let nextTime = nextTimeInterval time sleepInterval
             threadDelay $ round $ 1000000 * (fromIntegral nextTime - time)
+        nextTimeInterval time interval =
+            (*) interval $ (truncate $ time / fromIntegral interval) + 1
 
 -- Single iteration of the daemon.
 bannerstalkerd :: Extra -> PersistConfig -> Manager -> IO ()
@@ -50,13 +53,11 @@ bannerstalkerd extra dbConf manager = do
     let conn = withPostgresqlConn (pgConnStr dbConf)
     runNoLoggingT $ runResourceT $ conn $ runSqlConn $ do 
         runMigration migrateAll
-        flushNotifications
         -- Get all active semesters in the form [(id, code)].
         semesterEntities <- selectList [SemesterActive ==. True] []
         let semesters = [(sId, semesterCode sem) |
                                  Entity sId sem <- semesterEntities]
         mapM_ refreshCourseList semesters
-        flushNotifications
 
     where
         -- Applies the program to a given semester.
@@ -109,13 +110,14 @@ bannerstalkerd extra dbConf manager = do
                 -- Update changed statuses.
                 handleExistingCrn crn = do
                     let (Entity sectionId
-                                (Section _ _ _ _ _ _ _ _ oldStatus)) =
+                                (Section  _ _ _ _ _ _ _ oldStatus)) =
                             fromJust $ Map.lookup crn oldSections
-                        (Section _ _ _ _ _ _ _ _ newStatus) =
+                        (Section _ _ _ _  _ _ _ newStatus) =
                             fromJust $ Map.lookup crn newSections
                     when (newStatus /= oldStatus) $ do
-                        queueNotifications semester sectionId newStatus
                         update sectionId [SectionCurrStatus =. newStatus]
+                        commit
+                        sendAllNotifications semester sectionId
                     insert $ HistoryLog t crn newStatus
                 -- Partition sections into added, removed, and existing.
                 oldCrns = Set.fromList $ Map.keys oldSections
@@ -133,85 +135,30 @@ bannerstalkerd extra dbConf manager = do
             mapM_ handleExistingCrn $ Set.toList existingCrns
 
         -- Schedules notifications for the given section and its status.
-        queueNotifications semester sectionId currStatus = do
-            requests <- selectList
+        sendAllNotifications semester sectionId = do
+            requests <- fmap (map entityVal) $ selectList
                 [SectionRequestSectionId ==. sectionId] []
-            mapM_ (updateNotifications semester currStatus) requests
+            mapM_ sendNotification requests
             
-        -- Adds or removes notifications to keep them up to date.
-        updateNotifications semester currStatus (Entity reqId req) = do
-            -- Delete any previous notifications.
-            deleteBy $ UniqueReqId reqId
-            -- Insert a new notification if the statuses are unequal.
-            when (sectionRequestLastStatus req /= currStatus) $ do
-                let userId = sectionRequestUserId req
-                user <- fmap fromJust $ get userId
-                priv <- fmap (entityVal . fromJust) $ getBy $
-                    UniquePrivilege userId semester
-                sendTime <- liftIO $ nextNotificationTime $
-                    getNotifyInterval extra $ privilegeLevel priv
-                insert $ Notification reqId sendTime
-                return ()
-
-        -- Construct an immediate notification for new requests.
-        notifyNewRequests = do
-            reqIds <- fmap (map entityKey) $ selectList
-                [SectionRequestLastStatus ==. Unavailable] []
-            sendTime <- liftIO $ nextNotificationTime $ -1
-            mapM_ (\reqId -> insert $ Notification reqId sendTime) reqIds
-
-        -- Sends all notifications whose time has passed.
-        flushNotifications = do
-            notifyNewRequests
-            time <- liftIO $ getCurrentTime
-            reqIds <- fmap (map $ notificationRequestId . entityVal) $
-                                selectList [NotificationTime <. time] []
-            requests <- selectList [SectionRequestId <-. reqIds] []
-            sections <- selectList [] []
-            let sectionMap = Map.fromList [(k, v) | Entity k v <- sections]
-                joinAndNotify (Entity reqId
-                        (SectionRequest sectId userId lastStatus)) = do
-                    let section = fromJust $ Map.lookup sectId sectionMap
-                        currStatus = sectionCurrStatus section
-                    -- Send the notification.
-                    sendNotification userId section $
-                                            lastStatus == Unavailable
-                    -- Update lastStatus
-                    update reqId [SectionRequestLastStatus =. currStatus]
-                    -- Delete the notification.
-                    deleteBy $ UniqueReqId reqId
-            mapM_ joinAndNotify requests
-
-        -- Check user settings and send mail and sms notifications
-        -- for the given section.
-        sendNotification userId section new = do
-            user <- fmap fromJust $ get userId
-            -- Always send email notifications.
-            let email = userEmail user
-            (status, err) <- liftIO $ notifyEmail email section new
+        sendNotification (SectionRequest
+                userId email phoneNum phoneCall sectionId) = do
+            section <- fmap fromJust $ get sectionId
+            -- Send email.
+            (status, err) <- liftIO $ notifyEmail email section
             time <- liftIO $ getCurrentTime
             insert $ NotificationLog time (sectionCrn section)
                 EmailNotification (Just userId) email status err
-            mPriv <- getBy $
-                UniquePrivilege userId $ sectionSemester section
-            case mPriv of
-                Nothing -> return ()
-                Just (Entity _ priv) ->
-                    case (privilegeLevel priv, userPhoneNum user) of
-                        -- No Sms notifications if they are Level1
-                        -- or have no phone number
-                        (Level1, _) -> return ()
-                        (_, Nothing) -> return ()
-                        -- Send Sms notification if they are not Level1
-                        -- and have entered a phone number.
-                        (_, Just phoneNum) -> do
-                            (status, err) <- liftIO $ notifySms
-                                manager extra phoneNum section new
-                            time <- liftIO $ getCurrentTime
-                            insert $ NotificationLog time
-                                (sectionCrn section) SmsNotification
-                                (Just userId) phoneNum status err
-                            return ()
+            -- Send SMS.
+            (status, err) <- liftIO $ notifySms
+                manager extra phoneNum section
+            time <- liftIO $ getCurrentTime
+            insert $ NotificationLog time (sectionCrn section)
+                SmsNotification (Just userId) phoneNum status err
+            -- Send phone call.
+            if phoneCall
+                then return ()
+                else return ()
+            
 
 mailAlert :: Text -> IO ()
 mailAlert text = do
@@ -221,23 +168,3 @@ mailAlert text = do
         addr = adminAddr
         subject = "Bannerstalker Alert"
         lazyText = fromChunks [text]
-
--- Takes a posix time and returns the start time in seconds of the
--- beginning of the next time interval.
-nextTimeInterval :: POSIXTime -> Int -> Int
-nextTimeInterval time interval =
-    (*) interval $ (truncate $ time / fromIntegral interval) + 1
-
--- Determines the next time that a notification should be sent.
--- For example, if interval is two hours, this will return the time
--- rounded up to the next time with an hour divisible by 2. A negative
--- interval will do the same thing except round down instead which
--- is useful for 'ASAP' notifications.
-nextNotificationTime :: Int -> IO UTCTime
-nextNotificationTime interval = do
-    utcTime  <- liftIO $ getPOSIXTime
-    timeZone <- liftIO $ getCurrentTimeZone
-    let tzSeconds = 60 * timeZoneMinutes timeZone
-        localTime = utcTime + fromIntegral tzSeconds
-        nextTime = (nextTimeInterval localTime interval) - tzSeconds
-    return $ posixSecondsToUTCTime $ fromIntegral nextTime

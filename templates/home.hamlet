@@ -1,55 +1,41 @@
 $newline never
+<div .jumbotron>
+    <h1>We stalk Banner so you don't have to!
+    <div .marketing>
+        <img .img-rounded .screenshot src=@{StaticR img_screenshot_png}>
+        <h3>
+            <strong>1.
+            \ Choose your CRNs
+        <p>
+            <a href="http://www.urbandictionary.com/define.php?term=Bannerfucked">Having trouble registering for classes?
+            \ Select the courses you're interested in and order notifications for when your classes become available.
+        <h3>
+            <strong>2.
+            \ Relax!
+        <p>That's all you need to do! Stop worrying about registration, and go play frisbee in the Sunken Garden or read a book instead.
+        <h3>
+            <strong>3.
+            \ Your classes are available!
+        <p>We'll send you an email and a text message as soon as your classes become available! All that's left is to hurry to a computer and register for your class like normal.
+    $maybe _ <- mUser
+        <a .btn .btn-large .btn-success href=@{AccountR}>
+            <i .icon-flag>
+            \ Get started
+    $nothing
+        <a .btn .btn-large .btn-success href=@{RegisterR}>
+            <i .icon-flag>
+            \ Get started
+<hr>
 <div .row>
-    <div .span8>
-        <div .hero-unit>
-            <h2>Class registration got you stressed?
-            <p .lead>Every W&amp;M student is familiar with the chaos of class registration and the stress of trying to get into the classes you want.
-            <p .lead>Introducing Bannerstalker &mdash; we stalk Banner so you don't have to!
-            <h2>Get up to the minute notifications!
-            <p .lead>It's easy! Just add your CRNs, and we'll email or text you when any of your classes open up.
-            <a href=@{PricingR} .btn .btn-primary .btn-large>
-                <i .icon-flag>
-                \ Learn more about our features
-    <div .span4>
-        <h3>Login
-        <form method=post action=@{LoginR}>
-            ^{token}
-            <label for=email>Email
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-envelope>
-                <input #email name=email type=email required>
-            <label for=password>Password
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-key>
-                <input #password name=password type=password required>
-            <br>
-            <button type=submit class=btn>
-                <i .icon-share-alt>
-                \ Login
-        <a href=@{ForgotPasswordR}>
-            Forget your password?
-        <br>
-        <h3>Register
-        <form method=post action=@{RegisterR}>
-            ^{token}
-            <label for=email>Email
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-envelope>
-                <input #email name=email type=email required>
-            <label for=password>Password
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-key>
-                <input #password name=password type=password required>
-            <label for=confirm>Confirm password
-            <div .input-prepend>
-                <span .add-on>
-                    <i .icon-key>
-                <input #confirm name=confirm type=password required>
-            <br>
-            <button type=submit class=btn>
-                <i .icon-share-alt>
-                \ Register
+    <div .span3>
+        <h4>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    <div .span3>
+        <h4>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    <div .span3>
+        <h4>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    <div .span3>
+        <h4>Subheading
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.

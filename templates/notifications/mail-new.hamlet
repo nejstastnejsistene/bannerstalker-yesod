@@ -1,3 +1,0 @@
-<html>
-  <body>
-    <p>You're now stalking #{sectionTitle section} (CRN #{sectionCrn section}), which is currently #{sectionCurrStatus section}

@@ -1,23 +1,19 @@
 $newline never
 <h1>Register
+<p>
+    Already Registered? 
+    <a href=@{RegisterR}> Login instead.
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post action=@{RegisterR}>
     ^{token}
     <label for=email>Email
-    <div .input-prepend>
-        <span .add-on>
-            <i .icon-envelope>
-        <input #email name=email type=email required>
+    <input #email name=email type=email required>
+    <label for=phoneNum>Phone number (for SMS notifications)
+    <input #phoneNum name=phoneNum type=tel required>
     <label for=password>Password
-    <div .input-prepend>
-        <span .add-on>
-            <i .icon-key>
-        <input #password name=password type=password required>
+    <input #password name=password type=password required>
     <label for=confirm>Confirm Password
-    <div .input-prepend>
-        <span .add-on>
-            <i .icon-key>
-        <input #confirm name=confirm type=password required>
+    <input #confirm name=confirm type=password required>
     <br>
     <button type=submit class=btn>
         <i .icon-share-alt>

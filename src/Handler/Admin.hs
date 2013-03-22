@@ -1,11 +1,11 @@
 module Handler.Admin where
 
 import Import
-import Control.Monad
-import Data.Maybe
-import qualified Data.Text as T
+--import Control.Monad
+--import Data.Maybe
+--import qualified Data.Text as T
 
-import Admin
+--import Admin
 
 getAdminR :: Handler RepHtml
 getAdminR = defaultLayout $ do
@@ -27,10 +27,11 @@ adminEditUserInfoKey, adminEditUserErrorKey :: Text
 adminEditUserInfoKey = "_AdminEditUserR_mInfoMessage"
 adminEditUserErrorKey = "_AdminEditUserR_mErrorMessage"
 
-data SemesterPriv = SemesterPriv Text Text PrivilegeLevel
+--data SemesterPriv = SemesterPriv Text Text PrivilegeLevel
 
 getAdminEditUserR :: UserId -> Handler RepHtml
-getAdminEditUserR userId = do
+getAdminEditUserR _ = do
+    {-
     mUser <- runDB $ get userId
     case mUser of
         Nothing -> do
@@ -64,9 +65,12 @@ getAdminEditUserR userId = do
             defaultLayout $ do
                 setTitle "Edit User"
                 $(widgetFile "admin-edit-user")
+    -}
+    defaultLayout [whamlet|asdf|]
 
 postAdminEditUserR :: UserId -> Handler RepHtml
 postAdminEditUserR userId = do
+    {-
     user <- fmap fromJust $ runDB $ get userId
     (postData, _) <- runRequestBody
     case fromJust $ lookup "type" postData of
@@ -106,6 +110,8 @@ postAdminEditUserR userId = do
             setSession adminEditUserErrorKey $ T.concat
                 ["Unknown action: ",  action]
             redirect $ AdminEditUserR userId
+    -}
+    redirect $ AdminEditUserR userId
 
 addSemesterForm :: FormInput App App Semester
 addSemesterForm = Semester

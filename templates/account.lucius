@@ -1,0 +1,10 @@
+table.iter-sections {
+    table-layout: fixed;
+    th, td {
+        overflow: hidden;
+    }
+}
+
+input {
+    max-width: 100%;
+}

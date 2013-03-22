@@ -1,0 +1,45 @@
+$newline never
+^{showMessage ErrorMessage mErrorMessage Nothing}
+^{showMessage SuccessMessage mSuccessMessage Nothing}
+<div .row>
+    <div .span4>
+        <div .well>
+            <h2>Add a CRN
+            <p>Simply enter a CRN to get started with Bannerstalker!
+            <form method=post action=@{StartOrderR}>
+                <label for=crn>
+                <input #crn name=crn type=text pattern=\d* placeholder="Enter a CRN here" required autofocus>
+                <br>
+                <button .btn .btn-large .btn-success type=submit>Add CRN
+        <hr>
+        <a href=@{AccountInfoR} .btn .btn-large>Update account information
+    <div .span8>
+        $if (length sectionResults) == 0
+            <div .well>
+                <strong>You aren't stalking any CRNs!
+                <p>To get started, do this and this and this
+        $else
+            <h2>Your CRNs
+            <table .table .iter-sections>
+                <tr>
+                    <th>CRN
+                    <th .hidden-phone>Course ID
+                    <th>Title
+                    <th .hidden-phone .hidden-tablet>Instructor
+                    <th .hidden-phone .hidden-tablet>Days
+                    <th .hidden-phone .hidden-tablet>Times
+                    <th>Status
+                    <th>
+                $forall (section, reqId) <- sectionResults
+                    <tr>
+                        <td>#{sectionCrn section}
+                        <td .hidden-phone>#{sectionCourseId section}
+                        <td>#{sectionTitle section}
+                        <td .hidden-phone .hidden-tablet>#{sectionInstructor section}
+                        <td .hidden-phone .hidden-tablet>#{sectionDays section}
+                        <td .hidden-phone .hidden-tablet>#{sectionTime section}
+                        <td>#{sectionCurrStatus section}
+                        <td>
+                            <a href=@{ViewRequestR reqId} .btn>
+                                <i .icon-cog>
+                                \ Info

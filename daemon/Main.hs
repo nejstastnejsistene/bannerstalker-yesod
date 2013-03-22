@@ -19,7 +19,7 @@ daemon = simpleDaemon { privilegedAction = readConfig
 
 readConfig :: IO ConfigFiles
 readConfig = do
-    conf <- getAppConfig Staging
+    conf <- getAppConfig Production
     dbConf <- getPersistConfig conf
     return (conf, dbConf)
 

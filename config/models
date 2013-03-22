@@ -1,16 +1,11 @@
 User
     email       Text
-    phoneNum    Text Maybe
+    phoneNum    Text
     verified    Bool
     password    Text
     admin       Bool
     UniqueEmail email
     deriving    Show
-Privilege
-    userId      UserId
-    semester    SemesterId 
-    level       PrivilegeLevel
-    UniquePrivilege userId semester
 EmailVerification
     userId      UserId
     verKey      Text
@@ -19,7 +14,6 @@ EmailVerification
 Section
     semester    SemesterId
     crn         Int
-    subject     Text
     courseId    Text
     title       Text
     instructor  Text
@@ -29,16 +23,11 @@ Section
     UniqueCrn   crn
     deriving    Show
 SectionRequest
-    sectionId   SectionId
     userId      UserId
-    lastStatus  SectionStatus
-    UniqueRequest sectionId userId
-    deriving    Show
-Notification
-    requestId   SectionRequestId
-    time        UTCTime
-    UniqueReqId requestId
-    deriving    Show
+    email       Text
+    phoneNum    Text
+    phoneCall   Bool
+    sectionId   SectionId
 CourseListLog
     timestamp   UTCTime
     semester    SemesterId
@@ -67,4 +56,6 @@ Semester
     name        Text
     active      Bool
     UniqueSemester code
-    deriving Show
+Feedback
+    gotIn       Bool
+    feedback    Text Maybe

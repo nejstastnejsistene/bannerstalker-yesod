@@ -17,8 +17,10 @@ import Text.Jasmine (minifym)
 import Web.ClientSession (getKey)
 import Text.Hamlet
 import System.Log.FastLogger (Logger)
+import Data.Char (isDigit)
 import qualified Data.Map as Map
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.ByteString.Base64 as B64
 import Data.Text.Encoding
 import Model
@@ -74,29 +76,16 @@ instance Yesod App where
     isAuthorized AdminSemestersR _ = isAdmin
 
     -- Must be logged in.
-    isAuthorized SearchR _ = isLoggedIn
-    isAuthorized SettingsR _ = isLoggedIn
-    isAuthorized UpgradeRootR _ = isLoggedIn
-    isAuthorized (UpgradeR _) _ = isLoggedIn
-    isAuthorized HomeR True = isLoggedIn
+    isAuthorized StartOrderR _ = isLoggedIn
+    isAuthorized ChooseCrnsR _ = isLoggedIn
+    isAuthorized ContactInfoR _ = isLoggedIn
+    isAuthorized ReviewOrderR _ = isLoggedIn
+    isAuthorized AccountR _ = isLoggedIn
+    isAuthorized (ViewRequestR _) _ = isLoggedIn
+    isAuthorized (RemoveRequestR _) _ = isLoggedIn
 
     -- Always accessable.
-    isAuthorized AboutR _ = return Authorized
-    isAuthorized PricingR _ = return Authorized
-    isAuthorized RegisterR _ = return Authorized
-    isAuthorized ResendVerificationR _ = return Authorized
-    isAuthorized (VerifyR _ _) _ = return Authorized
-    isAuthorized LoginR _ = return Authorized
-    isAuthorized LogoutR _ = return Authorized
-    isAuthorized HomeR False = return Authorized
-    isAuthorized (StaticR _) _ = return Authorized
-    isAuthorized FaviconR _ = return Authorized
-    isAuthorized RobotsR _ = return Authorized
-    isAuthorized HumansR _ = return Authorized
-    isAuthorized ForgotPasswordR _ = return Authorized
-    isAuthorized ResetSentR _ = return Authorized
-    isAuthorized (ResetPasswordR _ _) _ = return Authorized
-    isAuthorized InvalidR _ = return Authorized
+    isAuthorized _ _ = return Authorized
 
     errorHandler NotFound = fmap chooseRep $ defaultLayout $ do
         setTitle "Not Found"
@@ -108,7 +97,7 @@ instance Yesod App where
     -- default session idle timeout is 120 minutes
     makeSessionBackend _ = do
         key <- getKey "config/client_session_key.aes"
-        let timeout = 120 * 60 -- 120 minutes
+        let timeout = 365 * 24 * 60 * 60 -- 1 year
         (getCachedDate, _closeDateCache) <- clientSessionDateCacher timeout
         return . Just $ clientSessionBackend2 key getCachedDate
 
@@ -274,6 +263,11 @@ $maybe message <- mMessage
                         \ ^{additional}
 |]
 
+getSessionWith :: Text -> Handler (Maybe Text)
+getSessionWith key = do
+    session <- getSession
+    return $ fmap decodeUtf8 $ Map.lookup key session
+
 consumeSession :: Text -> Handler (Maybe Text)
 consumeSession key = do
     session <- getSession
@@ -289,3 +283,14 @@ formError, passwordMismatch, passwordTooShort :: Text
 formError = "Form error. Please try again."
 passwordMismatch = "The passwords do not match."
 passwordTooShort = "Passwords must be at least 8 characters long."
+
+validatePhoneNum :: Text -> Maybe Text
+validatePhoneNum phoneNum = case T.take 2 phoneNum of
+    "+1" -> _validatePhoneNum $ T.drop 2 phoneNum
+    _ -> _validatePhoneNum phoneNum
+    where
+        _validatePhoneNum rawPhoneNum =
+            let digits = T.filter isDigit rawPhoneNum
+            in case T.length digits of
+                10 -> Just $ T.concat ["+1", digits]
+                _ -> Nothing

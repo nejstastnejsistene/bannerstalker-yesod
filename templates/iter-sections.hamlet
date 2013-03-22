@@ -9,10 +9,10 @@ $newline never
         <th .hidden-phone .hidden-tablet>Times
         <th>Status
         <th>
-    $forall Section _ crn subj cId ttl inst time day stat <- sections
+    $forall Section _ crn cId ttl inst time day stat <- sections
         <tr>
             <td>#{crn}
-            <td .hidden-phone>#{subj} #{cId}
+            <td .hidden-phone>#{cId}
             <td>#{ttl}
             <td .hidden-phone .hidden-tablet>#{inst}
             <td .hidden-phone .hidden-tablet>#{time}

@@ -1,0 +1,25 @@
+<h3>Select the courses that you want to stalk
+^{showMessage ErrorMessage mErrorMessage Nothing}
+<form method=post>
+    <table .table .table-bordered>
+        <tr>
+            <th>
+            <th>CRN
+            <th .hidden-phone>Course ID
+            <th>Title
+            <th .hidden-phone .hidden-tablet>Instructor
+            <th .hidden-phone .hidden-tablet>Days
+            <th .hidden-phone .hidden-tablet>Times
+            <th>Status
+        $forall Section _ crn cId ttl inst time day stat <- sections
+            <tr>
+                <td>
+                    <input name=crns value=#{crn} type=checkbox :elem crn crns:checked>
+                <td>#{crn}
+                <td .hidden-phone>#{cId}
+                <td>#{ttl}
+                <td .hidden-phone .hidden-tablet>#{inst}
+                <td .hidden-phone .hidden-tablet>#{time}
+                <td .hidden-phone .hidden-tablet>#{day}
+                <td>#{stat}
+    <button .btn type=submit>Continue

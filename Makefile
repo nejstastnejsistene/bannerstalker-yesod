@@ -2,7 +2,7 @@ default:
 	cabal install
 
 devel:
-	dist/build/bannerstalker/bannerstalker Development
+	dist/build/bannerstalker/bannerstalker Production
 
 define copy-init
 rm -f /etc/init.d/$2

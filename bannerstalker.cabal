@@ -1,5 +1,5 @@
 name:              bannerstalker
-version:           0.1.20
+version:           0.1.23
 cabal-version:     >= 1.8
 build-type:        Simple
 
@@ -28,8 +28,7 @@ library
                      Handler.Auth
                      Handler.Home
                      Handler.Info
-                     Handler.Settings
-                     Handler.Upgrade
+                     Handler.Order
                      Handler.Verify
 
     if flag(dev) || flag(library-only)
@@ -152,7 +151,7 @@ executable         bannerstalkerd
                      , time
                      , transformers
 
-    ghc-options:       -threaded -O2 -H64m
+    ghc-options:       -threaded -O2 -H64m -pgmPcpphs -optP--cpp
 
 test-suite test
     type:              exitcode-stdio-1.0

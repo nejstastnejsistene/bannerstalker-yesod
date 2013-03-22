@@ -1,17 +1,15 @@
 $newline never
 <h1>Login
+<p>
+    Not Registered? 
+    <a href=@{RegisterR}> Sign up now!
+<br>
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post action=@{LoginR}>
     <label for=email>Email
-    <div .input-prepend>
-        <span .add-on>
-            <i .icon-envelope>
-        <input #email name=email type=email required>
+    <input #email name=email type=email required>
     <label for=password>Password
-    <div .input-prepend>
-        <span .add-on>
-            <i .icon-key>
-        <input #password name=password type=password required>
+    <input #password name=password type=password required>
     <br>
     <button type=submit class=btn>
         <i .icon-share-alt>
