@@ -99,7 +99,8 @@ bannerstalkerd extra dbConf manager = do
                     let Entity sectionId _ =
                             fromJust $ Map.lookup crn oldSections
                     requests <- selectList
-                        [SectionRequestSectionId ==. sectionId] []
+                        [ SectionRequestSectionId ==. sectionId
+                        , SectionRequestActive ==. True] []
                     case requests of
                         [] -> do
                             deleteBy $ UniqueCrn crn
@@ -137,11 +138,12 @@ bannerstalkerd extra dbConf manager = do
         -- Schedules notifications for the given section and its status.
         sendAllNotifications semester sectionId = do
             requests <- fmap (map entityVal) $ selectList
-                [SectionRequestSectionId ==. sectionId] []
+                [ SectionRequestSectionId ==. sectionId
+                , SectionRequestActive ==. True] []
             mapM_ sendNotification requests
             
         sendNotification (SectionRequest
-                userId email phoneNum phoneCall sectionId) = do
+                userId email phoneNum phoneCall _ sectionId) = do
             section <- fmap fromJust $ get sectionId
             -- Send email.
             (status, err) <- liftIO $ notifyEmail email section

@@ -5,11 +5,13 @@ import Import
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
+import Data.Time
 import Database.Persist.GenericSql
 import Network.Mail.Mime
 import Text.Blaze.Html.Renderer.String
 import Text.Hamlet
 import Text.Printf (printf)
+import System.Locale
 
 import Email
 import Stripe
@@ -33,12 +35,21 @@ getAccountR = do
               \FROM \"user\", section, section_request \
               \WHERE \"user\".id = ? \
                 \AND section_request.user_id = ? \
-                \AND section_request.section_id  = section.id \
+                \AND section_request.section_id = section.id \
+                \AND section_request.active = true \
               \ORDER BY section.course_id ASC"
     Entity userId _ <- fmap fromJust currentUser
     sqlResult <- runDB $ rawSql sql [ toPersistValue userId
                                     , toPersistValue userId ]
     let sectionResults = [(s, r) | (Entity _ s, Entity r _) <- sqlResult]
+    courseListLogs <- fmap (map entityVal) $ runDB $ selectList
+        [] [Desc CourseListLogTimestamp, LimitTo 1]
+    mLastChecked <- case courseListLogs of
+        [x] -> do
+            tz <- liftIO $ getCurrentTimeZone
+            let t = utcToLocalTime tz $ courseListLogTimestamp x
+            return $ Just $ formatTime defaultTimeLocale "%D %X" t
+        _ -> return Nothing
     mErrorMessage <- consumeSession errorKey
     mSuccessMessage <- consumeSession successKey
     defaultLayout $ do
@@ -105,7 +116,8 @@ getViewRequestR :: SectionRequestId -> Handler RepHtml
 getViewRequestR reqId = do
     userId <- fmap (entityKey . fromJust) currentUser
     reqs <- runDB $ selectList [ SectionRequestId ==. reqId
-                               , SectionRequestUserId ==. userId] []
+                               , SectionRequestUserId ==. userId
+                               , SectionRequestActive ==. True] []
     case reqs of
         [Entity _ req] -> do
             section <- fmap fromJust $
@@ -124,11 +136,12 @@ postRemoveRequestR reqId = do
     _ <- runDB $ insert $ Feedback (isJust gotIn) feedback
     userId <- fmap (entityKey . fromJust) currentUser
     reqs <- runDB $ selectList [ SectionRequestId ==. reqId
-                               , SectionRequestUserId ==. userId] []
+                               , SectionRequestUserId ==. userId
+                               , SectionRequestActive ==. True] []
     case reqs of
         [_] -> do
-            runDB $ delete reqId
-            setSession successKey "Your CRN was successfully deleted."
+            runDB $ update reqId [SectionRequestActive =. False]
+            setSession successKey "Your CRN was successfully removed."
             redirect AccountR
         _ -> redirect AccountR
 
@@ -141,7 +154,7 @@ postStartOrderR = do
             setSession errorKey "That CRN doesn't exist!"
             redirect AccountR
         Just (Entity _ section) -> do
-            let order =  Order (sectionCourseId section)
+            let order = Order (sectionCourseId section)
                             (Just [crn]) Nothing Nothing False
             setSession orderKey $ T.pack $ show order
             redirect ChooseCrnsR
@@ -255,7 +268,8 @@ postReviewOrderR = do
                     deleteSession orderKey
                     mSections <- runDB $ mapM (getBy . UniqueCrn) crns
                     let sectionIds = map entityKey $ catMaybes mSections
-                        req = SectionRequest userId email phoneNum phoneCall
+                        req = SectionRequest userId
+                            email phoneNum phoneCall True
                     runDB $ mapM_ (insert . req) sectionIds
                     sendConfirmation email order charge
                     setSession successKey $ T.concat

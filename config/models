@@ -27,6 +27,7 @@ SectionRequest
     email       Text
     phoneNum    Text
     phoneCall   Bool
+    active      Bool
     sectionId   SectionId
 CourseListLog
     timestamp   UTCTime
