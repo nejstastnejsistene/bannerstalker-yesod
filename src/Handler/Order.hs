@@ -33,7 +33,8 @@ getAccountR = do
               \FROM \"user\", section, section_request \
               \WHERE \"user\".id = ? \
                 \AND section_request.user_id = ? \
-                \AND section_request.section_id  = section.id \
+                \AND section_request.section_id = section.id \
+                \AND section_request.active = true \
               \ORDER BY section.course_id ASC"
     Entity userId _ <- fmap fromJust currentUser
     sqlResult <- runDB $ rawSql sql [ toPersistValue userId
@@ -105,7 +106,8 @@ getViewRequestR :: SectionRequestId -> Handler RepHtml
 getViewRequestR reqId = do
     userId <- fmap (entityKey . fromJust) currentUser
     reqs <- runDB $ selectList [ SectionRequestId ==. reqId
-                               , SectionRequestUserId ==. userId] []
+                               , SectionRequestUserId ==. userId
+                               , SectionRequestActive ==. True] []
     case reqs of
         [Entity _ req] -> do
             section <- fmap fromJust $
@@ -124,11 +126,12 @@ postRemoveRequestR reqId = do
     _ <- runDB $ insert $ Feedback (isJust gotIn) feedback
     userId <- fmap (entityKey . fromJust) currentUser
     reqs <- runDB $ selectList [ SectionRequestId ==. reqId
-                               , SectionRequestUserId ==. userId] []
+                               , SectionRequestUserId ==. userId
+                               , SectionRequestActive ==. True] []
     case reqs of
         [_] -> do
-            runDB $ delete reqId
-            setSession successKey "Your CRN was successfully deleted."
+            runDB $ update reqId [SectionRequestActive =. False]
+            setSession successKey "Your CRN was successfully removed."
             redirect AccountR
         _ -> redirect AccountR
 
@@ -255,7 +258,8 @@ postReviewOrderR = do
                     deleteSession orderKey
                     mSections <- runDB $ mapM (getBy . UniqueCrn) crns
                     let sectionIds = map entityKey $ catMaybes mSections
-                        req = SectionRequest userId email phoneNum phoneCall
+                        req = SectionRequest userId
+                            email phoneNum phoneCall True
                     runDB $ mapM_ (insert . req) sectionIds
                     sendConfirmation email order charge
                     setSession successKey $ T.concat
