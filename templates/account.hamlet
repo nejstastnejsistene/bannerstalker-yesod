@@ -19,7 +19,7 @@ $newline never
         $if (length sectionResults) == 0
             <div .well>
                 <strong>You aren't stalking any CRNs!
-                <p>To get started, enter a CRN into the box on the right.
+                <p>To get started, enter a CRN into the box on the left.
         $else
             <h2>Your CRNs
             <table .table .iter-sections>
