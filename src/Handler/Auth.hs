@@ -62,9 +62,6 @@ postRegisterR = do
         -- Password mismatch.
         else if passwd /= confirm then
             return $ Just passwordMismatch
-        -- Password too short.
-        else if T.length passwd < 8 then
-            return $ Just passwordTooShort
         else if not tos then
             return $ Just "You must agree to the Terms and Conditions of Use to use Bannerstalker."
         -- Success!

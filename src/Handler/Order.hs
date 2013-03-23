@@ -94,16 +94,11 @@ postAccountInfoR = do
                             \information was updated."
                         redirect AccountInfoR
         (_, _, Just passwd, Just confirm) -> if passwd == confirm
-            then
-                if T.length passwd < 8
-                    then do
-                        setSession errorKey passwordTooShort
-                        redirect AccountInfoR
-                    else do
-                        changePassword userId passwd
-                        setSession successKey
-                            "Your password has been updated."
-                        redirect AccountInfoR
+            then do
+                changePassword userId passwd
+                setSession successKey
+                    "Your password has been updated."
+                redirect AccountInfoR
             else do
                 setSession errorKey passwordMismatch
                 redirect AccountInfoR
