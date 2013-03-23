@@ -32,4 +32,5 @@
 
 /invalid                    InvalidR GET
 
+/tos                        TermsOfUseR GET
 /                           HomeR GET

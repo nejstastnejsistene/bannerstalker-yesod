@@ -14,6 +14,10 @@ $newline never
     <input #password name=password type=password required>
     <label for=confirm>Confirm Password
     <input #confirm name=confirm type=password required>
+    <label .checkbox>
+        <input name=tos value=yes type=checkbox required>
+            I have read and agree to the
+            <a href=@{TermsOfUseR}> Terms and Conditions of Use
     <br>
     <button type=submit class=btn>
         <i .icon-share-alt>

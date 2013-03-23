@@ -18,7 +18,7 @@ import Email
 import Handler.Verify
 
 data LoginCreds = LoginCreds Text Text
-data RegisterCreds = RegisterCreds Text Text Text Text
+data RegisterCreds = RegisterCreds Text Text Text Text Bool
 
 loginForm :: FormInput App App LoginCreds
 loginForm = LoginCreds
@@ -31,6 +31,7 @@ registerForm = RegisterCreds
     <*> ireq textField "phoneNum"
     <*> ireq passwordField "password"
     <*> ireq passwordField "confirm"
+    <*> ireq boolField "tos"
 
 registerErrorKey :: Text
 registerErrorKey = "_RegisterR_registerError"
@@ -49,7 +50,8 @@ getRegisterR = do
 
 postRegisterR :: Handler RepHtml
 postRegisterR = do
-    RegisterCreds email phoneNum passwd confirm <- runInputPost registerForm
+    RegisterCreds email phoneNum passwd confirm tos <-
+        runInputPost registerForm
     mErrorMessage <- do
         mUser <- runDB $ getBy $ UniqueEmail email
         -- Already registered.
@@ -63,6 +65,8 @@ postRegisterR = do
         -- Password too short.
         else if T.length passwd < 8 then
             return $ Just passwordTooShort
+        else if not tos then
+            return $ Just "You must agree to the Terms and Conditions of Use to use Bannerstalker."
         -- Success!
         else case validatePhoneNum phoneNum of
             Nothing -> return $
