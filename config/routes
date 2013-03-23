@@ -8,7 +8,6 @@
 /login                      LoginR GET POST
 /logout                     LogoutR GET POST
 
-/verify/resend              ResendVerificationR GET POST
 /verify/#UserId/#Text       VerifyR GET
 
 /password                     ForgotPasswordR GET POST

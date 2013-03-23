@@ -72,11 +72,7 @@ getVerifyR userId verKey = do
                         doLogin userId
                         return True
     if success
-        then redirect HomeR
-        else defaultLayout [whamlet|
-$newline never
-<h3>This link is expired
-<p .lead>
-    Request another one
-    <a href=@{ResendVerificationR}>here.
-|]
+        then do
+            setSession "_orderSuccess" "You have been successfully verified. \                   \Welcome to Bannerstalker!"
+            redirect AccountR
+        else redirect AccountR
