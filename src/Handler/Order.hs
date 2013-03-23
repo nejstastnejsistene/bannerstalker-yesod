@@ -31,11 +31,13 @@ getAccountR :: Handler RepHtml
 getAccountR = do
     let sql = "SELECT ??, ?? \
               \FROM \"user\", section, section_request \
-              \WHERE section_request.user_id = ? \
+              \WHERE \"user\".id = ? \
+                \AND section_request.user_id = ? \
                 \AND section_request.section_id  = section.id \
               \ORDER BY section.course_id ASC"
     Entity userId _ <- fmap fromJust currentUser
-    sqlResult <- runDB $ rawSql sql [toPersistValue userId]
+    sqlResult <- runDB $ rawSql sql [ toPersistValue userId
+                                    , toPersistValue userId ]
     let sectionResults = [(s, r) | (Entity _ s, Entity r _) <- sqlResult]
     mErrorMessage <- consumeSession errorKey
     mSuccessMessage <- consumeSession successKey
