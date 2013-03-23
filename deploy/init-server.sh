@@ -3,12 +3,12 @@
 NAME=bannerstalker
 PIDFILE=/var/run/$NAME.pid
 DAEMON=/home/ubuntu/bannerstalker/bannerstalker
-DAEMON_OPTS="--chdir /home/ubuntu/bannerstalker"
+DAEMON_OPTS=Production
 
 start() {
     echo "Starting $NAME"
-    start-stop-daemon --start --pidfile $PIDFILE \
-        --make-pidfile --background --exec $DAEMON $DAEMON_OPTS
+    start-stop-daemon --start --pidfile $PIDFILE --make-pidfile	--background \
+	--chdir /home/ubuntu/bannerstalker --exec $DAEMON -- $DAEMON_OPTS
 }
 
 stop() {
