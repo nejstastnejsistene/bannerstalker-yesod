@@ -1,2 +1,7 @@
 $newline never
+<div .well>
+    <p>Although the backend of Bannerstalker has been running reliably for since last Fall, this website is still a little rough around the edges! Please don't hesitate to
+        <span .contact> contact me
+        \ if you have any problems.
+    <p>Also, I'll get around to actually writing this page eventually. Until then, enjoy our alternate logo.
 <img src=@{StaticR img_horriblelogo_jpg}>

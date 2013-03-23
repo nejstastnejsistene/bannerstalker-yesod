@@ -12,7 +12,9 @@ $newline never
                 <br>
                 <button .btn .btn-large .btn-success type=submit>Add CRN
         <hr>
-        <a href=@{AccountInfoR} .btn .btn-large>Update account information
+        <a href=@{AccountInfoR} .btn .btn-large>
+            <i .icon-cogs>
+            \ Update account information
     <div .span8>
         $if (length sectionResults) == 0
             <div .well>
