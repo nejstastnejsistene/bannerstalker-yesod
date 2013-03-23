@@ -58,7 +58,6 @@ $newline never
                 <div style=margin-top:20px>
                     &copy; 2013 <span id=contact>Peter Johnson</span>. All rights reserved.
         <script src=@{StaticR js_jquery_1_7_2_min_js}>
-        <script src=@{StaticR js_jquery_backstretch_min_js}>
         <script>
             $with contactMe <- "<a href=\"mailto:pajohnson@email.wm.edu?subject=Bannerstalker\">"
                 \$('#contact').wrap(atob('#{decodeUtf8 $ B64.encode contactMe}'));
