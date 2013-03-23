@@ -1,6 +1,6 @@
 module Bannerstalkerd where 
 
-import Prelude
+import Prelude hiding (concat)
 import Control.Concurrent
 import Control.Exception
 import Control.Monad
@@ -11,7 +11,7 @@ import Database.Persist
 import Database.Persist.GenericSql
 import Database.Persist.GenericSql.Raw
 import Database.Persist.Postgresql
-import Data.Text (Text, pack, unpack)
+import Data.Text (Text, pack, unpack, concat)
 import Data.Text.Lazy (fromChunks)
 import Data.Time
 import Data.Time.Clock.POSIX
@@ -147,12 +147,16 @@ bannerstalkerd extra dbConf manager = do
             section <- fmap fromJust $ get sectionId
             -- Send email.
             (status, err) <- liftIO $ notifyEmail email section
+            when (status == Failure) $ liftIO $ mailAlert $ concat
+                ["Error notifying ", email, ": ", fromJust err]
             time <- liftIO $ getCurrentTime
             insert $ NotificationLog time (sectionCrn section)
                 EmailNotification (Just userId) email status err
             -- Send SMS.
             (status, err) <- liftIO $ notifySms
                 manager extra phoneNum section
+            when (status == Failure) $ liftIO $ mailAlert $ concat
+                ["Error texting ", phoneNum, ": ", fromJust err]
             time <- liftIO $ getCurrentTime
             insert $ NotificationLog time (sectionCrn section)
                 SmsNotification (Just userId) phoneNum status err
