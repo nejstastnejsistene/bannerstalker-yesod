@@ -62,6 +62,8 @@ $newline never
         <script>
             $with contactMe <- "<a href=\"mailto:pajohnson@email.wm.edu?subject=Bannerstalker\">"
                 \$('#contact').wrap(atob('#{decodeUtf8 $ B64.encode contactMe}'));
+            $with contactMe <- "<a href=\"mailto:support@bannerstalker.com\">"
+                \$('#support').wrap(atob('#{decodeUtf8 $ B64.encode contactMe}'));
         $maybe analytics <- extraAnalytics $ appExtra $ settings master
             <script>
               var _gaq = _gaq || [];

@@ -1,6 +1,9 @@
 <div .row>
     <div .span8>
         <h3>Your request for CRN #{sectionCrn section}
+        <p>If any of this information is incorrect
+            <span #support> contact us
+            \ and I can fix it for you
         <table .table .table-bordered>
             <thead>
             <tbody>
@@ -16,9 +19,6 @@
                 <tr>
                     <th>Phone number
                     <td>#{sectionRequestPhoneNum req}
-                <tr>
-                    <th>Call phone
-                    <td>#{sectionRequestPhoneCall req}
             <tfoot>
         <a href=@{AccountR} .btn>Go back
     <div .span4>

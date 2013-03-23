@@ -2,7 +2,7 @@ $newline never
 <h1>Register
 <p>
     Already Registered? 
-    <a href=@{RegisterR}> Login instead.
+    <a href=@{LoginR}> Login instead.
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post action=@{RegisterR}>
     ^{token}
