@@ -28,7 +28,7 @@ notifyEmail email section = do
     where
         toAddr = Address Nothing email
         fromAddr = noreplyAddr
-        subject = LT.toStrict $ toLazyText $ 
+        subject = LT.toStrict $ LT.init $ toLazyText $ 
             $(textFile "templates/notifications/subject.text") ()
         text = toLazyText $
             $(textFile "templates/notifications/mail.text") ()
@@ -41,8 +41,12 @@ notifySms :: Manager
              -> Section
              -> IO (RequestStatus, Maybe Text)
 notifySms manager extra recipient section = do
-    err <- sendSms manager extra (encodeUtf8 recipient) message
-    return (case err of Nothing -> Success; _ -> Failure, err)
+    result <- try $ sendSms manager extra (encodeUtf8 recipient) message
+    case result of
+        Left ex ->
+            return (Failure, Just $ pack $ show (ex :: SomeException))
+        Right err ->
+            return (case err of Nothing -> Success; _ -> Failure, err)
     where
         message = encodeUtf8 $ LT.toStrict $ toLazyText $ 
             $(textFile "templates/notifications/sms.text") ()
