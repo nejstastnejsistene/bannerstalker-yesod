@@ -22,16 +22,17 @@
             <tfoot>
         <a href=@{AccountR} .btn>Go back
     <div .span4>
-        <h3>Remove this CRN
-        <form method=post action=@{RemoveRequestR reqId}>
-            <label for=feedback>Feedback
-            <textarea #feedback name=feedback rows=3>
-            <label .checkbox>
-                <input name=gotIn value=yes type=checkbox>
-                Did you get into your class?
-            <label .checkbox>
-                <input name=confirm value=yes type=checkbox required>
-                Are you sure you want to remove this CRN? This can't be undone.
-            <button .btn .btn-danger>
-                <i .icon-trash>
-                \ Remove
+        <div .well>
+            <h3>Remove this CRN
+            <form method=post action=@{RemoveRequestR reqId}>
+                <label for=feedback>Feedback
+                <textarea #feedback name=feedback rows=3>
+                <label .checkbox>
+                    <input name=gotIn value=yes type=checkbox>
+                    Did you get into your class?
+                <label .checkbox>
+                    <input name=confirm value=yes type=checkbox required>
+                    Are you sure you want to remove this CRN? This can't be undone.
+                <button .btn .btn-danger>
+                    <i .icon-trash>
+                    \ Remove
