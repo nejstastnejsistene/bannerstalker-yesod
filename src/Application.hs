@@ -105,4 +105,4 @@ getApplicationDev =
         }
 
 getHumansR :: GHandler s m RepPlain
-getHumansR = sendFile "text/plain" "config/humans.txt"
+getHumansR = sendFile "text/plain;charset=utf-8" "config/humans.txt"
