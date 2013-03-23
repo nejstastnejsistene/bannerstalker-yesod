@@ -20,5 +20,8 @@ $newline never
     \ and I'll be happy to talk to you to resolve any issues you're having.
 <h4>Is Bannerstalker created by the College of William &amp; Mary?
 <p>Nope, Bannerstalker is a privately run website and is in no way affiliated or endoresed by the College of William &amp; Mary. Bannerstalker was created by a W&amp;M student to help other W&amp;M students.
-<hr>
+<h2>Terms and Conditions of Use
+<p>
+    By using this website you agree to the
+    <a href=@{TermsOfUseR}> Terms and Conditions of Use.
 <img src=@{StaticR img_horriblelogo_jpg}>
