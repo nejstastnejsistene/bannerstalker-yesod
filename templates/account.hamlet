@@ -5,7 +5,7 @@ $newline never
     <div .span4>
         <div .well>
             <h2>Add a CRN
-            <p>Simply enter a CRN to get started with Bannerstalker!
+            <p>Simply enter a CRN to get started with Bannerstalker! We'll find this course as well as related course such as labs.
             <form method=post action=@{StartOrderR}>
                 <label for=crn>
                 <input #crn name=crn type=text pattern=\d* placeholder="Enter a CRN here" required autofocus>

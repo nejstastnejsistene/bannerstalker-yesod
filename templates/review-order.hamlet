@@ -1,4 +1,5 @@
 <h3>Review order
+Please review your order, and if everything is correct click "Pay with card" below to pay.
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <table .table .table-bordered>
     <thead>

@@ -1,4 +1,5 @@
 <h3>Contact information
+<p>We need your contact information to send you notifications when you're classes become available. Your email address will also be used to send you a confirmation of this transaction.
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post>
     <label for=email>Email
