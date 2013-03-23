@@ -28,11 +28,17 @@ $newline never
 <hr>
 <div .row>
     <div .span4>
-        <h4>Instant notifications
+        <h4>
+            <i .icon-envelope>
+            \ Instant notifications
         <p>Get notified as soon as your CRNs open up. You'll be sure to get your classes before most students even realize the class is available.
     <div .span4>
-        <h4>Save time
+        <h4>
+            <i .icon-time>
+            \ Save time
         <p>Setting up notifications takes only a few minutes and saves you tons of time spent manually stalking banner.
     <div .span4>
-        <h4>No more stress
+        <h4>
+            <i .icon-heart>
+            \ No more stress
         <p>Bannerstalker removes the panic and uncertainty from class registration, allowing you to get into your classes without worrying.

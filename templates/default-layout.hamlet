@@ -13,7 +13,7 @@ $newline never
                         \ Admin
         <li :route == AboutR:.active>
             <a href=@{AboutR}>
-                <i .icon-question-sign>
+                <i .icon-info-sign>
                 \ About
         $maybe _ <- mUser
             <li :route == AccountR:.active>

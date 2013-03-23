@@ -1,7 +1,24 @@
 $newline never
-<div .well>
-    <p>Although the backend of Bannerstalker has been running reliably for since last Fall, this website is still a little rough around the edges! Please don't hesitate to
-        <span #support> contact us 
-        \ if you have any problems.
-    <p>Also, I'll get around to actually writing this page eventually. Until then, enjoy our alternate logo.
+<h2>Contact us
+<p>
+    If you have any questions, complaints, comments, or criticisms please feel free to
+    <span .support> contact us
+    \ and we'll get back to you ASAP.
+<h2>Frequently asked questions
+<h4>How often does Bannerstalker check classes?
+<p>Once every five minutes, 24/7, 7 days a week.
+<h4>What happens if multiple students are stalking the same class?
+<p>Whenever a class's status changes, Bannerstalker will send out notifications to all students who are stalking it at the same time. Whoever is able to get onto Banner to register first will get the class.
+<h4>Can I pay more to be notified first?
+<p>Nope! That's how the website was structured initially, but I decided that having multiple levels of service would be potentially confusing and unfair. Bannerstalker is meant to take the stress out of registration, not to cause more frustration.
+<h4>If I'm notified that my class is open but I don't get in, do I have to pay again?
+<p>Nope! Bannerstalker will continue you to notify you whenever your classes change from closed to open or vice versa until you choose to remove the course.
+<h4>Why should I trust you?
+<p>
+    Bannerstalker has been running reliably since last fall for a select number of students, and it has proved to be a valuable resource for those who have used it. Also, Honor Code! I'm a W&amp;M student just like you, so if you have any issues please don't hesitate to
+    <span .contact> contact me
+    \ and I'll be happy to talk to you to resolve any issues you're having.
+<h4>Is Bannerstalker created by the College of William &amp; Mary?
+<p>Nope, Bannerstalker is a privately run website and is in no way affiliated or endoresed by the College of William &amp; Mary. Bannerstalker was created by a W&amp;M student to help other W&amp;M students.
+<hr>
 <img src=@{StaticR img_horriblelogo_jpg}>
