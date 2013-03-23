@@ -89,6 +89,7 @@ library
                  , data-default
                  , http-types
                  , mime-mail
+                 , old-locale
                  , random
                  , scrypt
                  , time

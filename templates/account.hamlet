@@ -25,12 +25,13 @@ $newline never
             <table .table .iter-sections>
                 <tr>
                     <th>CRN
-                    <th .hidden-phone>Course ID
-                    <th>Title
+                    <th>Course ID
+                    <th .hidden-phone>Title
                     <th .hidden-phone .hidden-tablet>Instructor
                     <th .hidden-phone .hidden-tablet>Days
                     <th .hidden-phone .hidden-tablet>Times
                     <th>Status
+                    <th .hidden-phone>Last checked
                     <th>
                 $forall (section, reqId) <- sectionResults
                     <tr>
@@ -41,6 +42,9 @@ $newline never
                         <td .hidden-phone .hidden-tablet>#{sectionDays section}
                         <td .hidden-phone .hidden-tablet>#{sectionTime section}
                         <td>#{sectionCurrStatus section}
+                        <td>
+                            $maybe lastChecked <- mLastChecked
+                                #{lastChecked}
                         <td>
                             <a href=@{ViewRequestR reqId} .btn>
                                 <i .icon-cog>
