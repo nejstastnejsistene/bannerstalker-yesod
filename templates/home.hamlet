@@ -27,15 +27,12 @@ $newline never
             \ Get started
 <hr>
 <div .row>
-    <div .span3>
-        <h4>Subheading
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-    <div .span3>
-        <h4>Subheading
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-    <div .span3>
-        <h4>Subheading
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-    <div .span3>
-        <h4>Subheading
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    <div .span4>
+        <h4>Instant notifications
+        <p>Get notified as soon as your CRNs open up. You'll be sure to get your classes before most students even realize the class is available.
+    <div .span4>
+        <h4>Save time
+        <p>Ordering notifications takes only a few minutes and saves you tons of time spent manually stalking banner.
+    <div .span4>
+        <h4>No more stress
+        <p>Bannerstalker removes the panic and uncertainty from class registration, allowing you to get into your classes without worrying.
