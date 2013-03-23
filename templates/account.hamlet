@@ -31,13 +31,13 @@ $newline never
                     <th .hidden-phone .hidden-tablet>Days
                     <th .hidden-phone .hidden-tablet>Times
                     <th>Status
-                    <th .hidden-phone>Last checked
+                    <th>Last checked
                     <th>
                 $forall (section, reqId) <- sectionResults
                     <tr>
                         <td>#{sectionCrn section}
-                        <td .hidden-phone>#{sectionCourseId section}
-                        <td>#{sectionTitle section}
+                        <td>#{sectionCourseId section}
+                        <td .hidden-phone>#{sectionTitle section}
                         <td .hidden-phone .hidden-tablet>#{sectionInstructor section}
                         <td .hidden-phone .hidden-tablet>#{sectionDays section}
                         <td .hidden-phone .hidden-tablet>#{sectionTime section}
