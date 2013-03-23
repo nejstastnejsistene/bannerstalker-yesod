@@ -123,7 +123,7 @@ postLoginR = do
                         doLogin userId >> return Nothing
                     -- Passwords don't match.
                     else return $ Just badLoginCombo
-                else return $ Just "you're account isn't verified yet, [here] is a link..."
+                else return $ Just "You're account isn't verified yet! Please click on the link in the verification email we sent you."
     case mErrorMessage of
         Nothing -> redirectUltDest AccountR
         _ -> do
@@ -162,7 +162,8 @@ postForgotPasswordR = do
             mUser <- runDB $ getBy $ UniqueEmail email
             case mUser of
                 Nothing -> do
-                    setSession forgotPasswordErrorKey "Email doesn't exist"
+                    setSession forgotPasswordErrorKey
+                        "There is no user with that email address."
                     redirect ForgotPasswordR
                 Just (Entity userId user) -> do
                     render <- getUrlRender
@@ -222,6 +223,8 @@ postResetPasswordR userId verKey = do
                     if passwd == confirm then do
                         changePassword userId passwd
                         doLogin userId
+                        setSession "_orderSuccess"
+                            "Your password has been updated."
                         redirect AccountR
                     else do
                         setSession resetPasswordErrorKey passwordMismatch
@@ -247,8 +250,8 @@ changePassword userId passwd = do
 expiredResetLink :: Handler RepHtml
 expiredResetLink = defaultLayout [whamlet|
 $newline never
-<h3>This link is expired
+<h1>This link is expired!
 <p>
     Request another one
-    <a href=@{ForgotPasswordR}>here.
+    <a href=@{ForgotPasswordR}> here.
 |]
