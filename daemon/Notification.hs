@@ -28,7 +28,7 @@ notifyEmail email section = do
     where
         toAddr = Address Nothing email
         fromAddr = noreplyAddr
-        subject = LT.toStrict $ toLazyText $ 
+        subject = LT.toStrict $ LT.init $ toLazyText $ 
             $(textFile "templates/notifications/subject.text") ()
         text = toLazyText $
             $(textFile "templates/notifications/mail.text") ()

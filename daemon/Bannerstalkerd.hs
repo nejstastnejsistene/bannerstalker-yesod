@@ -113,11 +113,10 @@ bannerstalkerd extra dbConf manager = do
                     let (Entity sectionId
                                 (Section  _ _ _ _ _ _ _ oldStatus)) =
                             fromJust $ Map.lookup crn oldSections
-                        (Section _ _ _ _  _ _ _ newStatus) =
+                        newSection@(Section _ _ _ _  _ _ _ newStatus) =
                             fromJust $ Map.lookup crn newSections
+                    replace sectionId newSection >> commit
                     when (newStatus /= oldStatus) $ do
-                        update sectionId [SectionCurrStatus =. newStatus]
-                        commit
                         sendAllNotifications semester sectionId
                     insert $ HistoryLog t crn newStatus
                 -- Partition sections into added, removed, and existing.
