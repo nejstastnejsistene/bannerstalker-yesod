@@ -232,6 +232,7 @@ getReviewOrderR = do
                 price = sectionsPrice + additionalPrice
             case dropWhile (==courseId) $ map sectionCourseId sections of
                 [] -> do
+                    extra <- getExtra
                     mErrorMessage <- consumeSession errorKey
                     defaultLayout $ do
                         setTitle "Review Order"
