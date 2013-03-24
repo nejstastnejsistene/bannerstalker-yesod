@@ -2,6 +2,7 @@ module Handler.Order where
 
 import Prelude
 import Import
+import Data.Char
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
@@ -159,13 +160,25 @@ getChooseCrnsR = do
     mOrder <- getSessionWith orderKey
     case fmap (read . T.unpack) mOrder of
         Just (Order courseId (Just crns) _ _ _) -> do
+            let sql = "SELECT ?? \
+                      \FROM section \
+                      \WHERE section.course_id SIMILAR TO ? \
+                      \ORDER BY section.crn ASC"
             sections <- fmap (map entityVal) $ runDB $
-                selectList [SectionCourseId ==. courseId] [Asc SectionCrn]
+                rawSql sql [toPersistValue $ canonicalizeCourseId courseId]
             mErrorMessage <- consumeSession errorKey
             defaultLayout $ do
                 setTitle "Choose related sections"
                 $(widgetFile "choose-crns")
         _ -> deleteSession orderKey >> redirect AccountR
+
+-- For example: "PHYS %101%"
+canonicalizeCourseId :: Text -> Text
+canonicalizeCourseId courseId =
+    T.concat [subj, " _?", strippedNum, "_?"]
+    where
+        subj:num:_ = T.words courseId
+        strippedNum = T.dropAround (fmap not isDigit) num
 
 postChooseCrnsR :: Handler RepHtml
 postChooseCrnsR = do
@@ -230,7 +243,10 @@ getReviewOrderR = do
                 sectionsPrice = 500 + 100 * (length sections - 1)
                 additionalPrice = if phoneCall then 300 else 0
                 price = sectionsPrice + additionalPrice
-            case dropWhile (==courseId) $ map sectionCourseId sections of
+                cId = canonicalizeCourseId courseId  
+                courseIds = map
+                    (canonicalizeCourseId . sectionCourseId) sections
+            case dropWhile (==cId) $ courseIds of
                 [] -> do
                     extra <- getExtra
                     mErrorMessage <- consumeSession errorKey
