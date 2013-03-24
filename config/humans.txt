@@ -13,6 +13,7 @@ Version: v0.2.0
 Frontend: jQuery, Bootstrap, FontAwesome
 Backend: Haskell (Yesod, http-conduit)
 Services used: Stripe, Twilio, AmazonSES
-Logo: The binoculars icon in the logo is borrowed from the Gnome Desktop icon
-      set, which is released under GPLv2. The logo is therefore also released
-      under GPLv2.
+Binoculars logo: The binoculars icon in the logo is borrowed from the
+                 Gnome Desktop icon set, which is released under GPLv2.
+                 The logo is therefore also released under GPLv2.
+The other logo: Courtesy of http://www.horriblelogos.com/.

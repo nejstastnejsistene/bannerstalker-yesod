@@ -26,4 +26,5 @@ $newline never
 <p>
     By using this website you agree to the
     <a href=@{TermsOfUseR}> Terms and Conditions of Use.
-<img src=@{StaticR img_horriblelogo_jpg}>
+<a href="http://www.horriblelogos.com/">
+    <img src=@{StaticR img_horriblelogo_jpg}>
