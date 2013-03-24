@@ -18,13 +18,13 @@ Please review your order, and if everything is correct click "Pay with card" bel
         $if phoneCall
             <tr>
                 <td>Notification: #{phoneNum} (phone)
-                <td>$3.00
+                <td>
         <tr>
             <td>Notification: #{phoneNum} (sms)
-            <td>$0.00
+            <td>&mdash;
         <tr>
             <td>Notification: #{email} (email)
-            <td>$0.00
+            <td>&mdash;
     <tfoot>
         <tr>
             <th>Total

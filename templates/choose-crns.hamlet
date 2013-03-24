@@ -1,5 +1,7 @@
 <h3>Select the courses that you want to stalk
-<p>Here are all the courses we found for #{courseId}. The first CRN is $5.00, and each subsequent one is $1.00. This allows you to stalk alternative classes and labs without breaking the bank.
+<p>Here are all the courses we found for #{courseId}.
+<h4>The first CRN is $5, and each subsequent one is $1.
+<p>This allows you to stalk alternative classes and labs without breaking the bank.
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post>
     <table .table .table-bordered>
