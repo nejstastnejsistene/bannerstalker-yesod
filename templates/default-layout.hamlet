@@ -31,7 +31,7 @@ $newline never
                     \ Login
     <h3>
         <a .logo href=@{HomeR}>
-            <img .logo src=@{StaticR img_binoculars_svg}>
+            <img .logo src=@{StaticR img_binoculars_svg} alt="Binoculars logo">
             \ bannerstalker.com
 $if adminRoute
     <h3>Admin Pages

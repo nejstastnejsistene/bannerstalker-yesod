@@ -2,7 +2,7 @@ $newline never
 <div .jumbotron>
     <h1>We stalk Banner so you don't have to!
     <div .marketing>
-        <img .img-rounded .screenshot src=@{StaticR img_screenshot_png}>
+        <img .img-rounded .screenshot src=@{StaticR img_screenshot_png} alt="iPhone screenshot">
         <h3>
             <strong>1.
             \ Choose your CRNs

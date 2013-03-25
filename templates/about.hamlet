@@ -27,4 +27,4 @@ $newline never
     By using this website you agree to the
     <a href=@{TermsOfUseR}> Terms and Conditions of Use.
 <a href="http://www.horriblelogos.com/">
-    <img src=@{StaticR img_horriblelogo_jpg}>
+    <img src=@{StaticR img_horriblelogo_jpg} alt="Horrible logo">
