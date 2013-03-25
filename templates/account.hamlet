@@ -41,7 +41,14 @@ $newline never
                         <td .hidden-phone .hidden-tablet>#{sectionInstructor section}
                         <td .hidden-phone .hidden-tablet>#{sectionDays section}
                         <td .hidden-phone .hidden-tablet>#{sectionTime section}
-                        <td>#{sectionCurrStatus section}
+                        <td>
+                            $with status <- sectionCurrStatus section
+                                $if status == Open
+                                    <p .text-success>
+                                        <strong>#{status}
+                                $else
+                                    <p .text-error>
+                                        <strong>#{status}
                         <td>
                             $maybe lastChecked <- mLastChecked
                                 #{lastChecked}

@@ -24,5 +24,11 @@
                 <td .hidden-phone .hidden-tablet>#{inst}
                 <td .hidden-phone .hidden-tablet>#{time}
                 <td .hidden-phone .hidden-tablet>#{day}
-                <td>#{stat}
+                <td>
+                    $if stat == Open
+                        <p .text-success>
+                            <strong>#{stat}
+                    $else
+                        <p .text-error>
+                            <strong>#{stat}
     <button .btn type=submit>Continue
