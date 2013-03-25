@@ -2,7 +2,7 @@ $newline never
 <h1>Register
 <p>
     Already Registered? 
-    <a href=@{LoginR}> Login instead.
+    <a href=@{LoginR}>Login instead.
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post action=@{RegisterR}>
     ^{token}
@@ -16,8 +16,8 @@ $newline never
     <input #confirm name=confirm type=password required>
     <label .checkbox>
         <input name=tos value=yes type=checkbox required>
-            I have read and agree to the
-            <a href=@{TermsOfUseR}> Terms and Conditions of Use
+            I have read and agree to the 
+            <a href=@{TermsOfUseR}>Terms and Conditions of Use
     <br>
     <button type=submit class=btn>
         <i .icon-share-alt>

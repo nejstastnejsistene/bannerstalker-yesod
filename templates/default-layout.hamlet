@@ -32,7 +32,7 @@ $newline never
     <h3>
         <a .logo href=@{HomeR}>
             <img .logo src=@{StaticR img_binoculars_svg} alt="Binoculars logo">
-            \ bannerstalker.com
+            bannerstalker.com
 $if adminRoute
     <h3>Admin Pages
     <ul .nav .nav-pills>

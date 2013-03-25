@@ -1,8 +1,8 @@
 $newline never
 <h2>Contact us
 <p>
-    If you have any questions, complaints, comments, or criticisms please feel free to
-    <span .support> contact us
+    If you have any questions, complaints, comments, or criticisms please feel free to 
+    <span .support>contact us
     \ and we'll get back to you ASAP.
 <h2>Frequently asked questions
 <h4>How much does Bannerstalker cost?
@@ -17,14 +17,14 @@ $newline never
 <p>Nope! Bannerstalker will continue to notify you whenever your classes change from closed to open or vice versa until you choose to remove the course.
 <h4>Why should I trust you?
 <p>
-    Bannerstalker has been running reliably since last fall for a select number of students, and it has proved to be a valuable resource for those who have used it. Also, Honor Code! I'm a W&amp;M student just like you, so if you have any issues please don't hesitate to
-    <span .contact> contact me
+    Bannerstalker has been running reliably since last fall for a select number of students, and it has proved to be a valuable resource for those who have used it. Also, Honor Code! I'm a W&amp;M student just like you, so if you have any issues please don't hesitate to 
+    <span .contact>contact me
     \ and I'll be happy to talk with you to resolve any issues you might be having.
 <h4>Is Bannerstalker created by the College of William &amp; Mary?
 <p>Nope, Bannerstalker is a privately run website and is in no way affiliated or endorsed by the College of William &amp; Mary. Bannerstalker was created by a W&amp;M student to help other W&amp;M students.
 <h2>Terms and Conditions of Use
 <p>
-    By using this website you agree to the
-    <a href=@{TermsOfUseR}> Terms and Conditions of Use.
+    By using this website you agree to the 
+    <a href=@{TermsOfUseR}>Terms and Conditions of Use.
 <a href="http://www.horriblelogos.com/">
     <img src=@{StaticR img_horriblelogo_jpg} alt="Horrible logo">

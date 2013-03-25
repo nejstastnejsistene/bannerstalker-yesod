@@ -2,7 +2,7 @@ $newline never
 <h1>Login
 <p>
     Not Registered? 
-    <a href=@{RegisterR}> Sign up now!
+    <a href=@{RegisterR}>Sign up now!
 <br>
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post action=@{LoginR}>
