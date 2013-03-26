@@ -21,7 +21,8 @@ $newline never
                 <strong>You aren't stalking any CRNs!
                 <p>To get started, enter a CRN into the box on the left.
         $else
-            <h2>Your CRNs
+            <h2>Your CRNs 
+                <small>We'll notify you when any of their statuses change.
             <table .table .iter-sections>
                 <tr>
                     <th>CRN
