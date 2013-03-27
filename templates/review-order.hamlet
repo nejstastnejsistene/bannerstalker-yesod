@@ -31,6 +31,9 @@ Please review your order, and if everything is correct click "Pay with card" bel
             <td>
                 <strong>$#{formatPrice price}
 <form method=post>
+    <p>
+        Secure payments are conducted through 
+        <a href="https://stripe.com/help/security">Stripe.
     <input name=price value=#{price} type=hidden>
     <script
         src="https://checkout.stripe.com/v2/checkout.js"
