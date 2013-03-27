@@ -3,7 +3,7 @@
         <h3>Your request for CRN #{sectionCrn section}
         <p>If any of this information is incorrect 
             <span .support>contact us
-            \ and I can fix it for you
+            \ and we can fix it for you.
         <table .table .table-bordered>
             <thead>
             <tbody>

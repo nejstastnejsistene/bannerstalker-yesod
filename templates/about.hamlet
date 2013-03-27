@@ -20,6 +20,11 @@ $newline never
     Bannerstalker has been running reliably since last fall for a select number of students, and it has proved to be a valuable resource for those who have used it. Also, Honor Code! I'm a W&amp;M student just like you, so if you have any issues please don't hesitate to 
     <span .contact>contact me
     \ and I'll be happy to talk with you to resolve any issues you might be having.
+<h4>Is Bannerstalker secure?
+<p>
+    All traffic to and from Bannerstalker is encrypted with HTTPS/SSL, so no one is able to eavesdrop on your connection. Furthurmore, all credit card transactions are made securely using 
+    <a href="https://stripe.com/help/security">Stripe
+    . The payment process happens on the client-side between you and Stripe, which means that we will never have direct access to your credit card information.
 <h4>Is Bannerstalker created by the College of William &amp; Mary?
 <p>Nope, Bannerstalker is a privately run website and is in no way affiliated or endorsed by the College of William &amp; Mary. Bannerstalker was created by a W&amp;M student to help other W&amp;M students.
 <h2>Terms and Conditions of Use
