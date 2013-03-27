@@ -9,6 +9,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Data.Text.Lazy.Builder
 import Data.Text.Encoding
+import Data.Time.Clock.POSIX
 import Network.Mail.Mime
 import Text.Blaze.Html.Renderer.String
 import Text.Hamlet
@@ -84,7 +85,10 @@ registerUser :: Text -> Text -> Text -> Handler ()
 registerUser email phoneNum passwd = do
     passwdHash <- fmap (decodeUtf8 . unEncryptedPass) $
         liftIO $ encryptPass' $ Pass $ encodeUtf8 passwd
-    _ <- runDB $ insert $ User email phoneNum False passwdHash False
+    userId <- runDB $ insert $ User email phoneNum False passwdHash False
+    t <- liftIO $ getPOSIXTime
+    let newTime = posixSecondsToUTCTime $ t + 1980 -- 33 minutes from now.
+    _ <- runDB $ insert $ PersonalEmail userId newTime
     sendVerificationEmail email
 
 loginErrorKey, badLoginCombo :: Text
