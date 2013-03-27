@@ -60,3 +60,7 @@ Semester
 Feedback
     gotIn       Bool
     feedback    Text Maybe
+StatusChange
+    timestamp   UTCTime
+    sectionId   SectionId
+    status      SectionStatus

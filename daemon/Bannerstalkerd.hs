@@ -117,6 +117,7 @@ bannerstalkerd extra dbConf manager = do
                             fromJust $ Map.lookup crn newSections
                     replace sectionId newSection >> commit
                     when (newStatus /= oldStatus) $ do
+                        insert $ StatusChange t sectionId newStatus
                         sendAllNotifications semester sectionId
                     insert $ HistoryLog t crn newStatus
                 -- Partition sections into added, removed, and existing.
