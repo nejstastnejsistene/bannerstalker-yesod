@@ -44,7 +44,8 @@ twilioReq p params post (TwilioData manager request) =
                     (toStrict . decodeUtf8) $ responseBody response
         where
             req' = request { path = path request `mappend` p
-                           ,  checkStatus = \_ _ -> Nothing }
+                           , checkStatus = \_ _ -> Nothing
+                           , responseTimeout = Just 10000000 } -- 10s
             ascii = renderSimpleQuery True params
             req'' = if post then urlEncodedBody params req'
                     else req' { queryString = ascii }
