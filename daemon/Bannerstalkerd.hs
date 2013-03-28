@@ -103,6 +103,8 @@ bannerstalkerd extra dbConf manager = do
                         , SectionRequestActive ==. True] []
                     case requests of
                         [] -> do
+                            deleteWhere
+                                [StatusChangeSectionId ==. sectionId]
                             deleteBy $ UniqueCrn crn
                             liftIO $ mailAlert $
                                 pack $ "crn removed: " ++ show crn
