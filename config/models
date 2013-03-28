@@ -64,6 +64,3 @@ StatusChange
     timestamp   UTCTime
     sectionId   SectionId
     status      SectionStatus
-PersonalEmail
-    userId      UserId
-    time        UTCTime
