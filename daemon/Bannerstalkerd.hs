@@ -58,7 +58,9 @@ bannerstalkerd extra dbConf manager = do
         let semesters = [(sId, semesterCode sem) |
                                  Entity sId sem <- semesterEntities]
         mapM_ refreshCourseList semesters
-
+        -- Send out notifications to new users.
+        newRequests <- selectList [SectionRequestNew ==. True] []
+        mapM_ sendNotification newRequests
     where
         -- Applies the program to a given semester.
         refreshCourseList (semesterId, semesterCode) = do
@@ -137,15 +139,15 @@ bannerstalkerd extra dbConf manager = do
             mapM_ handleRemovedCrn $ Set.toList removedCrns
             mapM_ handleExistingCrn $ Set.toList existingCrns
 
-        -- Schedules notifications for the given section and its status.
+        -- Send notifications for the given section.
         sendAllNotifications semester sectionId = do
-            requests <- fmap (map entityVal) $ selectList
+            requests <- selectList
                 [ SectionRequestSectionId ==. sectionId
                 , SectionRequestActive ==. True] []
             mapM_ sendNotification requests
             
-        sendNotification (SectionRequest
-                userId email phoneNum phoneCall _ sectionId) = do
+        sendNotification (Entity reqId (SectionRequest
+                userId email phoneNum phoneCall _ new sectionId)) = do
             section <- fmap fromJust $ get sectionId
             -- Send email.
             (status, err) <- liftIO $ notifyEmail email section
@@ -166,6 +168,8 @@ bannerstalkerd extra dbConf manager = do
             if phoneCall
                 then return ()
                 else return ()
+            -- Mark as not new.
+            update reqId [SectionRequestNew =. False]
             
 
 mailAlert :: Text -> IO ()

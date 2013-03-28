@@ -125,11 +125,10 @@ getViewRequestR reqId = do
 
 postRemoveRequestR :: SectionRequestId -> Handler RepHtml
 postRemoveRequestR reqId = do
-    (feedback, gotIn, _) <- runInputPost $ (,,)
-        <$> iopt textField "feedback"
-        <*> iopt boolField "gotIn"
+    (gotIn, _) <- runInputPost $ (,)
+        <$> ireq boolField "gotIn"
         <*> ireq boolField "confirm"
-    _ <- runDB $ insert $ Feedback (isJust gotIn) feedback
+    _ <- runDB $ insert $ Feedback gotIn
     userId <- fmap (entityKey . fromJust) currentUser
     reqs <- runDB $ selectList [ SectionRequestId ==. reqId
                                , SectionRequestUserId ==. userId
@@ -281,12 +280,14 @@ postReviewOrderR = do
                     mSections <- runDB $ mapM (getBy . UniqueCrn) crns
                     let sectionIds = map entityKey $ catMaybes mSections
                         req = SectionRequest userId
-                            email phoneNum phoneCall True
+                            email phoneNum phoneCall True True
                     runDB $ mapM_ (insert . req) sectionIds
                     sendConfirmation email order charge
                     setSession successKey $ T.concat
                         [ "Transaction successful!"
-                        , " We sent you a confirmation email." ]
+                        , " We sent you a confirmation email as well"
+                        , " as notifications for each CRN you just"
+                        , " ordered."]
                     redirect AccountR
                 Right err -> do
                     setSession errorKey $ T.concat

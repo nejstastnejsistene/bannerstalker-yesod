@@ -28,6 +28,7 @@ SectionRequest
     phoneNum    Text
     phoneCall   Bool
     active      Bool
+    new         Bool default=False
     sectionId   SectionId
 CourseListLog
     timestamp   UTCTime
@@ -59,7 +60,6 @@ Semester
     UniqueSemester code
 Feedback
     gotIn       Bool
-    feedback    Text Maybe
 StatusChange
     timestamp   UTCTime
     sectionId   SectionId

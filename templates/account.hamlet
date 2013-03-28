@@ -23,6 +23,9 @@ $newline never
         $else
             <h2>Your CRNs 
                 <small>We'll notify you when any of their statuses change.
+            <p>If you didn't receive notifications within a few minutes of ordering your CRNs, double check that you typed your contact info correctly and 
+                <span .support>contact us
+                \ if you need something to be changed.
             <table .table .iter-sections>
                 <tr>
                     <th>CRN
