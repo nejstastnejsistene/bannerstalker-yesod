@@ -25,11 +25,11 @@
         <div .well>
             <h3>Remove this CRN
             <form method=post action=@{RemoveRequestR reqId}>
-                <label for=feedback>Feedback
-                <textarea #feedback name=feedback rows=3>
-                <label .checkbox>
-                    <input name=gotIn value=yes type=checkbox>
-                    Did you get into your class?
+                <label for=gotIn>Did you get into your class?
+                <select name=gotIn #gotIn required>
+                    <option value="">Please choose one
+                    <option value=yes>Yes
+                    <option value=no>No
                 <label .checkbox>
                     <input name=confirm value=yes type=checkbox required>
                     Are you sure you want to remove this CRN? This can't be undone.

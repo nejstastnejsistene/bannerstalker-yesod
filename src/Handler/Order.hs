@@ -128,7 +128,7 @@ postRemoveRequestR reqId = do
     (gotIn, _) <- runInputPost $ (,)
         <$> ireq boolField "gotIn"
         <*> ireq boolField "confirm"
-    _ <- runDB $ insert $ Feedback gotIn
+    _ <- runDB $ insert $ Feedback reqId gotIn
     userId <- fmap (entityKey . fromJust) currentUser
     reqs <- runDB $ selectList [ SectionRequestId ==. reqId
                                , SectionRequestUserId ==. userId

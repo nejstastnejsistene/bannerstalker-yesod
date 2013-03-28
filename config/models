@@ -59,6 +59,7 @@ Semester
     active      Bool
     UniqueSemester code
 Feedback
+    requestId   SectionRequestId
     gotIn       Bool
 StatusChange
     timestamp   UTCTime
