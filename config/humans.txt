@@ -9,7 +9,7 @@ My family and krásná holka, Petra Aschermannová, for feedback and support :)
 Michael Snoyman for writing so many of the haskell libraries I'm using!
 
 /* SITE */
-Version: v0.2.0
+Version: v0.2.1
 Frontend: jQuery, Bootstrap, FontAwesome
 Backend: Haskell (Yesod, http-conduit)
 Services used: Stripe, Twilio, AmazonSES
