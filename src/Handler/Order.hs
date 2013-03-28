@@ -118,6 +118,18 @@ getViewRequestR reqId = do
         [Entity _ req] -> do
             section <- fmap fromJust $
                 runDB $ get $ sectionRequestSectionId req
+            let sql = "SELECT ?? \
+                      \FROM notification_log, section \
+                      \WHERE notification_log.user_id = ? \
+                         \AND notification_log.crn = section.crn \
+                         \AND section.id = ? \
+                      \ORDER BY notification_log.timestamp DESC \
+                      \LIMIT 8"
+            notifications <- fmap (map entityVal) $ runDB $ rawSql sql
+                [ toPersistValue $ userId
+                , toPersistValue $ sectionRequestSectionId req ]
+            tz <- liftIO $ getCurrentTimeZone
+            let localTime = utcToLocalTime tz
             defaultLayout $ do
                 setTitle "View request"
                 $(widgetFile "view-request")

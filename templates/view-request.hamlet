@@ -20,6 +20,46 @@
                     <th>Phone number
                     <td>#{sectionRequestPhoneNum req}
             <tfoot>
+        <h3>Recent Notifications
+        <table .table .table-bordered>
+            <thead>
+                <tr>
+                    <th>Time
+                    <th>Status
+                    <th>Type
+                    <th>Delivery status
+            <tbody>
+                $forall n <- notifications
+                    <tr :notificationLogStatus n == Failure:.error>
+                        $with t <- localTime $ notificationLogTimestamp n
+                            <td>#{formatTime defaultTimeLocale "%D %X" t}
+                        <td>
+                            $with status <- notificationLogNewStatus n
+                                $case status
+                                    $of Open
+                                        <p .text-success>
+                                            <strong>#{status}
+                                    $of Closed
+                                        <p .text-error>
+                                            <strong>#{status}
+                                    $of Unavailable
+                                        <p .muted>
+                                            <strong>#{status}
+                        <td>
+                            $case notificationLogType n
+                                $of EmailNotification
+                                    <p>Email
+                                $of SmsNotification
+                                    <p>SMS
+                        <td>
+                            $with status <- notificationLogStatus n
+                                $case status
+                                    $of Success
+                                        #{show status}
+                                    $of Failure
+                                        <p .text-error>
+                                            <strong>#{show status}
+            <tfoot>
         <a href=@{AccountR} .btn>Go back
     <div .span4>
         <div .well>

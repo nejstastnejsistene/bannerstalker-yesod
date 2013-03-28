@@ -28,7 +28,7 @@ SectionRequest
     phoneNum    Text
     phoneCall   Bool
     active      Bool
-    new         Bool default=False
+    new         Bool
     sectionId   SectionId
 CourseListLog
     timestamp   UTCTime
@@ -52,6 +52,7 @@ NotificationLog
     recipient   Text
     status      RequestStatus
     error       Text Maybe
+    newStatus   SectionStatus default='Unavailable'
     deriving    Show
 Semester
     code        Text

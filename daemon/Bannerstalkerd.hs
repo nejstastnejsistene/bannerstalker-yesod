@@ -155,7 +155,8 @@ bannerstalkerd extra dbConf manager = do
                 ["Error notifying ", email, ": ", fromJust err]
             time <- liftIO $ getCurrentTime
             insert $ NotificationLog time (sectionCrn section)
-                EmailNotification (Just userId) email status err
+                EmailNotification (Just userId) email status err $
+                sectionCurrStatus section
             -- Send SMS.
             (status, err) <- liftIO $ notifySms
                 manager extra phoneNum section
@@ -163,7 +164,8 @@ bannerstalkerd extra dbConf manager = do
                 ["Error texting ", phoneNum, ": ", fromJust err]
             time <- liftIO $ getCurrentTime
             insert $ NotificationLog time (sectionCrn section)
-                SmsNotification (Just userId) phoneNum status err
+                SmsNotification (Just userId) phoneNum status err $
+                sectionCurrStatus section
             -- Send phone call.
             if phoneCall
                 then return ()
