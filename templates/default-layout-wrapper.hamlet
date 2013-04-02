@@ -56,10 +56,12 @@ $newline never
             <footer>
                 <div class="fb-like" data-href="https://www.facebook.com/bannerstalker" data-send="true" data-width="450" data-show-faces="true">
                 <div style=margin-top:20px>
-                    &copy; 2013 <span class=support>Peter Johnson</span>. All rights reserved.
+                    &copy; 2013 <span class=contact>Peter Johnson</span>. All rights reserved.
                 <small>Bannerstalker is not affiliated with or endorsed by either Banner or the College of William &amp; Mary.
         <script src=@{StaticR js_jquery_1_7_2_min_js}>
         <script>
+            $with contactMe <- "<a href=\"mailto:pajohnson@email.wm.edu?subject=Bannerstalker\">"
+                \$('.contact').wrap(atob('#{decodeUtf8 $ B64.encode contactMe}'));
             $with contactMe <- "<a href=\"mailto:support@bannerstalker.com\">"
                 \$('.support').wrap(atob('#{decodeUtf8 $ B64.encode contactMe}'));
             $with address <- "<strong>Email:</strong> <a href=\"mailto:support@bannerstalker.com\">support@bannerstalker.com</a>"
