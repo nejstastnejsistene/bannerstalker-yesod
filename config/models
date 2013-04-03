@@ -52,7 +52,7 @@ NotificationLog
     recipient   Text
     status      RequestStatus
     error       Text Maybe
-    newStatus   SectionStatus default='Unavailable'
+    newStatus   SectionStatus
     deriving    Show
 Semester
     code        Text
