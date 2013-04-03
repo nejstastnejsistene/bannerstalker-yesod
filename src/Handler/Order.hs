@@ -252,8 +252,9 @@ getReviewOrderR = do
             mSections <- runDB $ mapM (getBy . UniqueCrn) crns
             let sections = map entityVal $ catMaybes mSections
                 sectionsPrice = 500 + 100 * (length sections - 1)
-                additionalPrice = if phoneCall then 300 else 0
-                price = sectionsPrice + additionalPrice
+                --additionalPrice = if phoneCall then 300 else 0
+                price = offsetFees sectionsPrice
+                fee = price - sectionsPrice
                 cId = canonicalizeCourseId courseId  
                 courseIds = map
                     (canonicalizeCourseId . sectionCourseId) sections
@@ -269,6 +270,11 @@ getReviewOrderR = do
                         "You can purchase at most one course ID per order."
                     redirect ChooseCrnsR
         _ -> deleteSession orderKey >> redirect AccountR
+    where
+        offsetFees :: Int -> Int
+        offsetFees p =
+            let cost = fromIntegral (p + 30) / 0.971 :: Double
+            in ceiling cost
 
 postReviewOrderR :: Handler RepHtml
 postReviewOrderR = do
