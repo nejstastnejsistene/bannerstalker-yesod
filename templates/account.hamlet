@@ -4,11 +4,11 @@ $newline never
 <div .row>
     <div .span4>
         <div .well>
-            <h2>Add a CRN
-            <p>Simply enter a CRN to get started with Bannerstalker! We'll find this course as well as related course such as labs.
-            <form method=post action=@{StartOrderR}>
-                <label for=crn>
-                <input #crn name=crn type=text pattern=\d* placeholder="Enter a CRN here" required autofocus>
+            <h2>Add CRNs
+            <p>Simply your CRNs to get started with Bannerstalker! We'll find these courses as well as related courses such as labs.
+            <form method=post action=@{NewStartOrderR}>
+                <label for=crns>
+                <input #crns name=crns type=text placeholder="Enter CRNs here" required autofocus>
                 <br>
                 <button .btn .btn-large .btn-success type=submit>Add CRN
         <hr>
