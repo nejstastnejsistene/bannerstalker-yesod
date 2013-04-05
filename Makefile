@@ -18,3 +18,6 @@ server-copy-init:
 
 daemon-copy-init:
 	$(call copy-init,deploy/init-daemon.sh,bannerstalkerd)
+
+clean:
+	rm -rf dist static/tmp
