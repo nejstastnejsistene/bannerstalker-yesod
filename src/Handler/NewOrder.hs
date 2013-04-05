@@ -1,6 +1,7 @@
 module Handler.NewOrder where
 
 import Import
+import Control.Monad (when)
 import Data.Either (partitionEithers)
 import qualified Data.List as L
 import qualified Data.Text as T
@@ -36,20 +37,33 @@ postNewStartOrderR = do
 postNewOrderAddCrnsR :: Handler RepHtml
 postNewOrderAddCrnsR = do
     (errors, crns) <- fmap parseCrns $ runInputPost $ ireq textField "crns"
-    case crns of
+    realCrns <- fmap (map $ sectionCrn . entityVal) $
+        runDB $ selectList [SectionCrn <-. crns] []
+    case realCrns of
         [] -> do
             setSession errorKey "You must enter at least one valid CRN."
             redirect AccountR
         _ -> do
-            let crnPhrase = ["Added ", fmtCrnList crns, "."]
-                errorPhrase = if null errors then []
-                    else [" Ignoring invalid ", fmtCrnList errors, "."]
-            setSession successKey $ T.concat $ crnPhrase ++ errorPhrase 
+            -- Add the CRNs and indicate it.
+            setSession successKey $ T.concat 
+                ["Added ", fmtCrnList realCrns, "."]
             setSession newOrderKey $ T.pack $ show $ NewOrder crns
+            -- Display a nice error message for bad CRNs.
+            let diff = crns L.\\ realCrns
+                error1 = if null diff then [] else
+                    ["There are no courses with ", fmtCrnList diff, "."]
+                error2 = if null errors then [] else
+                    [if null error1 then ""  else " "
+                    , "Ignoring invalid ", fmtCrnList errors, "."]
+                errorMessage = error1 ++ error2
+            when (not $ null errorMessage) $
+                setSession errorKey $ T.concat errorMessage
             redirect NewChooseCrnsR
   where
     parseCrns :: Text -> ([Text], [Int])
-    parseCrns = partitionEithers . L.nub . map atoi . T.split (`elem` ", ")
+    parseCrns = partitionEithers . L.nub . map atoi . tokens
+      where
+        tokens = filter (not . T.null) . T.split (`elem` ", ")
 
     atoi :: Text -> Either Text Int
     atoi text = case reads $ T.unpack stripped of
