@@ -1,0 +1,9 @@
+$('.checkbox').change(function() {
+    var isChecked = $(this).is(':checked');
+    var tr = $(this).parent().parent();
+    if ($(this).is(':checked')) {
+        tr.addClass('info');
+    } else {
+        tr.removeClass('info');
+    }
+})

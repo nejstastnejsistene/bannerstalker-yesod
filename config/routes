@@ -37,7 +37,7 @@
 
 
 /new-order                  NewStartOrderR GET POST
-/new-order/crns/add         NewOrderAddCrnsR POST
+/new-order/crns/add         NewOrderAddCrnsR GET POST
 /new-order/crns             NewChooseCrnsR GET POST
 /new-order/contact          NewContactInfoR GET POST
 /new-order/review           NewReviewOrderR GET POST
