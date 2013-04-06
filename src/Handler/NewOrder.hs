@@ -59,8 +59,7 @@ postNewOrderAddCrnsR = do
             let oldCrns = case mOrder of
                     Nothing -> []
                     Just (NewOrder x) -> x
-            setSession newOrderKey $
-                T.pack $ show $ NewOrder $ crns ++ oldCrns
+            setOrder $ NewOrder $ crns ++ oldCrns
             -- Display a nice error message for bad CRNs.
             let diff = crns L.\\ realCrns
                 error1 = if null diff then [] else
@@ -72,23 +71,11 @@ postNewOrderAddCrnsR = do
             when (not $ null errorMessage) $
                 setSession errorKey $ T.concat errorMessage
             redirect NewChooseCrnsR
-  where
-    parseCrns :: Text -> ([Text], [Int])
-    parseCrns = partitionEithers . L.nub . map atoi . tokens
-      where
-        tokens = filter (not . T.null) . T.split (`elem` ", ")
-
-    atoi :: Text -> Either Text Int
-    atoi text = case reads $ T.unpack stripped of
-        [(i, "")] -> Right i
-        _ -> Left stripped
-      where
-        stripped = T.strip text
 
 getNewChooseCrnsR :: Handler RepHtml
 getNewChooseCrnsR = do
-    mOrder <- getSessionWith newOrderKey
-    case fmap (read . T.unpack) mOrder of
+    mOrder <- getOrder
+    case mOrder of
         Nothing -> redirect AccountR
         Just (NewOrder crns) -> do
             givenSections <- runDB $ selectList [SectionCrn <-. crns] []
@@ -116,6 +103,8 @@ getNewChooseCrnsR = do
 
 postNewChooseCrnsR :: Handler RepHtml
 postNewChooseCrnsR = do
+    (postData, _) <- runRequestBody
+    setOrder $ NewOrder $ map (read . T.unpack . snd) postData
     redirect NewContactInfoR
 
 getNewContactInfoR :: Handler RepHtml
@@ -133,6 +122,18 @@ getNewReviewOrderR = do
 postNewReviewOrderR :: Handler RepHtml
 postNewReviewOrderR = do
     defaultLayout [whamlet|not implemented|]
+
+parseCrns :: Text -> ([Text], [Int])
+parseCrns = partitionEithers . L.nub . map atoi . tokens
+  where
+    tokens = filter (not . T.null) . T.split (`elem` ", ")
+
+atoi :: Text -> Either Text Int
+atoi text = case reads $ T.unpack stripped of
+    [(i, "")] -> Right i
+    _ -> Left stripped
+  where
+    stripped = T.strip text
 
 fmtCrnList :: Show a => [a] -> Text
 fmtCrnList  = fmt . map (T.pack . show)
