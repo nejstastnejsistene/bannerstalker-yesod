@@ -4,6 +4,7 @@ import Import
 import Control.Monad (when)
 import Data.Char (isDigit)
 import Data.Either (partitionEithers)
+import Data.Maybe (fromJust)
 import qualified Data.List as L
 import qualified Data.Text as T
 import Database.Persist.GenericSql
@@ -11,6 +12,8 @@ import Database.Persist.GenericSql
 import Handler.Order (successKey, errorKey)
 
 data NewOrder = NewOrder { newOrderCrns :: [Int]
+                         , newOrderEmail :: Maybe Text
+                         , newOrderPhoneNum :: Maybe Text
                          } deriving (Show, Read)
 
 newOrderKey :: Text
@@ -58,8 +61,8 @@ postNewOrderAddCrnsR = do
             mOrder <- getOrder
             let oldCrns = case mOrder of
                     Nothing -> []
-                    Just (NewOrder x) -> x
-            setOrder $ NewOrder $ crns ++ oldCrns
+                    Just (NewOrder x _ _) -> x
+            setOrder $ NewOrder (crns ++ oldCrns) Nothing Nothing
             -- Display a nice error message for bad CRNs.
             let diff = crns L.\\ realCrns
                 error1 = if null diff then [] else
@@ -77,7 +80,7 @@ getNewChooseCrnsR = do
     mOrder <- getOrder
     case mOrder of
         Nothing -> redirect AccountR
-        Just (NewOrder crns) -> do
+        Just (NewOrder crns _ _) -> do
             givenSections <- runDB $ selectList [SectionCrn <-. crns] []
             let courseIds = L.sort $ L.nub $ map (normalizeCourseId .
                     sectionCourseId . entityVal) givenSections
@@ -104,12 +107,21 @@ getNewChooseCrnsR = do
 postNewChooseCrnsR :: Handler RepHtml
 postNewChooseCrnsR = do
     (postData, _) <- runRequestBody
-    setOrder $ NewOrder $ map (read . T.unpack . snd) postData
+    setOrder $ NewOrder
+        (map (read . T.unpack . snd) postData) Nothing Nothing
     redirect NewContactInfoR
 
 getNewContactInfoR :: Handler RepHtml
 getNewContactInfoR = do
-    defaultLayout [whamlet|not implemented|]
+    mOrder <- getOrder
+    case mOrder of
+        Nothing -> redirect AccountR
+        Just (NewOrder crns _ _) -> do
+            user <- fmap (entityVal . fromJust) currentUser
+            mErrorMessage <- consumeSession errorKey
+            defaultLayout $ do
+                setTitle "Contact information"
+                $(widgetFile "new-contact-info")
 
 postNewContactInfoR :: Handler RepHtml
 postNewContactInfoR = do

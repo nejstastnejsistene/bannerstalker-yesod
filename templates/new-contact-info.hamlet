@@ -1,0 +1,15 @@
+<h3>Contact information
+<p>We need your contact information to send you notifications when you're classes become available. Your email address will also be used to send you a confirmation of this transaction.
+<p>You may leave either of these fields blank if you prefer not to receive notifications that way.
+^{showMessage ErrorMessage mErrorMessage Nothing}
+<form method=post>
+    <label for=email>Email
+    <input #email name=email value=#{userEmail user} type=email>
+    <label for=phoneNum>Phone number
+    <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel>
+    <br>
+    <a href=@{NewChooseCrnsR} .btn>
+        <i .icon-circle-arrow-left>
+        \ Edit CRNs
+    &nbsp;
+    <button .btn .btn-primary type=submit>Review order

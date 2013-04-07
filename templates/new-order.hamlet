@@ -1,10 +1,6 @@
 $newline never
 ^{showMessage SuccessMessage mSuccessMessage Nothing}
 ^{showMessage ErrorMessage mErrorMessage Nothing}
-<form method=post action=@{NewOrderAddCrnsR} .form-inline>
-    <input type=text name=crns>
-    &nbsp;
-    <button type=submit .btn>Add more CRNs
 <form method=post>
     <table .table .table-bordered .iter-sections>
         $forall (courseId, sectionGroup) <- groups
@@ -37,5 +33,9 @@ $newline never
                         $else
                             <p .text-error>
                                 <strong>#{stat}
-    <h3>Done selecting CRNs?
-    <button .btn .btn-large>Continue
+    <button .btn .btn-large .btn-primary>Continue
+<h4>Or, add some more CRNs first.
+<form method=post action=@{NewOrderAddCrnsR} .form-inline>
+    <input type=text name=crns>
+    &nbsp;
+    <button type=submit .btn>Add more CRNs
