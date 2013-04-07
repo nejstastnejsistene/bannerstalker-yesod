@@ -4,16 +4,17 @@ import Import
 import Control.Monad (when)
 import Data.Char (isDigit)
 import Data.Either (partitionEithers)
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isNothing)
 import qualified Data.List as L
 import qualified Data.Text as T
 import Database.Persist.GenericSql
+import Text.Printf (printf)
 
 import Handler.Order (successKey, errorKey)
 
 data NewOrder = NewOrder { newOrderCrns :: [Int]
-                         , newOrderEmail :: Maybe Text
-                         , newOrderPhoneNum :: Maybe Text
+                         , newOrderEmail :: Maybe (Maybe Text)
+                         , newOrderPhoneNum :: Maybe (Maybe Text)
                          } deriving (Show, Read)
 
 newOrderKey :: Text
@@ -62,7 +63,10 @@ postNewOrderAddCrnsR = do
             let oldCrns = case mOrder of
                     Nothing -> []
                     Just (NewOrder x _ _) -> x
-            setOrder $ NewOrder (crns ++ oldCrns) Nothing Nothing
+            mOrder <- getOrder
+            setOrder $ case mOrder of
+                Nothing -> NewOrder (crns ++ oldCrns) Nothing Nothing
+                Just order -> order { newOrderCrns = crns ++ oldCrns }
             -- Display a nice error message for bad CRNs.
             let diff = crns L.\\ realCrns
                 error1 = if null diff then [] else
@@ -100,23 +104,24 @@ getNewChooseCrnsR = do
         subj:num:_ = T.words c
         strippedNum = T.dropAround (fmap not isDigit) num
         p = T.concat [subj, " \\D{0,1}", strippedNum, "\\D{0,1}"]
-    sameCourseId a b = c == d
-      where
-        [c, d] = map (normalizeCourseId . sectionCourseId) [a, b]
 
 postNewChooseCrnsR :: Handler RepHtml
 postNewChooseCrnsR = do
     (postData, _) <- runRequestBody
-    setOrder $ NewOrder
-        (map (read . T.unpack . snd) postData) Nothing Nothing
-    redirect NewContactInfoR
+    mOrder <- getOrder
+    case mOrder of
+        Nothing -> redirect AccountR
+        Just order -> do
+            setOrder $ order
+                { newOrderCrns = map (read . T.unpack . snd) postData }
+            redirect NewContactInfoR
 
 getNewContactInfoR :: Handler RepHtml
 getNewContactInfoR = do
     mOrder <- getOrder
     case mOrder of
         Nothing -> redirect AccountR
-        Just (NewOrder crns _ _) -> do
+        Just (NewOrder crns mmEmail mmPhoneNum) -> do
             user <- fmap (entityVal . fromJust) currentUser
             mErrorMessage <- consumeSession errorKey
             defaultLayout $ do
@@ -125,11 +130,61 @@ getNewContactInfoR = do
 
 postNewContactInfoR :: Handler RepHtml
 postNewContactInfoR = do
-    redirect NewReviewOrderR
+    (mEmail, mRawPhoneNum) <- runInputPost $ (,)
+        <$> iopt emailField "email"
+        <*> iopt textField "phoneNum"
+    mOrder <- getOrder
+    case mOrder of
+        Nothing -> redirect AccountR
+        Just order -> do
+            setOrder $ order { newOrderEmail = Just mEmail
+                             , newOrderPhoneNum = Just mRawPhoneNum }
+            if (isNothing mEmail) && (isNothing mRawPhoneNum)
+                then do
+                    setSession errorKey "You must fill in information for \
+                        \at least one form of notifications."
+                    redirect NewContactInfoR
+                else
+                    case fmap validatePhoneNum mRawPhoneNum of
+                        Just Nothing -> do
+                            setSession errorKey
+                                "Please enter a valid US phone number."
+                            redirect NewContactInfoR
+                        x -> do
+                            let mPhoneNum = fmap fromJust x
+                            setOrder $ order
+                                { newOrderEmail = Just mEmail
+                                , newOrderPhoneNum = Just mPhoneNum}
+                            redirect NewReviewOrderR
 
 getNewReviewOrderR :: Handler RepHtml
 getNewReviewOrderR = do
-    defaultLayout [whamlet|not implemented|]
+    mOrder <- getOrder
+    case mOrder of
+        Nothing -> redirect AccountR
+        Just (NewOrder crns (Just mEmail) (Just mPhoneNum)) -> do
+            givenSections <- fmap (map entityVal) $
+                runDB $ selectList [SectionCrn <-. crns]
+                                   [Asc SectionCourseId, Asc SectionCrn]
+            let courseIds = L.sort $ L.nub $
+                    map (normalizeCourseId . sectionCourseId) givenSections
+                groups = zip courseIds $
+                    L.groupBy sameCourseId givenSections
+                cLen = length courseIds
+                initialPrice = 500 * cLen +
+                               100 * (length givenSections - cLen)
+                price = offsetFees initialPrice
+            extra <- getExtra
+            mErrorMessage <- consumeSession errorKey
+            defaultLayout $ do
+                setTitle "Review order"
+                $(widgetFile "new-review-order")
+        _ -> redirect NewContactInfoR
+  where
+    offsetFees :: Int -> Int
+    offsetFees p =
+        let cost = fromIntegral (p + 30) / 0.971 :: Double
+        in ceiling cost
 
 postNewReviewOrderR :: Handler RepHtml
 postNewReviewOrderR = do
@@ -162,3 +217,12 @@ normalizeCourseId courseId = T.unwords [subj, strippedNum]
   where
     subj:num:_ = T.words courseId
     strippedNum = T.dropAround (fmap not isDigit) num
+
+sameCourseId :: Section -> Section -> Bool
+sameCourseId a b = c == d
+  where
+    [c, d] = map (normalizeCourseId . sectionCourseId) [a, b]
+
+formatPrice :: Int -> Text
+formatPrice price =
+    T.pack $ printf "%.2f" $ (/100.0) $ (fromIntegral price :: Float)

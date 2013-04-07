@@ -1,0 +1,43 @@
+<h3>Review order
+Please review your order, and if everything is correct click "Pay with Card" below to pay.
+^{showMessage ErrorMessage mErrorMessage Nothing}
+<table .table .table-bordered>
+    $forall (courseId, sections) <- groups
+        $with first <- L.head sections
+            <tr>
+                <th rowspan=#{length sections}>#{courseId}
+                <td>CRN #{sectionCrn first}
+                <td>$5.00
+        $forall section <- L.tail sections
+            <tr>
+                <td>CRN #{sectionCrn section}
+                <td>$1.00
+    <tr>
+        <th colspan=2>Subtotal
+        <th>$#{formatPrice initialPrice}
+    <tr>
+        <td colspan=2>Credit card fees
+        <td>$#{formatPrice $ price - initialPrice}
+    <tr>
+        <th colspan=2>Total
+        <th>$#{formatPrice $ price}
+<a href=@{NewChooseCrnsR} .btn>
+    <i .icon-double-angle-left .icon-large>
+    \ Change CRNs
+&nbsp;
+<a href=@{NewContactInfoR} .btn>
+    <i .icon-angle-left .icon-large>
+    \ Change contact info
+<hr>
+<form method=post>
+    <p>
+        Secure payments are conducted through 
+        <a href="https://stripe.com/help/security">Stripe.
+    <input name=price value=#{price} type=hidden>
+    <script
+        src="https://checkout.stripe.com/v2/checkout.js"
+        class="stripe-button"
+        data-key="#{extraStripePublicKey extra}"
+        data-amount="#{price}"
+        data-name="Bannerstalker"
+        data-description="Course notifications">

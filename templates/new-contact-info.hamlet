@@ -4,12 +4,24 @@
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post>
     <label for=email>Email
-    <input #email name=email value=#{userEmail user} type=email>
+    $maybe mEmail <- mmEmail
+        $maybe email <- mEmail
+            <input #email name=email value=#{email} type=email>
+        $nothing
+            <input #email name=email type=email>
+    $nothing
+        <input #email name=email value=#{userEmail user} type=email>
     <label for=phoneNum>Phone number
-    <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel>
+    $maybe mPhoneNum <- mmPhoneNum
+        $maybe phoneNum <- mPhoneNum
+            <input #phoneNum name=phoneNum value=#{phoneNum} type=tel>
+        $nothing
+            <input #phoneNum name=phoneNum type=tel>
+    $nothing
+        <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel>
     <br>
     <a href=@{NewChooseCrnsR} .btn>
-        <i .icon-circle-arrow-left>
-        \ Edit CRNs
+        <i .icon-angle-left .icon-large>
+        \ Change CRNs
     &nbsp;
     <button .btn .btn-primary type=submit>Review order
