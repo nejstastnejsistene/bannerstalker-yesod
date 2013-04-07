@@ -13,10 +13,9 @@ Please review your order, and if everything is correct click "Pay with Card" bel
                 <td>CRN #{sectionCrn section}
                 <td>$1.00
     <tr>
-        <th colspan=2>Subtotal
-        <th>$#{formatPrice initialPrice}
-    <tr>
-        <td colspan=2>Credit card fees
+        <td colspan=2>
+            Credit card fees 
+            <a href=@{AboutR}#fees>(?)
         <td>$#{formatPrice $ price - initialPrice}
     <tr>
         <th colspan=2>Total
