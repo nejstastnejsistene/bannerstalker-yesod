@@ -7,10 +7,16 @@ import Data.Either (partitionEithers)
 import Data.Maybe (fromJust, isNothing)
 import qualified Data.List as L
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as LT
+import Data.Text.Lazy.Builder (toLazyText)
 import Database.Persist.GenericSql
 import Network.Mail.Mime
+import Text.Hamlet (shamletFile)
+import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Printf (printf)
+import Text.Shakespeare.Text (textFile)
 
+import Email
 import Stripe
 import Handler.Order (successKey, errorKey)
 
@@ -171,28 +177,17 @@ getReviewOrderR = do
         Nothing -> redirect AccountR
         Just (Order [] _ _) -> redirect ChooseCrnsR
         Just (Order crns (Just mEmail) (Just mPhoneNum)) -> do
-            givenSections <- fmap (map entityVal) $
+            sections <- fmap (map entityVal) $
                 runDB $ selectList [SectionCrn <-. crns]
                                    [Asc SectionCourseId, Asc SectionCrn]
-            let courseIds = L.sort $ L.nub $
-                    map (normalizeCourseId . sectionCourseId) givenSections
-                groups = zip courseIds $
-                    L.groupBy sameCourseId givenSections
-                cLen = length courseIds
-                initialPrice = 500 * cLen +
-                               100 * (length givenSections - cLen)
-                price = offsetFees initialPrice
+            let courseIds = nubCourseIds sections
+                price = offsetFees $ calcPrice sections courseIds
             extra <- getExtra
             mErrorMessage <- consumeSession errorKey
             defaultLayout $ do
                 setTitle "Review order"
                 $(widgetFile "review-order")
         _ -> redirect ContactInfoR
-  where
-    offsetFees :: Int -> Int
-    offsetFees p =
-        let cost = fromIntegral (p + 30) / 0.971 :: Double
-        in ceiling cost
 
 postReviewOrderR :: Handler RepHtml
 postReviewOrderR = do
@@ -215,11 +210,10 @@ postReviewOrderR = do
             case eCharge of
                 Left charge -> do
                     deleteSession orderKey
-                    sectionIds <- fmap (map entityKey) $
-                        runDB $ selectList [SectionCrn <-. crns] []
+                    sections <- runDB $ selectList [SectionCrn <-. crns] []
                     let req = SectionRequest userId
                             mEmail mPhoneNum False True True
-                    runDB $ mapM_ (insert . req) sectionIds
+                    runDB $ mapM_ (insert . req) $ map entityKey sections
                     let email = case mEmail of
                             Nothing -> userEmail user
                             Just x -> x
@@ -241,21 +235,20 @@ postReviewOrderR = do
             redirect ContactInfoR
 
 sendConfirmation :: Text -> Order -> Charge -> Handler ()
-sendConfirmation email order charge = do
-    return ()
-{-
-    mSections <- runDB $ mapM (getBy . UniqueCrn) $
-        fromJust $ orderCrns order
-    let sections = map entityVal $ catMaybes mSections
-        to = Address Nothing email
-        from = noreplyAddr
-        subject = "Bannerstalker transaction confirmation"
-        text = LT.pack $ renderHtml
-            $(shamletFile "templates/transaction-confirmation-text.hamlet")
+sendConfirmation email (Order crns mEmail mPhoneNum) charge = do
+    sections <- fmap (map entityVal) $
+        runDB $ selectList [SectionCrn <-. crns]
+                           [Asc SectionCourseId, Asc SectionCrn]
+    let courseIds = nubCourseIds sections
+        text = toLazyText $
+            $(textFile "templates/transaction-confirmation.text") ()
         html = LT.pack $ renderHtml
-            $(shamletFile "templates/transaction-confirmation-html.hamlet")
+            $(shamletFile "templates/transaction-confirmation.hamlet")
     liftIO $ simpleMail to from subject text html [] >>= mySendmail
--}
+  where
+    to = Address Nothing email
+    from = noreplyAddr
+    subject = "Bannerstalker transaction confirmation"
 
 parseCrns :: Text -> ([Text], [Int])
 parseCrns = partitionEithers . L.nub . map atoi . tokens
@@ -285,10 +278,35 @@ normalizeCourseId courseId = T.unwords [subj, strippedNum]
     subj:num:_ = T.words courseId
     strippedNum = T.dropAround (fmap not isDigit) num
 
+nubCourseIds :: [Section] -> [Text]
+nubCourseIds sections = L.sort $ L.nub courseIds
+  where
+    courseIds = map (normalizeCourseId . sectionCourseId) sections
+
+groupSections :: [Section] -> [Text] -> [(Text, [Section])]
+groupSections sections courseIds =
+    zip courseIds $ L.groupBy sameCourseId sections
+
 sameCourseId :: Section -> Section -> Bool
 sameCourseId a b = c == d
   where
     [c, d] = map (normalizeCourseId . sectionCourseId) [a, b]
+
+calcPrice :: [Section] -> [Text] -> Int
+calcPrice sections courseIds =
+    500 * numCourseIds + 100 * (length sections - numCourseIds)
+  where
+    numCourseIds = length courseIds
+
+offsetFees :: Int -> Int
+offsetFees p = round $ (fromIntegral (p + 30) / 0.971 :: Double)
+
+makePriceChart :: [Section] -> [Text] -> Widget
+makePriceChart sections courseIds = $(widgetFile "price-chart")
+  where
+    groups = groupSections sections courseIds
+    initialPrice = calcPrice sections courseIds
+    price = offsetFees initialPrice
 
 formatPrice :: Int -> Text
 formatPrice price =

@@ -1,0 +1,4 @@
+$newline never
+<table>
+$maybe desc <- chargeDescription charge
+    <p>Description: #{desc}

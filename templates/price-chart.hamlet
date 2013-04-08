@@ -1,0 +1,19 @@
+$newline never
+$forall (courseId, sectionGroup) <- groups
+    $with first <- L.head sectionGroup
+        <tr>
+            <th rowspan=#{length sectionGroup}>#{courseId}
+            <td>CRN #{sectionCrn first}
+            <td>$5.00
+    $forall section <- L.tail sectionGroup
+        <tr>
+            <td>CRN #{sectionCrn section}
+            <td>$1.00
+<tr>
+    <td colspan=2>
+        Credit card fees 
+        <a href=@{AboutR}#fees>(?)
+    <td>$#{formatPrice $ price - initialPrice}
+<tr>
+    <th colspan=2>Total
+    <th>$#{formatPrice $ price}

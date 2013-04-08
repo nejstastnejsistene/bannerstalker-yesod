@@ -1,25 +1,9 @@
+$newline never
 <h3>Review order
 Please review your order, and if everything is correct click "Pay with Card" below to pay.
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <table .table .table-bordered>
-    $forall (courseId, sections) <- groups
-        $with first <- L.head sections
-            <tr>
-                <th rowspan=#{length sections}>#{courseId}
-                <td>CRN #{sectionCrn first}
-                <td>$5.00
-        $forall section <- L.tail sections
-            <tr>
-                <td>CRN #{sectionCrn section}
-                <td>$1.00
-    <tr>
-        <td colspan=2>
-            Credit card fees 
-            <a href=@{AboutR}#fees>(?)
-        <td>$#{formatPrice $ price - initialPrice}
-    <tr>
-        <th colspan=2>Total
-        <th>$#{formatPrice $ price}
+    ^{makePriceChart sections courseIds}
 <a href=@{ChooseCrnsR} .btn>
     <i .icon-double-angle-left .icon-large>
     \ Change CRNs
