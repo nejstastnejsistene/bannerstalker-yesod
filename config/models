@@ -24,8 +24,8 @@ Section
     deriving    Show
 SectionRequest
     userId      UserId
-    email       Text
-    phoneNum    Text
+    email       Text Maybe
+    phoneNum    Text Maybe
     phoneCall   Bool
     active      Bool
     new         Bool

@@ -8,8 +8,10 @@ import Data.Maybe (fromJust, isNothing)
 import qualified Data.List as L
 import qualified Data.Text as T
 import Database.Persist.GenericSql
+import Network.Mail.Mime
 import Text.Printf (printf)
 
+import Stripe
 import Handler.Order (successKey, errorKey)
 
 data NewOrder = NewOrder { newOrderCrns :: [Int]
@@ -63,7 +65,6 @@ postNewOrderAddCrnsR = do
             let oldCrns = case mOrder of
                     Nothing -> []
                     Just (NewOrder x _ _) -> x
-            mOrder <- getOrder
             setOrder $ case mOrder of
                 Nothing -> NewOrder (crns ++ oldCrns) Nothing Nothing
                 Just order -> order { newOrderCrns = crns ++ oldCrns }
@@ -112,9 +113,13 @@ postNewChooseCrnsR = do
     case mOrder of
         Nothing -> redirect AccountR
         Just order -> do
-            setOrder $ order
-                { newOrderCrns = map (read . T.unpack . snd) postData }
-            redirect NewContactInfoR
+            case map (read . T.unpack . snd) postData of
+                [] -> do
+                    setSession errorKey "You must choose at least one CRN."
+                    redirect NewChooseCrnsR
+                crns -> do
+                    setOrder $ order { newOrderCrns = crns }
+                    redirect NewContactInfoR
 
 getNewContactInfoR :: Handler RepHtml
 getNewContactInfoR = do
@@ -162,6 +167,7 @@ getNewReviewOrderR = do
     mOrder <- getOrder
     case mOrder of
         Nothing -> redirect AccountR
+        Just (NewOrder [] _ _) -> redirect NewChooseCrnsR
         Just (NewOrder crns (Just mEmail) (Just mPhoneNum)) -> do
             givenSections <- fmap (map entityVal) $
                 runDB $ selectList [SectionCrn <-. crns]
@@ -188,7 +194,67 @@ getNewReviewOrderR = do
 
 postNewReviewOrderR :: Handler RepHtml
 postNewReviewOrderR = do
+    (price, stripeToken) <- runInputPost $ (,)
+        <$> ireq intField "price"
+        <*> ireq textField "stripeToken"
+    mOrder <- getOrder
+    case mOrder of
+        Nothing -> redirect AccountR
+        Just (NewOrder [] _ _) -> do
+            setSession errorKey "You must select at least one CRN. \
+                \Your card has not been charged."
+            redirect NewChooseCrnsR
+        Just order@(NewOrder crns (Just mEmail) (Just mPhoneNum)) -> do
+            Entity userId user <- fmap fromJust currentUser
+            manager <- fmap httpManager getYesod
+            extra <- getExtra
+            eCharge <- liftIO $ makeCharge manager extra stripeToken
+                (T.pack $ show (price :: Int)) $ userEmail user
+            case eCharge of
+                Left charge -> do
+                    deleteSession newOrderKey
+                    sectionIds <- fmap (map entityKey) $
+                        runDB $ selectList [SectionCrn <-. crns] []
+                    let req = SectionRequest userId
+                            mEmail mPhoneNum False True True
+                    runDB $ mapM_ (insert . req) sectionIds
+                    let email = case mEmail of
+                            Nothing -> userEmail user
+                            Just email -> email
+                    sendConfirmation email order charge
+                    setSession successKey $ T.concat
+                        [ "Transaction successful!"
+                        , " We sent you a confirmation email as well"
+                        , " as notifications for each CRN you just"
+                        , " ordered."]
+                    redirect AccountR
+                Right err -> do
+                    setSession errorKey $ T.concat
+                        [ errorMessage err
+                        , ". Your card has not been charged."]
+                    redirect ReviewOrderR
+        _ -> do
+            setSession errorKey "You must choose at least one form of \
+                \notifications.i Your card has not been charged."
+            redirect NewContactInfoR
     defaultLayout [whamlet|not implemented|]
+
+sendConfirmation :: Text -> NewOrder -> Charge -> Handler ()
+sendConfirmation email order charge = do
+    return ()
+{-
+    mSections <- runDB $ mapM (getBy . UniqueCrn) $
+        fromJust $ orderCrns order
+    let sections = map entityVal $ catMaybes mSections
+        to = Address Nothing email
+        from = noreplyAddr
+        subject = "Bannerstalker transaction confirmation"
+        text = LT.pack $ renderHtml
+            $(shamletFile "templates/transaction-confirmation-text.hamlet")
+        html = LT.pack $ renderHtml
+            $(shamletFile "templates/transaction-confirmation-html.hamlet")
+    liftIO $ simpleMail to from subject text html [] >>= mySendmail
+-}
 
 parseCrns :: Text -> ([Text], [Int])
 parseCrns = partitionEithers . L.nub . map atoi . tokens

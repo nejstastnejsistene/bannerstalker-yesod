@@ -15,10 +15,16 @@
                     <td>#{sectionTitle section}
                 <tr>
                     <th>Email
-                    <td>#{sectionRequestEmail req}
+                    $maybe email <- sectionRequestEmail req
+                        <td>#{email}
+                    $nothing
+                        <td>N/A
                 <tr>
                     <th>Phone number
-                    <td>#{sectionRequestPhoneNum req}
+                    $maybe phoneNum <- sectionRequestPhoneNum req
+                        <td>#{phoneNum}
+                    $nothing
+                        <td>N/A
             <tfoot>
         <h3>Recent Notifications
         <table .table .table-bordered>

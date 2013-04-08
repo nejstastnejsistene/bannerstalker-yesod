@@ -298,7 +298,7 @@ postReviewOrderR = do
                     mSections <- runDB $ mapM (getBy . UniqueCrn) crns
                     let sectionIds = map entityKey $ catMaybes mSections
                         req = SectionRequest userId
-                            email phoneNum phoneCall True True
+                            (Just email) (Just phoneNum) phoneCall True True
                     runDB $ mapM_ (insert . req) sectionIds
                     sendConfirmation email order charge
                     setSession successKey $ T.concat

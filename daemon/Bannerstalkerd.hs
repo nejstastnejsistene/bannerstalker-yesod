@@ -147,25 +147,33 @@ bannerstalkerd extra dbConf manager = do
             mapM_ sendNotification requests
             
         sendNotification (Entity reqId (SectionRequest
-                userId email phoneNum phoneCall _ new sectionId)) = do
+                userId mEmail mPhoneNum phoneCall _ new sectionId)) = do
             section <- fmap fromJust $ get sectionId
             -- Send email.
-            (status, err) <- liftIO $ notifyEmail email section
-            when (status == Failure) $ liftIO $ mailAlert $ concat
-                ["Error notifying ", email, ": ", fromJust err]
-            time <- liftIO $ getCurrentTime
-            insert $ NotificationLog time (sectionCrn section)
-                EmailNotification (Just userId) email status err $
-                sectionCurrStatus section
+            case mEmail of
+                Nothing -> return ()
+                Just email -> do
+                    (status, err) <- liftIO $ notifyEmail email section
+                    when (status == Failure) $ liftIO $ mailAlert $ concat
+                        ["Error notifying ", email, ": ", fromJust err]
+                    time <- liftIO $ getCurrentTime
+                    insert $ NotificationLog time (sectionCrn section)
+                        EmailNotification (Just userId) email status err $
+                        sectionCurrStatus section
+                    return ()
             -- Send SMS.
-            (status, err) <- liftIO $ notifySms
-                manager extra phoneNum section
-            when (status == Failure) $ liftIO $ mailAlert $ concat
-                ["Error texting ", phoneNum, ": ", fromJust err]
-            time <- liftIO $ getCurrentTime
-            insert $ NotificationLog time (sectionCrn section)
-                SmsNotification (Just userId) phoneNum status err $
-                sectionCurrStatus section
+            case mPhoneNum of
+                Nothing -> return ()
+                Just phoneNum -> do
+                    (status, err) <- liftIO $ notifySms
+                        manager extra phoneNum section
+                    when (status == Failure) $ liftIO $ mailAlert $ concat
+                        ["Error texting ", phoneNum, ": ", fromJust err]
+                    time <- liftIO $ getCurrentTime
+                    insert $ NotificationLog time (sectionCrn section)
+                        SmsNotification (Just userId) phoneNum status err $
+                        sectionCurrStatus section
+                    return ()
             -- Send phone call.
             if phoneCall
                 then return ()
