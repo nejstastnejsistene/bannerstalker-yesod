@@ -25,19 +25,13 @@
 /account/view/#SectionRequestId ViewRequestR GET
 /account/remove/#SectionRequestId RemoveRequestR POST
 
-/order                      StartOrderR POST
-/order/crns                 ChooseCrnsR GET POST
-/order/contact              ContactInfoR GET POST
-/order/review               ReviewOrderR GET POST
-
 /invalid                    InvalidR GET
 
 /tos                        TermsOfUseR GET
 /                           HomeR GET
 
-
-/new-order                  NewStartOrderR GET POST
-/new-order/crns/add         NewOrderAddCrnsR GET POST
-/new-order/crns             NewChooseCrnsR GET POST
-/new-order/contact          NewContactInfoR GET POST
-/new-order/review           NewReviewOrderR GET POST
+/order                      StartOrderR GET POST
+/order/crns/add             OrderAddCrnsR GET POST
+/order/crns                 ChooseCrnsR GET POST
+/order/contact              ContactInfoR GET POST
+/order/review               ReviewOrderR GET POST

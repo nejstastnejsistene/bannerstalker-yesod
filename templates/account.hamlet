@@ -6,7 +6,7 @@ $newline never
         <div .well>
             <h2>Add CRNs
             <p>Simply your CRNs to get started with Bannerstalker! We'll find these courses as well as related courses such as labs.
-            <form method=post action=@{NewStartOrderR}>
+            <form method=post action=@{StartOrderR}>
                 <label for=crns>
                 <input #crns name=crns type=text placeholder="Enter CRNs here" required autofocus>
                 <br>

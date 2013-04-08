@@ -14,42 +14,44 @@ import Text.Printf (printf)
 import Stripe
 import Handler.Order (successKey, errorKey)
 
-data NewOrder = NewOrder { newOrderCrns :: [Int]
-                         , newOrderEmail :: Maybe (Maybe Text)
-                         , newOrderPhoneNum :: Maybe (Maybe Text)
-                         } deriving (Show, Read)
+data Order = Order { orderCrns :: [Int]
+                   , orderEmail :: Maybe (Maybe Text)
+                   , orderPhoneNum :: Maybe (Maybe Text)
+                   } deriving (Show, Read)
 
-newOrderKey :: Text
-newOrderKey = "_newOrder"
+orderKey :: Text
+orderKey = "_order"
 
-setOrder :: NewOrder -> Handler ()
-setOrder = setSession newOrderKey . T.pack . show
+setOrder :: Order -> Handler ()
+setOrder = setSession orderKey . T.pack . show
 
-getOrder :: Handler (Maybe NewOrder)
+getOrder :: Handler (Maybe Order)
 getOrder = do
-    mOrder <- getSessionWith newOrderKey
-    return $ fmap (read . T.unpack) mOrder
+    mOrder <- getSessionWith orderKey
+    case fmap (reads . T.unpack) mOrder of 
+        Just [(x, "")] -> return $ Just x
+        _ -> return Nothing
 
 redirectSomewhere :: Handler RepHtml
 redirectSomewhere = do
     mOrder <- getOrder
     case mOrder of
         Nothing -> redirect AccountR
-        Just _ -> redirect NewChooseCrnsR
+        Just _ -> redirect ChooseCrnsR
 
-getNewStartOrderR :: Handler RepHtml
-getNewStartOrderR = redirectSomewhere
+getStartOrderR :: Handler RepHtml
+getStartOrderR = redirectSomewhere
 
-postNewStartOrderR :: Handler RepHtml
-postNewStartOrderR = do
-    deleteSession newOrderKey
-    postNewOrderAddCrnsR
+postStartOrderR :: Handler RepHtml
+postStartOrderR = do
+    deleteSession orderKey
+    postOrderAddCrnsR
 
-getNewOrderAddCrnsR :: Handler RepHtml
-getNewOrderAddCrnsR = redirectSomewhere
+getOrderAddCrnsR :: Handler RepHtml
+getOrderAddCrnsR = redirectSomewhere
 
-postNewOrderAddCrnsR :: Handler RepHtml
-postNewOrderAddCrnsR = do
+postOrderAddCrnsR :: Handler RepHtml
+postOrderAddCrnsR = do
     (errors, crns) <- fmap parseCrns $ runInputPost $ ireq textField "crns"
     realCrns <- fmap (map $ sectionCrn . entityVal) $
         runDB $ selectList [SectionCrn <-. crns] []
@@ -64,10 +66,10 @@ postNewOrderAddCrnsR = do
             mOrder <- getOrder
             let oldCrns = case mOrder of
                     Nothing -> []
-                    Just (NewOrder x _ _) -> x
+                    Just (Order x _ _) -> x
             setOrder $ case mOrder of
-                Nothing -> NewOrder (crns ++ oldCrns) Nothing Nothing
-                Just order -> order { newOrderCrns = crns ++ oldCrns }
+                Nothing -> Order (crns ++ oldCrns) Nothing Nothing
+                Just order -> order { orderCrns = crns ++ oldCrns }
             -- Display a nice error message for bad CRNs.
             let diff = crns L.\\ realCrns
                 error1 = if null diff then [] else
@@ -75,17 +77,17 @@ postNewOrderAddCrnsR = do
                 error2 = if null errors then [] else
                     [if null error1 then ""  else " "
                     , "Ignoring invalid ", fmtCrnList errors, "."]
-                errorMessage = error1 ++ error2
-            when (not $ null errorMessage) $
-                setSession errorKey $ T.concat errorMessage
-            redirect NewChooseCrnsR
+                message = error1 ++ error2
+            when (not $ null message) $
+                setSession errorKey $ T.concat message
+            redirect ChooseCrnsR
 
-getNewChooseCrnsR :: Handler RepHtml
-getNewChooseCrnsR = do
+getChooseCrnsR :: Handler RepHtml
+getChooseCrnsR = do
     mOrder <- getOrder
     case mOrder of
         Nothing -> redirect AccountR
-        Just (NewOrder crns _ _) -> do
+        Just (Order crns _ _) -> do
             givenSections <- runDB $ selectList [SectionCrn <-. crns] []
             let courseIds = L.sort $ L.nub $ map (normalizeCourseId .
                     sectionCourseId . entityVal) givenSections
@@ -106,8 +108,8 @@ getNewChooseCrnsR = do
         strippedNum = T.dropAround (fmap not isDigit) num
         p = T.concat [subj, " \\D{0,1}", strippedNum, "\\D{0,1}"]
 
-postNewChooseCrnsR :: Handler RepHtml
-postNewChooseCrnsR = do
+postChooseCrnsR :: Handler RepHtml
+postChooseCrnsR = do
     (postData, _) <- runRequestBody
     mOrder <- getOrder
     case mOrder of
@@ -116,25 +118,25 @@ postNewChooseCrnsR = do
             case map (read . T.unpack . snd) postData of
                 [] -> do
                     setSession errorKey "You must choose at least one CRN."
-                    redirect NewChooseCrnsR
+                    redirect ChooseCrnsR
                 crns -> do
-                    setOrder $ order { newOrderCrns = crns }
-                    redirect NewContactInfoR
+                    setOrder $ order { orderCrns = crns }
+                    redirect ContactInfoR
 
-getNewContactInfoR :: Handler RepHtml
-getNewContactInfoR = do
+getContactInfoR :: Handler RepHtml
+getContactInfoR = do
     mOrder <- getOrder
     case mOrder of
         Nothing -> redirect AccountR
-        Just (NewOrder crns mmEmail mmPhoneNum) -> do
+        Just (Order crns mmEmail mmPhoneNum) -> do
             user <- fmap (entityVal . fromJust) currentUser
             mErrorMessage <- consumeSession errorKey
             defaultLayout $ do
                 setTitle "Contact information"
                 $(widgetFile "new-contact-info")
 
-postNewContactInfoR :: Handler RepHtml
-postNewContactInfoR = do
+postContactInfoR :: Handler RepHtml
+postContactInfoR = do
     (mEmail, mRawPhoneNum) <- runInputPost $ (,)
         <$> iopt emailField "email"
         <*> iopt textField "phoneNum"
@@ -142,33 +144,33 @@ postNewContactInfoR = do
     case mOrder of
         Nothing -> redirect AccountR
         Just order -> do
-            setOrder $ order { newOrderEmail = Just mEmail
-                             , newOrderPhoneNum = Just mRawPhoneNum }
+            setOrder $ order { orderEmail = Just mEmail
+                             , orderPhoneNum = Just mRawPhoneNum }
             if (isNothing mEmail) && (isNothing mRawPhoneNum)
                 then do
                     setSession errorKey "You must fill in information for \
                         \at least one form of notifications."
-                    redirect NewContactInfoR
+                    redirect ContactInfoR
                 else
                     case fmap validatePhoneNum mRawPhoneNum of
                         Just Nothing -> do
                             setSession errorKey
                                 "Please enter a valid US phone number."
-                            redirect NewContactInfoR
+                            redirect ContactInfoR
                         x -> do
                             let mPhoneNum = fmap fromJust x
                             setOrder $ order
-                                { newOrderEmail = Just mEmail
-                                , newOrderPhoneNum = Just mPhoneNum}
-                            redirect NewReviewOrderR
+                                { orderEmail = Just mEmail
+                                , orderPhoneNum = Just mPhoneNum}
+                            redirect ReviewOrderR
 
-getNewReviewOrderR :: Handler RepHtml
-getNewReviewOrderR = do
+getReviewOrderR :: Handler RepHtml
+getReviewOrderR = do
     mOrder <- getOrder
     case mOrder of
         Nothing -> redirect AccountR
-        Just (NewOrder [] _ _) -> redirect NewChooseCrnsR
-        Just (NewOrder crns (Just mEmail) (Just mPhoneNum)) -> do
+        Just (Order [] _ _) -> redirect ChooseCrnsR
+        Just (Order crns (Just mEmail) (Just mPhoneNum)) -> do
             givenSections <- fmap (map entityVal) $
                 runDB $ selectList [SectionCrn <-. crns]
                                    [Asc SectionCourseId, Asc SectionCrn]
@@ -185,26 +187,26 @@ getNewReviewOrderR = do
             defaultLayout $ do
                 setTitle "Review order"
                 $(widgetFile "new-review-order")
-        _ -> redirect NewContactInfoR
+        _ -> redirect ContactInfoR
   where
     offsetFees :: Int -> Int
     offsetFees p =
         let cost = fromIntegral (p + 30) / 0.971 :: Double
         in ceiling cost
 
-postNewReviewOrderR :: Handler RepHtml
-postNewReviewOrderR = do
+postReviewOrderR :: Handler RepHtml
+postReviewOrderR = do
     (price, stripeToken) <- runInputPost $ (,)
         <$> ireq intField "price"
         <*> ireq textField "stripeToken"
     mOrder <- getOrder
     case mOrder of
         Nothing -> redirect AccountR
-        Just (NewOrder [] _ _) -> do
+        Just (Order [] _ _) -> do
             setSession errorKey "You must select at least one CRN. \
                 \Your card has not been charged."
-            redirect NewChooseCrnsR
-        Just order@(NewOrder crns (Just mEmail) (Just mPhoneNum)) -> do
+            redirect ChooseCrnsR
+        Just order@(Order crns (Just mEmail) (Just mPhoneNum)) -> do
             Entity userId user <- fmap fromJust currentUser
             manager <- fmap httpManager getYesod
             extra <- getExtra
@@ -212,7 +214,7 @@ postNewReviewOrderR = do
                 (T.pack $ show (price :: Int)) $ userEmail user
             case eCharge of
                 Left charge -> do
-                    deleteSession newOrderKey
+                    deleteSession orderKey
                     sectionIds <- fmap (map entityKey) $
                         runDB $ selectList [SectionCrn <-. crns] []
                     let req = SectionRequest userId
@@ -220,7 +222,7 @@ postNewReviewOrderR = do
                     runDB $ mapM_ (insert . req) sectionIds
                     let email = case mEmail of
                             Nothing -> userEmail user
-                            Just email -> email
+                            Just x -> x
                     sendConfirmation email order charge
                     setSession successKey $ T.concat
                         [ "Transaction successful!"
@@ -236,10 +238,9 @@ postNewReviewOrderR = do
         _ -> do
             setSession errorKey "You must choose at least one form of \
                 \notifications.i Your card has not been charged."
-            redirect NewContactInfoR
-    defaultLayout [whamlet|not implemented|]
+            redirect ContactInfoR
 
-sendConfirmation :: Text -> NewOrder -> Charge -> Handler ()
+sendConfirmation :: Text -> Order -> Charge -> Handler ()
 sendConfirmation email order charge = do
     return ()
 {-

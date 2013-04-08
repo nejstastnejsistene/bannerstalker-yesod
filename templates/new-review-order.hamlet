@@ -20,11 +20,11 @@ Please review your order, and if everything is correct click "Pay with Card" bel
     <tr>
         <th colspan=2>Total
         <th>$#{formatPrice $ price}
-<a href=@{NewChooseCrnsR} .btn>
+<a href=@{ChooseCrnsR} .btn>
     <i .icon-double-angle-left .icon-large>
     \ Change CRNs
 &nbsp;
-<a href=@{NewContactInfoR} .btn>
+<a href=@{ContactInfoR} .btn>
     <i .icon-angle-left .icon-large>
     \ Change contact info
 <hr>

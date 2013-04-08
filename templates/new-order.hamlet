@@ -35,7 +35,7 @@ $newline never
                                 <strong>#{stat}
     <button .btn .btn-large .btn-primary>Continue
 <h4>Or, add some more CRNs first.
-<form method=post action=@{NewOrderAddCrnsR} .form-inline>
+<form method=post action=@{OrderAddCrnsR} .form-inline>
     <input type=text name=crns>
     &nbsp;
     <button type=submit .btn>Add more CRNs

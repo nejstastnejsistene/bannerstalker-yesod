@@ -18,6 +18,7 @@ import Email
 import Stripe
 import Handler.Auth
 
+{-
 data Order = Order { orderCourseId :: Text
                    , orderCrns :: Maybe [Int]
                    , orderEmail :: Maybe Text
@@ -25,8 +26,8 @@ data Order = Order { orderCourseId :: Text
                    , orderPhoneCall :: Bool
                    } deriving (Show, Read)
 
-orderKey, errorKey, successKey :: Text
-orderKey = "_order"
+-}
+errorKey, successKey :: Text
 errorKey = "_orderError"
 successKey = "_orderSuccess"
 
@@ -152,6 +153,7 @@ postRemoveRequestR reqId = do
             redirect AccountR
         _ -> redirect AccountR
 
+{-
 postStartOrderR :: Handler RepHtml
 postStartOrderR = do
     crn <- runInputPost $ ireq intField "crn"
@@ -331,3 +333,4 @@ sendConfirmation email order charge = do
 formatPrice :: Int -> Text
 formatPrice price =
     T.pack $ printf "%.2f" $ (/100.0) $ (fromIntegral price :: Float)
+-}

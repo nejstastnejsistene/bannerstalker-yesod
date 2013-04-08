@@ -20,7 +20,7 @@
     $nothing
         <input #phoneNum name=phoneNum value=#{userPhoneNum user} type=tel>
     <br>
-    <a href=@{NewChooseCrnsR} .btn>
+    <a href=@{ChooseCrnsR} .btn>
         <i .icon-angle-left .icon-large>
         \ Change CRNs
     &nbsp;
