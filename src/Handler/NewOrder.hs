@@ -51,21 +51,26 @@ getStartOrderR = redirectSomewhere
 postStartOrderR :: Handler RepHtml
 postStartOrderR = do
     deleteSession orderKey
-    postOrderAddCrnsR
+    postAddCrnsR
 
-getOrderAddCrnsR :: Handler RepHtml
-getOrderAddCrnsR = redirectSomewhere
+getAddCrnsR :: Handler RepHtml
+getAddCrnsR = redirectSomewhere
 
-postOrderAddCrnsR :: Handler RepHtml
-postOrderAddCrnsR = do
+postAddCrnsR :: Handler RepHtml
+postAddCrnsR = do
     (errors, crns) <- fmap parseCrns $ runInputPost $ ireq textField "crns"
     realCrns <- fmap (map $ sectionCrn . entityVal) $
         runDB $ selectList [SectionCrn <-. crns] []
     case realCrns of
         [] -> do
+            _ <- addCrnsFromPostData False
             setSession errorKey "You must enter at least one valid CRN."
             redirectSomewhere
         _ -> do
+            -- Apply the changes to the previously existing CRNs.
+            -- Force it to succeed even if they removed everything,
+            -- because they are adding at least one new CRN here.
+            _ <- addCrnsFromPostData True
             -- Add the CRNs and indicate it.
             setSession successKey $ T.concat 
                 ["Added ", fmtCrnList realCrns, "."]
@@ -106,7 +111,7 @@ getChooseCrnsR = do
             mErrorMessage <- consumeSession errorKey
             mSuccessMessage <- consumeSession successKey
             defaultLayout $
-                $(widgetFile "order")
+                $(widgetFile "choose-crns")
   where
     similarTo c = T.concat ["section.course_id SIMILAR TO '", p, "'"]
       where
@@ -116,18 +121,24 @@ getChooseCrnsR = do
 
 postChooseCrnsR :: Handler RepHtml
 postChooseCrnsR = do
+    success <- addCrnsFromPostData False
+    if success
+        then redirect ContactInfoR
+        else do
+            setSession errorKey "You must choose at least one CRN."
+            redirect ChooseCrnsR
+
+addCrnsFromPostData :: Bool -> Handler Bool
+addCrnsFromPostData force = do
     (postData, _) <- runRequestBody
     mOrder <- getOrder
     case mOrder of
-        Nothing -> redirect AccountR
+        Nothing -> return False
         Just order -> do
-            case map (read . T.unpack . snd) postData of
-                [] -> do
-                    setSession errorKey "You must choose at least one CRN."
-                    redirect ChooseCrnsR
-                crns -> do
-                    setOrder $ order { orderCrns = crns }
-                    redirect ContactInfoR
+            let crns = map (read . T.unpack . snd) postData
+                success = force || (not $ null crns)
+            when success $ setOrder $ order { orderCrns = crns }
+            return success
 
 getContactInfoR :: Handler RepHtml
 getContactInfoR = do

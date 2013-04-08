@@ -1,34 +1,41 @@
-<h3>Select the courses that you want to stalk
-<p>Here are all the courses we found for #{courseId}.
-<h4>The first CRN for each course ID is $5, and each subsequent one is $1.
-<p>For example, if you select 3 CRNs below, you would pay $5 for the first one, and $1 each for the remaining two for a total of $7. On your next order, for another course ID, the first CRN would once again be $5. This allows you to stalk alternative classes and labs without breaking the bank.
+$newline never
+^{showMessage SuccessMessage mSuccessMessage Nothing}
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <form method=post>
-    <table .table .table-bordered>
-        <tr>
-            <th>
-            <th>CRN
-            <th .hidden-phone>Course ID
-            <th>Title
-            <th .hidden-phone .hidden-tablet>Instructor
-            <th .hidden-phone .hidden-tablet>Days
-            <th .hidden-phone .hidden-tablet>Times
-            <th>Status
-        $forall Section _ crn cId ttl inst time day stat <- sections
+    <table .table .table-bordered .iter-sections>
+        $forall (courseId, sectionGroup) <- groups
             <tr>
-                <td>
-                    <input name=crns value=#{crn} type=checkbox :elem crn crns:checked>
-                <td>#{crn}
-                <td .hidden-phone>#{cId}
-                <td>#{ttl}
-                <td .hidden-phone .hidden-tablet>#{inst}
-                <td .hidden-phone .hidden-tablet>#{time}
-                <td .hidden-phone .hidden-tablet>#{day}
-                <td>
-                    $if stat == Open
-                        <p .text-success>
-                            <strong>#{stat}
-                    $else
-                        <p .text-error>
-                            <strong>#{stat}
-    <button .btn type=submit>Continue
+                <th colspan=8>
+                    <h4>#{courseId} 
+            <tr>
+                <th>
+                <th>CRN
+                <th .hidden-phone>Course ID
+                <th>Title
+                <th .hidden-phone .hidden-tablet>Instructor
+                <th .hidden-phone .hidden-tablet>Days
+                <th .hidden-phone .hidden-tablet>Times
+                <th>Status
+            $forall Section _ crn cId ttl inst time day stat <- sectionGroup
+                <tr :elem crn crns:.info>
+                    <td>
+                        <input .checkbox name=crns value=#{crn} type=checkbox :elem crn crns:checked>
+                    <td>#{crn}
+                    <td .hidden-phone>#{cId}
+                    <td>#{ttl}
+                    <td .hidden-phone .hidden-tablet>#{inst}
+                    <td .hidden-phone .hidden-tablet>#{time}
+                    <td .hidden-phone .hidden-tablet>#{day}
+                    <td>
+                        $if stat == Open
+                            <p .text-success>
+                                <strong>#{stat}
+                        $else
+                            <p .text-error>
+                                <strong>#{stat}
+    <button .btn .btn-large .btn-primary>Continue
+<h4>Or, add some more CRNs first.
+<form method=post action=@{AddCrnsR} .form-inline>
+    <input type=text name=crns>
+    &nbsp;
+    <button type=submit .btn>Add more CRNs

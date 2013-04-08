@@ -31,7 +31,7 @@
 /                           HomeR GET
 
 /order                      StartOrderR GET POST
-/order/crns/add             OrderAddCrnsR GET POST
+/order/crns/add             AddCrnsR GET POST
 /order/crns                 ChooseCrnsR GET POST
 /order/contact              ContactInfoR GET POST
 /order/review               ReviewOrderR GET POST

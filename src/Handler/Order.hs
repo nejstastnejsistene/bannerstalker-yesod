@@ -2,20 +2,11 @@ module Handler.Order where
 
 import Prelude
 import Import
-import Data.Char
 import Data.Maybe
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as LT
 import Data.Time
 import Database.Persist.GenericSql
-import Network.Mail.Mime
-import Text.Blaze.Html.Renderer.String
-import Text.Hamlet
-import Text.Printf (printf)
 import System.Locale
 
-import Email
-import Stripe
 import Handler.Auth
 
 {-
