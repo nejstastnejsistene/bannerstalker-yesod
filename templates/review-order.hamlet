@@ -2,37 +2,32 @@
 Please review your order, and if everything is correct click "Pay with Card" below to pay.
 ^{showMessage ErrorMessage mErrorMessage Nothing}
 <table .table .table-bordered>
-    <thead>
-        <tr>
-            <th>Item
-            <th>Price
-    <tbody>
-        $with section <- head sections
+    $forall (courseId, sections) <- groups
+        $with first <- L.head sections
             <tr>
-                <td>CRN #{sectionCrn section}
+                <th rowspan=#{length sections}>#{courseId}
+                <td>CRN #{sectionCrn first}
                 <td>$5.00
-        $forall section <- tail sections
+        $forall section <- L.tail sections
             <tr>
                 <td>CRN #{sectionCrn section}
                 <td>$1.00
-        $if phoneCall
-            <tr>
-                <td>Notification: #{phoneNum} (phone)
-                <td>
-        <tr>
-            <td>Notification: #{phoneNum} (sms)
-            <td>&mdash;
-        <tr>
-            <td>Notification: #{email} (email)
-            <td>&mdash;
-        <tr>
-            <td>Credit card processing fee
-            <td>$#{formatPrice fee}
-    <tfoot>
-        <tr>
-            <th>Total
-            <td>
-                <strong>$#{formatPrice price}
+    <tr>
+        <td colspan=2>
+            Credit card fees 
+            <a href=@{AboutR}#fees>(?)
+        <td>$#{formatPrice $ price - initialPrice}
+    <tr>
+        <th colspan=2>Total
+        <th>$#{formatPrice $ price}
+<a href=@{ChooseCrnsR} .btn>
+    <i .icon-double-angle-left .icon-large>
+    \ Change CRNs
+&nbsp;
+<a href=@{ContactInfoR} .btn>
+    <i .icon-angle-left .icon-large>
+    \ Change contact info
+<hr>
 <form method=post>
     <p>
         Secure payments are conducted through 
@@ -44,4 +39,4 @@ Please review your order, and if everything is correct click "Pay with Card" bel
         data-key="#{extraStripePublicKey extra}"
         data-amount="#{price}"
         data-name="Bannerstalker"
-        data-description="Notifications for #{courseId}">
+        data-description="Course notifications">

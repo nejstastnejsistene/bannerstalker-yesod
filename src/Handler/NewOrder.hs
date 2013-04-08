@@ -100,7 +100,7 @@ getChooseCrnsR = do
             mErrorMessage <- consumeSession errorKey
             mSuccessMessage <- consumeSession successKey
             defaultLayout $
-                $(widgetFile "new-order")
+                $(widgetFile "order")
   where
     similarTo c = T.concat ["section.course_id SIMILAR TO '", p, "'"]
       where
@@ -133,7 +133,7 @@ getContactInfoR = do
             mErrorMessage <- consumeSession errorKey
             defaultLayout $ do
                 setTitle "Contact information"
-                $(widgetFile "new-contact-info")
+                $(widgetFile "contact-info")
 
 postContactInfoR :: Handler RepHtml
 postContactInfoR = do
@@ -186,7 +186,7 @@ getReviewOrderR = do
             mErrorMessage <- consumeSession errorKey
             defaultLayout $ do
                 setTitle "Review order"
-                $(widgetFile "new-review-order")
+                $(widgetFile "review-order")
         _ -> redirect ContactInfoR
   where
     offsetFees :: Int -> Int
