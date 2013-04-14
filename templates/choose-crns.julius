@@ -6,4 +6,15 @@ $('.checkbox').change(function() {
     } else {
         tr.removeClass('info');
     }
-})
+});
+
+$(document).ready(function() {
+    $('#addMore').click(function() {
+        $.post($('#secondForm').attr('action'),
+                $('#firstForm').serialize() + $('secondForm').serialize(),
+            function() {
+                alert('Both forms submitted.');
+            }
+        );
+    });
+});

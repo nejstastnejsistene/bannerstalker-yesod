@@ -1,7 +1,7 @@
 $newline never
 ^{showMessage SuccessMessage mSuccessMessage Nothing}
 ^{showMessage ErrorMessage mErrorMessage Nothing}
-<form method=post>
+<form #firstForm method=post>
     <table .table .table-bordered .iter-sections>
         $forall (courseId, sectionGroup) <- groups
             <tr>
@@ -35,7 +35,7 @@ $newline never
                                 <strong>#{stat}
     <button .btn .btn-large .btn-primary>Continue
 <h4>Or, add some more CRNs first.
-<form method=post action=@{AddCrnsR} .form-inline>
-    <input type=text name=crns>
+<form #secondForm method=post action=@{AddCrnsR} .form-inline>
+    <input type=text name=add-crns>
     &nbsp;
-    <button type=submit .btn>Add more CRNs
+    <button #addMore type=submit .btn>Add more CRNs
