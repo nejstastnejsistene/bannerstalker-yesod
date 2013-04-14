@@ -1,4 +1,4 @@
 dist
 log
+snaplets/postgresql-simple/devel.cfg
 site_key.txt
-users.json
