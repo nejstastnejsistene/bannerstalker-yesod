@@ -1,14 +1,7 @@
 <form method="post" action="${postAction}">
-  <table id="info">
-    <tr>
-      <td>Login:</td><td><input type="text" name="login" size="20" /></td>
-    </tr>
-    <tr>
-      <td>Password:</td><td><input type="password" name="password" size="20" /></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><input type="submit" value="${submitText}" /></td>
-    </tr>
-  </table>
+  <label for="login">Email</label>
+  <input type="text" id="login" name="login" placeholder="Email">
+  <label for="password">Password</label>
+  <input type="password" id="password" name="password" placeholder="Password">
+  <button type="submit"><submitText/></button>
 </form>
