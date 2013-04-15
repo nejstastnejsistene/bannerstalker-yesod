@@ -1,9 +1,11 @@
-<h1>Snap Example App Login</h1>
-
-<p><loginError/></p>
-
-<bind tag="postAction">/login</bind>
-<bind tag="submitText">Login</bind>
-<apply template="userform"/>
-
-<p>Don't have a login yet? <a href="/new_user">Create a new user</a></p>
+<form method="post" action="/login">
+  <h1>Login</h1>
+  <p>Not Registered? <a href="/register">Sign up now!</a></p>
+  <p><loginError/></p>
+  <label for="login">Email</label>
+  <input type="text" id="login" name="login" placeholder="Email">
+  <label for="password">Password</label>
+  <input type="password" id="password" name="password" placeholder="Password">
+  <button type="submit">Login</button>
+  <p><a href="">Forget your password?</a></p>
+</form>

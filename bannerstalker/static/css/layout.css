@@ -123,7 +123,7 @@ h5, h6{
 	color:#777;
 }
 
-h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { text-decoration:none; }
+a { text-decoration:none; }
 h1 { font-size: 46px; line-height: 50px; margin-bottom: 14px;}
 h2 { font-size: 35px; line-height: 40px; margin-bottom: 12px; }
 h3 { font-size: 28px; line-height: 34px; margin-bottom: 10px; }
@@ -2301,7 +2301,7 @@ a.excerpt-link,
 
 /* Red */
 .skin-red #sub-title,
-.skin-red #main p a,
+.skin-red #main a,
 .skin-red nav#main-nav > ul > li.current > a,
 .skin-red a.excerpt-link,
 .skin-red .post-meta a.post-category,

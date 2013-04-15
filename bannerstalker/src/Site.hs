@@ -39,7 +39,7 @@ handleLogin authError = heistLocal (I.bindSplices errs) $ render "login"
 -- | Handle login submit
 handleLoginSubmit :: Handler App (AuthManager App) ()
 handleLoginSubmit =
-    loginUser "login" "password" Nothing
+    loginUser "email" "password" Nothing
               (\_ -> handleLogin err) (redirect "/")
   where
     err = Just "Unknown user or password"
@@ -53,11 +53,11 @@ handleLogout = logout >> redirect "/"
 
 ------------------------------------------------------------------------------
 -- | Handle new user form submit
-handleNewUser :: Handler App (AuthManager App) ()
-handleNewUser = method GET handleForm <|> method POST handleFormSubmit
+handleRegister :: Handler App (AuthManager App) ()
+handleRegister = method GET handleForm <|> method POST handleFormSubmit
   where
-    handleForm = render "new_user"
-    handleFormSubmit = registerUser "login" "password" >> redirect "/"
+    handleForm = render "register"
+    handleFormSubmit = registerUser "email" "password" >> redirect "/"
 
 
 ------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ handleNewUser = method GET handleForm <|> method POST handleFormSubmit
 routes :: [(ByteString, Handler App App ())]
 routes = [ ("/login",    with auth handleLoginSubmit)
          , ("/logout",   with auth handleLogout)
-         , ("/new_user", with auth handleNewUser)
+         , ("/register", with auth handleRegister)
          , ("",          serveDirectory "static")
          ]
 
