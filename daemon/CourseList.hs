@@ -18,7 +18,7 @@ import Email
 import Model
 
 url :: String
-url = "http://courselist.wm.edu/wmcourseschedule/courseinfo/searchresults"
+url = "https://courselist.wm.edu/wmcourseschedule/courseinfo/searchresults"
 
 -- Requests the raw html from the courselist website.
 requestCourseList :: Manager -> T.Text -> IO (Either T.Text B.ByteString)
