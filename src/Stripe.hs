@@ -14,40 +14,45 @@ import Settings
 
 data Charge = Charge { chargeId :: Text
                      , chargeObject :: Text
-                     , chargeLivemode :: Bool
-                     , chargeAmount :: Int
-                     , chargeCard :: Card
                      , chargeCreated :: Int
-                     , chargeCurrency :: Text
-                     , chargeFee :: Int
-                     , chargeFeeDetails :: [Fee]
+                     , chargeLivemode :: Bool
                      , chargePaid :: Bool
+                     , chargeAmount :: Int
+                     , chargeCurrency :: Text
                      , chargeRefunded :: Bool
+                     , chargeCard :: Card
+                     , chargeCapture :: Maybe Bool
+                     , chargeBalanceTransaction :: Maybe Text
+                     , chargeFailureMessage :: Maybe Text
+                     , chargeFailureCode :: Maybe Text
                      , chargeAmountRefunded :: Maybe Int
                      , chargeCustomer :: Maybe Text
+                     , chargeInvoice :: Maybe Text
                      , chargeDescription :: Maybe Text
                      , chargeDispute :: Maybe [Dispute]
-                     , chargeFailureMessage :: Maybe Text
-                     , chargeInvoice :: Maybe Text
+                     , chargeFee :: Int
+                     , chargeFeeDetails :: [Fee]
                      } deriving Show
 
-data Card = Card { cardObject :: Text
+data Card = Card { cardId :: Text
+                 , cardObject :: Text
+                 , cardLast4 :: Text
+                 , cardType :: Text
                  , cardExpMonth :: Int
                  , cardExpYear :: Int
                  , cardFingerprint :: Text
-                 , cardLast4 :: Text
-                 , cardType :: Text
+                 , cardCustomer :: Maybe Text
+                 , cardCountry :: Maybe Text
+                 , cardName :: Maybe Text
                  , cardAddressCity :: Maybe Text
                  , cardAddressCountry :: Maybe Text
                  , cardAddressLine1 :: Maybe Text
-                 , cardAddressLine1Check :: Maybe Text
                  , cardAddressLine2 :: Maybe Text
                  , cardAddressState :: Maybe Text
                  , cardAddressZip :: Maybe Text
-                 , cardAddressZipCheck :: Maybe Text
-                 , cardCountry :: Maybe Text
                  , cardCvcCheck :: Maybe Text
-                 , cardName :: Maybe Text
+                 , cardAddressLine1Check :: Maybe Text
+                 , cardAddressZipCheck :: Maybe Text
                  } deriving Show
 
 data Fee = Fee { feeAmount :: Int
@@ -81,42 +86,47 @@ instance FromJSON Charge where
     parseJSON (Object o) = Charge
         <$> o .: "id"
         <*> o .: "object"
-        <*> o .: "livemode"
-        <*> o .: "amount"
-        <*> o .: "card"
         <*> o .: "created"
-        <*> o .: "currency"
-        <*> o .: "fee"
-        <*> o .: "fee_details"
+        <*> o .: "livemode"
         <*> o .: "paid"
+        <*> o .: "amount"
+        <*> o .: "currency"
         <*> o .: "refunded"
+        <*> o .: "card"
+        <*> o .: "captured"
+        <*> o .: "balance_transaction"
+        <*> o .: "failure_message"
+        <*> o .: "failure_code"
         <*> o .: "amount_refunded"
         <*> o .: "customer"
+        <*> o .: "invoice"
         <*> o .: "description"
         <*> o .: "dispute"
-        <*> o .: "failure_message"
-        <*> o .: "invoice"
+        <*> o .: "fee"
+        <*> o .: "fee_details"
     parseJSON _ = mzero
 
 instance FromJSON Card where
     parseJSON (Object o) = Card
-        <$> o .: "object"
+        <$> o .: "id"
+        <*> o .: "object"
+        <*> o .: "last4"
+        <*> o .: "type"
         <*> o .: "exp_month"
         <*> o .: "exp_year"
         <*> o .: "fingerprint"
-        <*> o .: "last4"
-        <*> o .: "type"
+        <*> o .: "customer"
+        <*> o .: "country"
+        <*> o .: "name"
         <*> o .: "address_city"
         <*> o .: "address_country"
         <*> o .: "address_line1"
-        <*> o .: "address_line1_check"
         <*> o .: "address_line2"
         <*> o .: "address_state"
         <*> o .: "address_zip"
-        <*> o .: "address_zip_check"
-        <*> o .: "country"
         <*> o .: "cvc_check"
-        <*> o .: "name"
+        <*> o .: "address_line1_check"
+        <*> o .: "address_zip_check"
     parseJSON _ = mzero
 
 instance FromJSON Fee where
@@ -124,9 +134,9 @@ instance FromJSON Fee where
         <$> o .: "amount"
         <*> o .: "currency"
         <*> o .: "type"
-        <*> o .: "amount_refunded"
-        <*> o .: "application"
-        <*> o .: "description"
+        <*> o .:? "amount_refunded"
+        <*> o .:? "description"
+        <*> o .:? "application"
     parseJSON _ = mzero
 
 instance FromJSON Dispute where
